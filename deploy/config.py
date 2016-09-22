@@ -12,8 +12,8 @@ def get_config_data():
         "slack_url": None,
         "slack_channel": None,
         "slack_icon": None,
-        "datadog_key": None,
-        "datadog_secret": None
+        "datadog_api_key": None,
+        "datadog_app_key": None
     }
     filepath = "{}/.li-config".format(expanduser("~"))
     try:

@@ -1,8 +1,9 @@
 import os
 import subprocess
 from git import Repo
-from .config import get_config_data
-from .messages import Message
+from deploy.config import get_config_data
+from deploy.messages import Message
+from deploy.utils import run_command
 
 
 def main():
@@ -24,6 +25,8 @@ def main():
     # Confirma operação
     branch_name = branch.name
     last_commit = repo.head.commit.message
+    folder_name = os.path.split(current_dir)[-1].lower()
+    print("Repositório: {}".format(folder_name))
     print("Branch Atual: {}".format(branch_name))
     print("Último Commit: {}".format(last_commit))
 
@@ -36,22 +39,41 @@ def main():
         return False
 
     # Atualiza GitHub
-    print("\n>> Atualiza GitHub...")
-    git_command = "git push origin {}".format(branch.name)
-    try:
-        subprocess.run([git_command], shell=True, check=True)
-    except:
-        print('Ocorreu um erro. Processo abortado')
-        return False
+    ret = run_command(
+        title="Atualiza GitHub",
+        command_list=["git push origin {}".format(branch.name)]
+    )
 
     # Envia Mensagem Datadog/Slack
     if branch.name in ['production', 'master']:
-        message = Message(config, branch, last_commit)
-        message.send_datadog(alert_type="warning")
+        message = Message(config, branch, last_commit, folder_name)
+        # message.send_datadog(alert_type="warning")
+        # message.send_slack()
 
     # Gerar imagem do Docker
-    pass
-
+    login_command = run_command(
+        title="Gera Imagem no Docker",
+        command_list=[
+            "aws ecr get-login --region us-east-1"
+        ]
+    )
+    if not login_command:
+        return False
+    ret = run_command(
+        command_list=[
+            login_command.stdout,
+        ]
+    )
+    if not ret:
+        return False
+    ret = run_command(
+        command_list=[
+            "docker build -f Dockerfile_local -t {} .".format(folder_name)
+        ]
+    )
+    if not ret:
+        return False
+    print(ret.stdout)
     # Ações específicas do App
     pass
 
@@ -62,7 +84,7 @@ def main():
     pass
 
 
-if __name__ == "__main__":
+def start():
     print(
         "\n\n************************\n\n"
         "LI-Deploy v1.0\n\n"
@@ -71,3 +93,6 @@ if __name__ == "__main__":
     retorno = main()
     if not retorno:
         print("Operação não concluída.\n")
+
+if __name__ == "__main__":
+    start()
