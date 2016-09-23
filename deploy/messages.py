@@ -9,6 +9,7 @@ class Message():
             branch,
             commit,
             repo,
+            action,
             test=False,
             *args,
             **kwargs):
@@ -17,10 +18,11 @@ class Message():
         self.commit = commit
         self.repo = repo
         self.test = test
+        self.action = action
         print("\n>> Enviando mensagens")
         print("*********************")
 
-    def send_datadog(self, alert_type="info", action):
+    def send_datadog(self, alert_type="info"):
 
         options = {
             'api_key': self.config['datadog_api_key'],
@@ -35,7 +37,7 @@ class Message():
             tags = ""
         else:
             title = "DEPLOY {}: {}/{}".format(
-                action, self.repo, self.branch.name)
+                self.action, self.repo, self.branch.name)
             text = self.commit
             tags = ["deploy"]
 
@@ -57,7 +59,7 @@ class Message():
             text = "Teste. Por favor ignorar."
         else:
             text = "DEPLOY {}: {}/{}\n{}".format(
-                action,
+                self.action,
                 self.repo,
                 self.branch.name,
                 self.commit

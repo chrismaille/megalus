@@ -1,8 +1,11 @@
 import os
+import json
 from git import Repo
 from deploy.config import get_config_data
 from deploy.messages import Message
 from deploy.utils import run_command
+
+TEST = True
 
 
 def main():
@@ -23,7 +26,7 @@ def main():
 
     # Confirma operação
     branch_name = branch.name
-    last_commit = repo.head.commit.message
+    last_commit = repo.head.commit.message.split("(adiciona Dockerrun)")
     folder_name = os.path.split(current_dir)[-1].lower()
     print("Repositório: {}".format(folder_name))
     print("Branch Atual: {}".format(branch_name))
@@ -36,6 +39,27 @@ def main():
             resposta_ok = True
     if resposta[0].upper() == "N":
         return False
+
+    # Gera Dockerrun
+    json_model = {
+        'AWSEBDockerrunVersion': '1',
+        'Image': {
+            'Name': '157607069902.dkr.ecr.us-east-1.amazonaws.com/{app}:{branch}'.format(
+                app=folder_name,
+                branch=branch_name),
+            'Update': 'true'},
+        'Ports': [
+            {
+                'ContainerPort': '80'}],
+        'Logging': "/var/eb_log"}
+    with open("./Dockerrun.aws.json", 'w') as file:
+        file.write(json.dumps(json_model, indent=2))
+    ret = run_command(title="Adiciona Dockerrun",
+                      command_list=[{'command': "git add ./Dockerrun.aws.json",
+                                     'run_stdout': False},
+                                    {'command': "git commit -m \"{}(adiciona Dockerrun)\"".format(last_commit),
+                                     'run_stdout': False},
+                                    ])
 
     # Atualiza GitHub
     ret = run_command(
@@ -52,9 +76,15 @@ def main():
 
     # Envia Mensagem Datadog/Slack
     if branch.name in ['production', 'master']:
-        message = Message(config, branch, last_commit, folder_name, test=True)
-        message.send_datadog(alert_type="warning", action="INICIADO")
-        message.send_slack(action="INICIADO")
+        message = Message(
+            config,
+            branch,
+            last_commit,
+            folder_name,
+            test=TEST,
+            action="INICIADO")
+        message.send_datadog(alert_type="warning")
+        message.send_slack()
 
     # Gerar imagem do Docker
     ret = run_command(
