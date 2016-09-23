@@ -17,11 +17,11 @@ class Message():
         self.commit = commit
         self.repo = repo
         self.test = test
+        print("\n>> Enviando mensagens")
+        print("*********************")
 
-    def send_datadog(self, alert_type="info"):
-        print(">> Enviando mensagem para Datadog")
-        if self.test:
-            return
+    def send_datadog(self, alert_type="info", action):
+
         options = {
             'api_key': self.config['datadog_api_key'],
             'app_key': self.config['datadog_app_key']
@@ -29,34 +29,45 @@ class Message():
 
         datadog.initialize(**options)
 
-        title = "DEPLOY INICIADO: {}/{}".format(self.repo, self.branch.name)
-        text = self.commit
-        tags = ["deploy"]
+        if self.test:
+            title = "Teste. Por favor ignorar."
+            text = title
+            tags = ""
+        else:
+            title = "DEPLOY {}: {}/{}".format(
+                action, self.repo, self.branch.name)
+            text = self.commit
+            tags = ["deploy"]
 
         datadog.api.Event.create(
             title=title,
             text=text,
             tags=tags,
-            alert_type=alert_type
+            alert_type=alert_type if not self.test else "info"
         )
+        print("Datadog OK")
 
     def send_slack(self):
-        print(">> Enviando mensagem para Slack")
-        if self.test:
-            return
+
         slack = slackweb.Slack(
             url=self.config['slack_url']
         )
 
-        text = "DEPLOY INICIADO: {}/{}\n{}".format(
-            self.repo,
-            self.branch.name,
-            self.commit
-        )
+        if self.test:
+            text = "Teste. Por favor ignorar."
+        else:
+            text = "DEPLOY {}: {}/{}\n{}".format(
+                action,
+                self.repo,
+                self.branch.name,
+                self.commit
+            )
 
         slack.notify(
             text=text,
-            channel="#{}".format(self.config['slack_channel']),
+            channel="#{}".format(
+                self.config['slack_channel']) if not self.test else "#teste_automacao",
             username=self.config['slack_user'],
-            icon_emoji=":{}:".format(self.config['slack_icon'])
-        )
+            icon_emoji=":{}:".format(
+                self.config['slack_icon']))
+        print("Slack OK")
