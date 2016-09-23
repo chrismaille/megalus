@@ -1,13 +1,13 @@
 {
-  "Image": {
-    "Name": "157607069902.dkr.ecr.us-east-1.amazonaws.com/li-deploy:master",
-    "Update": "true"
-  },
   "Logging": "/var/eb_log",
   "Ports": [
     {
       "ContainerPort": "80"
     }
   ],
-  "AWSEBDockerrunVersion": "1"
+  "AWSEBDockerrunVersion": "1",
+  "Image": {
+    "Name": "157607069902.dkr.ecr.us-east-1.amazonaws.com/li-deploy:master",
+    "Update": "true"
+  }
 }
