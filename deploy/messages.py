@@ -3,14 +3,25 @@ import slackweb
 
 
 class Message():
-    def __init__(self, config, branch, commit, repo, *args, **kwargs):
+    def __init__(
+            self,
+            config,
+            branch,
+            commit,
+            repo,
+            test=False,
+            *args,
+            **kwargs):
         self.config = config
         self.branch = branch
         self.commit = commit
         self.repo = repo
+        self.test = test
 
     def send_datadog(self, alert_type="info"):
         print(">> Enviando mensagem para Datadog")
+        if self.test:
+            return
         options = {
             'api_key': self.config['datadog_api_key'],
             'app_key': self.config['datadog_app_key']
@@ -31,6 +42,8 @@ class Message():
 
     def send_slack(self):
         print(">> Enviando mensagem para Slack")
+        if self.test:
+            return
         slack = slackweb.Slack(
             url=self.config['slack_url']
         )

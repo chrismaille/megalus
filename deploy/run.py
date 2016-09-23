@@ -1,5 +1,4 @@
 import os
-import subprocess
 from git import Repo
 from deploy.config import get_config_data
 from deploy.messages import Message
@@ -41,39 +40,42 @@ def main():
     # Atualiza GitHub
     ret = run_command(
         title="Atualiza GitHub",
-        command_list=["git push origin {}".format(branch.name)]
-    )
-
-    # Envia Mensagem Datadog/Slack
-    if branch.name in ['production', 'master']:
-        message = Message(config, branch, last_commit, folder_name)
-        # message.send_datadog(alert_type="warning")
-        # message.send_slack()
-
-    # Gerar imagem do Docker
-    login_command = run_command(
-        title="Gera Imagem no Docker",
         command_list=[
-            "aws ecr get-login --region us-east-1"
-        ]
-    )
-    if not login_command:
-        return False
-    ret = run_command(
-        command_list=[
-            login_command.stdout,
+            {
+                'command': "git push origin {}".format(branch.name),
+                'run_stdout': False
+            }
         ]
     )
     if not ret:
         return False
+
+    # Envia Mensagem Datadog/Slack
+    if branch.name in ['production', 'master']:
+        message = Message(config, branch, last_commit, folder_name, test=True)
+        message.send_datadog(alert_type="warning")
+        message.send_slack()
+
+    # Gerar imagem do Docker
     ret = run_command(
+        title="Gera Imagem no Docker",
         command_list=[
-            "docker build -f Dockerfile_local -t {} .".format(folder_name)
+            {
+                'command': "aws ecr get-login --region us-east-1",
+                'run_stdout': True
+            },
+            {
+                'command': "docker build -f Dockerfile_local -t {} .".format(
+                    folder_name
+                ),
+                'run_stdout': False
+            }
         ]
     )
     if not ret:
         return False
     print(ret.stdout)
+
     # Ações específicas do App
     pass
 
