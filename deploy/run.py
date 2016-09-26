@@ -1,9 +1,10 @@
 import os
 import json
 from git import Repo
-from deploy.config import get_config_data
+from deploy.config import get_config_data, APPLICATIONS, MINIFY_BEFORE, SYNC_S3
 from deploy.messages import Message
 from deploy.utils import run_command
+from deploy.compress import minifyCSS, minifyJS
 
 TEST = True
 
@@ -23,10 +24,13 @@ def main():
               "pasta onde se encontra a subpasta .git.")
         print("Comando abortado.")
         return False
+    if branch not in APPLICATIONS:
+        print("Repositório não reconhecido.")
+        return False
 
     # Confirma operação
     branch_name = branch.name
-    last_commit = repo.head.commit.message.split("(adiciona Dockerrun)")
+    last_commit = repo.head.commit.message
     folder_name = os.path.split(current_dir)[-1].lower()
     print("Repositório: {}".format(folder_name))
     print("Branch Atual: {}".format(branch_name))
@@ -44,7 +48,7 @@ def main():
     json_model = {
         'AWSEBDockerrunVersion': '1',
         'Image': {
-            'Name': '157607069902.dkr.ecr.us-east-1.amazonaws.com/{app}:{branch}'.format(
+            'Name': '{account}.dkr.ecr.{region}.amazonaws.com/{app}:{branch}'.format(
                 app=folder_name,
                 branch=branch_name),
             'Update': 'true'},
@@ -56,8 +60,6 @@ def main():
         file.write(json.dumps(json_model, indent=2))
     ret = run_command(title="Adiciona Dockerrun",
                       command_list=[{'command': "git add ./Dockerrun.aws.json",
-                                     'run_stdout': False},
-                                    {'command': "git commit -m \"{}(adiciona Dockerrun)\"".format(last_commit),
                                      'run_stdout': False},
                                     ])
 
@@ -91,7 +93,7 @@ def main():
         title="Gera Imagem no Docker",
         command_list=[
             {
-                'command': "aws ecr get-login --region us-east-1",
+                'command': "aws ecr get-login --region {region}".format(region=config['aws_region']),
                 'run_stdout': True
             },
             {
@@ -101,20 +103,26 @@ def main():
                 'run_stdout': False
             },
             {
-                'command': "docker tag {app}:latest 157607069902.dkr.ecr.us-east-1.amazonaws.com/{app}:latest".format(
+                'command': "docker tag {app}:latest {account}.dkr.ecr.{region}.amazonaws.com/{app}:latest".format(
+                    account=config['aws_account'],
+                    region=config['aws_region'],
                     app=folder_name,
                     branch=branch_name
                 ),
                 'run_stdout': False
             },
             {
-                'command': "docker push 157607069902.dkr.ecr.us-east-1.amazonaws.com/{app}:latest".format(
+                'command': "docker push {account}.dkr.ecr.{region}.amazonaws.com/{app}:latest".format(
+                    account=config['aws_account'],
+                    region=config['aws_region'],
                     app=folder_name
                 ),
                 'run_stdout': False
             },
             {
-                'command': "docker push 157607069902.dkr.ecr.us-east-1.amazonaws.com/{app}:{branch}".format(
+                'command': "docker push {account}.dkr.ecr.{region}.amazonaws.com/{app}:{branch}".format(
+                    account=config['aws_account'],
+                    region=config['aws_region'],
                     app=folder_name,
                     branch=branch_name
                 ),
@@ -126,13 +134,56 @@ def main():
         return False
 
     # Ações específicas do App
-    pass
+    # 1. Minify estáticos
+    if branch_name in MINIFY_BEFORE:
+        print("\n>> Minificando arquivos estáticos")
+        print("*********************************")
+        ret = minifyCSS()
+        if not ret:
+            return False
+
+        ret = minifyJS()
+        if not ret:
+            return False
+
+    # 2. Sincronizar estáticos
+    if branch_name in SYNC_S3:
+        ret = run_command(
+            title="Sincronizando arquivos estáticos no S3/{}".format(branch_name),
+            command_list=[
+                {
+                    'command': "aws s3 sync static/ s3://lojaintegrada.cdn/{branch}/static/ --acl public-read".format(branch_name)
+                    'run_stdout': False
+                }
+            ]
+        )
+        if not ret:
+            return False
 
     # Rodar EB Deploy
-    pass
+    ret = run_command(
+        title="Rodando EB Deploy",
+        command_list=[
+            {
+                'command': "eb deploy --timeout 60"
+                'run_stdout': False
+            }
+        ]
+    )
+    if not ret:
+        return False
 
     # Mensagem final
-    pass
+    if branch.name in ['production', 'master']:
+        message = Message(
+            config,
+            branch,
+            last_commit,
+            folder_name,
+            test=TEST,
+            action="FINALIZADO")
+        message.send_datadog()
+        message.send_slack()
 
     return True
 

@@ -1,10 +1,16 @@
 datadog==0.14.0
 decorator==4.0.10
+docopt==0.6.2
 gitdb==0.6.4
 GitPython==2.0.8
 pkg-resources==0.0.0
+ply==3.9
 PyGithub==1.28
+rcssmin==1.0.6
 requests==2.11.1
 simplejson==3.8.2
+slackweb==1.0.5
+slimit==0.8.1
 smmap==0.9.0
-slackweb
+awscli
+awsebcli
