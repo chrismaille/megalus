@@ -38,7 +38,7 @@ def main():
 
     resposta_ok = False
     while not resposta_ok:
-        resposta = input("Deseja continuar (S/N)? ")
+        resposta = input("Deseja continuar (s/n)? ")
         if resposta[0].upper() in ["S", "N"]:
             resposta_ok = True
     if resposta[0].upper() == "N":
@@ -56,12 +56,11 @@ def main():
             {
                 'ContainerPort': '80'}],
         'Logging': "/var/eb_log"}
+
+    print("\n>> Atualiza Dockerrun")
+    print("*********************")
     with open("./Dockerrun.aws.json", 'w') as file:
         file.write(json.dumps(json_model, indent=2))
-    ret = run_command(title="Adiciona Dockerrun",
-                      command_list=[{'command': "git add ./Dockerrun.aws.json",
-                                     'run_stdout': False},
-                                    ])
 
     # Atualiza GitHub
     ret = run_command(
@@ -152,11 +151,8 @@ def main():
             title="Sincronizando arquivos estáticos no S3/{}".format(branch_name),
             command_list=[
                 {
-                    'command': "aws s3 sync static/ s3://lojaintegrada.cdn/{branch}/static/ --acl public-read".format(branch_name)
-                    'run_stdout': False
-                }
-            ]
-        )
+                    'command': "aws s3 sync static/ s3://lojaintegrada.cdn/{branch}/static/ --acl public-read".format(branch_name),
+                    'run_stdout': False}])
         if not ret:
             return False
 
@@ -165,7 +161,7 @@ def main():
         title="Rodando EB Deploy",
         command_list=[
             {
-                'command': "eb deploy --timeout 60"
+                'command': "eb deploy --timeout 60",
                 'run_stdout': False
             }
         ]
