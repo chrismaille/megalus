@@ -1,9 +1,7 @@
-from slimit import minify
+from rjsmin import jsmin
 from rcssmin import cssmin
 
 baseDirStatic = "./static/loja/estrutura/v1/"
-jsDestPath = "{}js/all.js".format(baseDirStatic)
-jsMinPath = "{}js/all.min.js".format(baseDirStatic)
 
 jsSources = [
     "js/jquery-1.10.1.min.js",
@@ -17,9 +15,6 @@ jsSources = [
     "js/jquery.rwdImageMaps.min.js",
     "js/main.js"
 ]
-
-cssDestPath = "{}css/all.css".format(baseDirStatic)
-cssMinPath = "{}css/all.min.css".format(baseDirStatic)
 
 cssSources = [
     "css/bootstrap.css",
@@ -39,24 +34,30 @@ def _minifyCSS(text):
 
 
 def _minifyJS(text):
-    return minify(text, mangle=True, mangle_toplevel=True)
+    return jsmin(text)
 
 
-def saveFile(function, sourcePaths, destPath, minPath, header=None):
-    print "Gerando arquivos %s e %s" % (destPath, minPath)
+def saveFile(function, sourcePaths, destPath, minPath, baseDir, header=None):
+    print("Gerando arquivos {} e {}".format(destPath, minPath))
     f = open(destPath, 'w')
     mf = None
+    fullminText = ""
     try:
         mf = open(minPath, 'w')
         if header:
             mf.write(header)
         for srcFile in sourcePaths:
             print(srcFile)
-            with open("{}{}".format(baseDirStatic, srcFile)) as inputFile:
+            with open("{}{}".format(baseDir, srcFile)) as inputFile:
                 srcText = inputFile.read()
                 minText = function(srcText)
+                if function.__name__ == "_minifyJS":
+                    if not minText[-1] == ";":
+                        minText += ";"
+                    minText = minText.replace("\n", ";")
             f.write(srcText)
             mf.write(minText)
+            fullminText += minText
     except:
         print("Ocorreu um erro ao gerar o Minify")
         return False
@@ -67,9 +68,13 @@ def saveFile(function, sourcePaths, destPath, minPath, header=None):
         return True
 
 
-def minifyJS():
-    return saveFile(_minifyJS, jsSources, jsDestPath, jsMinPath)
+def minifyJS(baseDir=baseDirStatic, source=jsSources):
+    jsDestPath = "{}js/all.js".format(baseDir)
+    jsMinPath = "{}js/all.min.js".format(baseDir)
+    return saveFile(_minifyJS, source, jsDestPath, jsMinPath, baseDir)
 
 
-def minifyCSS():
-    return saveFile(_minifyCSS, cssSources, cssDestPath, cssMinPath)
+def minifyCSS(baseDir=baseDirStatic, source=cssSources):
+    cssDestPath = "{}css/all.css".format(baseDir)
+    cssMinPath = "{}css/all.min.css".format(baseDir)
+    return saveFile(_minifyCSS, source, cssDestPath, cssMinPath, baseDir)

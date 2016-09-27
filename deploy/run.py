@@ -6,8 +6,6 @@ from deploy.messages import Message
 from deploy.utils import run_command
 from deploy.compress import minifyCSS, minifyJS
 
-TEST = True
-
 
 def main():
     config = get_config_data()
@@ -24,14 +22,14 @@ def main():
               "pasta onde se encontra a subpasta .git.")
         print("Comando abortado.")
         return False
-    if branch not in APPLICATIONS:
+    if branch not in APPLICATIONS and branch != "LI-Deploy":
         print("Repositório não reconhecido.")
         return False
 
     # Confirma operação
     branch_name = branch.name
     last_commit = repo.head.commit.message
-    folder_name = os.path.split(current_dir)[-1].lower()
+    folder_name = os.path.split(current_dir)[-1]
     print("Repositório: {}".format(folder_name))
     print("Branch Atual: {}".format(branch_name))
     print("Último Commit: {}".format(last_commit))
@@ -82,7 +80,6 @@ def main():
             branch,
             last_commit,
             folder_name,
-            test=TEST,
             action="INICIADO")
         message.send_datadog(alert_type="warning")
         message.send_slack()
@@ -176,7 +173,6 @@ def main():
             branch,
             last_commit,
             folder_name,
-            test=TEST,
             action="FINALIZADO")
         message.send_datadog()
         message.send_slack()
