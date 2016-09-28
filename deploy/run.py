@@ -22,7 +22,11 @@ def main():
               "pasta onde se encontra a subpasta .git.")
         print("Comando abortado.")
         return False
-    if branch not in APPLICATIONS and branch != "LI-Deploy":
+    app_list = [
+        app
+        for app, branch in APPLICATIONS
+    ]
+    if branch not in app_list and branch != "LI-Deploy":
         print("Repositório não reconhecido.")
         return False
 
