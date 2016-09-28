@@ -20,7 +20,7 @@ install_requires = [
     'rcssmin',
     'requests',
     'rjsmin',
-    'slackweb'.
+    'slackweb',
     'awscli',
     'awsebcli'
 ]
