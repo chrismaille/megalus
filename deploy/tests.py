@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 import unittest
 import os
 from deploy.config import get_config_data

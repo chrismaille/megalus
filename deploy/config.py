@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 import os
 from os.path import expanduser
 from deploy.utils import run_command

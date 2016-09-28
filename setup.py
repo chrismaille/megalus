@@ -21,13 +21,15 @@ install_requires = [
     'rcssmin',
     'requests',
     'rjsmin',
-    'slackweb'
+    'slackweb'.
+    'awscli',
+    'awsebcli'
 ]
 
 
 setup(
     name='LI-AWS-Deploy',
-    version='1.0.8',
+    version='1.0.9',
     description='Deploy tool for Loja Integrada Web Applications',
     long_description=long_description,
     author='Chris Maillefaud',

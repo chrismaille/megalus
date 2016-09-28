@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 from rjsmin import jsmin
 from rcssmin import cssmin
 
