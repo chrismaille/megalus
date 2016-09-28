@@ -8,7 +8,7 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
-with open(path.join(here, 'deploy', 'requirements.txt')) as f:
+with open(path.join(here, 'requirements.txt')) as f:
     install_requires = [
         line
         for line in f
@@ -17,7 +17,7 @@ with open(path.join(here, 'deploy', 'requirements.txt')) as f:
 
 setup(
     name='LI-AWS-Deploy',
-    version='1.0.3',
+    version='1.0.4',
     description='Deploy tool for Loja Integrada Web Applications',
     long_description=long_description,
     author='Chris Maillefaud',
