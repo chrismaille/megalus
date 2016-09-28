@@ -121,9 +121,18 @@ def get_config_data(filename="li-config"):
         if not os.path.exists(project_path):
             os.makedirs(project_path)
             for app, branch in APPLICATIONS:
+                # git config --global credential.helper 'cache --timeout=3600'
+                run_command(
+                    title="Clonando Repositórios"
+                    command_list=[
+                        {
+                            'command': "git config --global credential.helper 'cache --timeout=3600'"
+                            'run_stdout': False
+                        }
+                    ]
+                )
                 run_command(
                     title=None,
-                    # git clone -b my-branch https://git@github.com/username/myproject.git
                     command_list=[
                         {
                             'command': "git clone -b {branch} {url} {dir}".format(

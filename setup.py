@@ -8,16 +8,26 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
-with open(path.join(here, 'requirements.txt')) as f:
-    install_requires = [
-        line
-        for line in f
-    ]
+
+install_requires = [
+    'coverage',
+    'datadog',
+    'decorator',
+    'docopt',
+    'gitdb',
+    'GitPython',
+    'nose',
+    'PyGithub',
+    'rcssmin',
+    'requests',
+    'rjsmin',
+    'slackweb'
+]
 
 
 setup(
     name='LI-AWS-Deploy',
-    version='1.0.4',
+    version='1.0.8',
     description='Deploy tool for Loja Integrada Web Applications',
     long_description=long_description,
     author='Chris Maillefaud',
@@ -32,8 +42,8 @@ setup(
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     install_requires=install_requires,
     entry_points={
-        'lideploy': [
-            'deploy=run:start',
+        'console_scripts': [
+            'lideploy=deploy.run:start',
         ],
     },
 )
