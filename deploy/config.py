@@ -77,8 +77,7 @@ def get_config_data(filename="li-config"):
 
         if not os.environ.get('LI_PROJECT_PATH'):
             ret = False
-
-        if not os.path.exists(os.environ.get('LI_PROJECT_PATH')):
+        elif not os.path.exists(os.environ.get('LI_PROJECT_PATH')):
             ret = False
 
     if ret:
