@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import os
 from os.path import expanduser
 from deploy.utils import run_command
 
 APPLICATIONS = [
-    ('LI-Docker','master'),
+    ('LI-Docker', 'master'),
     ('LI-Api-Carrinho', 'staging'),
     ('LI-Api-Catalogo', 'staging'),
     ('LI-Api-Envio', 'staging'),
@@ -88,7 +89,7 @@ def get_config_data(filename="li-config"):
         with open(filepath, 'a') as file:
             for key in config:
                 if not config.get(key):
-                    value = input("Informe {}: ".format(key))
+                    value = raw_input("Informe {}: ".format(key))
                     config[key] = value
                     file.write("{}={}\n".format(key.upper(), value))
 
@@ -128,10 +129,7 @@ def get_config_data(filename="li-config"):
                     command_list=[
                         {
                             'command': "git config --global credential.helper 'cache --timeout=3600'",
-                            'run_stdout': False
-                        }
-                    ]
-                )
+                            'run_stdout': False}])
                 run_command(
                     title=None,
                     command_list=[
