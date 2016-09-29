@@ -121,14 +121,13 @@ def get_config_data(filename="li-config"):
         # Clona os repositorios LI
         if not os.path.exists(project_path):
             os.makedirs(project_path)
+            run_command(
+                title="Clonando Repositórios",
+                command_list=[
+                    {
+                        'command': "git config --global credential.helper 'cache --timeout=3600'",
+                        'run_stdout': False}])
             for app, branch in APPLICATIONS:
-                # git config --global credential.helper 'cache --timeout=3600'
-                run_command(
-                    title="Clonando Repositórios",
-                    command_list=[
-                        {
-                            'command': "git config --global credential.helper 'cache --timeout=3600'",
-                            'run_stdout': False}])
                 run_command(
                     title=None,
                     command_list=[
@@ -143,4 +142,4 @@ def get_config_data(filename="li-config"):
                     ]
                 )
 
-    return config
+    return False

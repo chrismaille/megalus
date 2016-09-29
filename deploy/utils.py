@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_functions, unicode_literals
+from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import subprocess
 
 
@@ -30,7 +30,7 @@ def run_command(command_list, title=None):
                 shell=True
                 )
 
-        if ret.returncode != 0:
+        if ret != 0:
             print('Ocorreu um erro. Processo abortado')
             return False
 

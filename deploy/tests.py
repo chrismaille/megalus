@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import unittest
 import os
 from deploy.config import get_config_data
