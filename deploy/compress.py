@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
 from rjsmin import jsmin
 from rcssmin import cssmin
 

@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
 import unittest
 import os
 from deploy.config import get_config_data

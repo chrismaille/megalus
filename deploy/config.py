@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
 import os
 from os.path import expanduser
 from deploy.utils import run_command
@@ -16,7 +16,7 @@ APPLICATIONS = [
     ('LI-Api-Plataforma', 'staging'),
     ('LI-Api-V2', 'staging'),
     ('LI-AppApi', 'staging'),
-    ('LI-AppConciliacao', 'staging')
+    ('LI-AppConciliacao', 'staging'),
     ('LI-AppLoja', 'staging'),
     ('LI-AppPainel', 'staging'),
     ('LI-Worker', 'staging'),
@@ -124,10 +124,10 @@ def get_config_data(filename="li-config"):
             for app, branch in APPLICATIONS:
                 # git config --global credential.helper 'cache --timeout=3600'
                 run_command(
-                    title="Clonando Repositórios"
+                    title="Clonando Repositórios",
                     command_list=[
                         {
-                            'command': "git config --global credential.helper 'cache --timeout=3600'"
+                            'command': "git config --global credential.helper 'cache --timeout=3600'",
                             'run_stdout': False
                         }
                     ]
