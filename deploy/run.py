@@ -24,17 +24,18 @@ def main():
         print("Comando abortado.")
         return False
     app_list = [
-        app
-        for app, branch in APPLICATIONS
+        app.lower()
+        for app, br in APPLICATIONS
     ]
-    if branch not in app_list and branch != "LI-Deploy":
+    folder_name = os.path.split(current_dir)[-1]
+    if folder_name.lower() not in app_list and not folder_name in [
+            "LI-Deploy", "li-deploy"]:
         print("Repositório não reconhecido.")
         return False
 
     # Confirma operação
     branch_name = branch.name
     last_commit = repo.head.commit.message
-    folder_name = os.path.split(current_dir)[-1]
     print("Repositório: {}".format(folder_name))
     print("Branch Atual: {}".format(branch_name))
     print("Último Commit: {}".format(last_commit))
