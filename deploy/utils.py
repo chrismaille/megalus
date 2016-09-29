@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_functions, unicode_literals
 import subprocess
 
 
@@ -9,25 +10,25 @@ def run_command(command_list, title=None):
     # try:
     for task in command_list:
         if task['run_stdout']:
-            ret = subprocess.run(
+            ret = subprocess.call(
                 [task['command']],
                 shell=True,
-                stdout=subprocess.PIPE,
-                universal_newlines=True)
+                stdout=subprocess.PIPE
+                )
 
             if ret.returncode != 0:
                 print('Ocorreu um erro. Processo abortado')
                 return False
 
-            ret = subprocess.run(
+            ret = subprocess.call(
                 [ret.stdout],
-                shell=True,
-                universal_newlines=True)
+                shell=True
+                )
         else:
-            ret = subprocess.run(
+            ret = subprocess.call(
                 [task['command']],
-                shell=True,
-                universal_newlines=True)
+                shell=True
+                )
 
         if ret.returncode != 0:
             print('Ocorreu um erro. Processo abortado')
