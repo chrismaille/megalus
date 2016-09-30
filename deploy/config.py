@@ -1,28 +1,34 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import os
+import platform
 from os.path import expanduser
 from deploy.utils import run_command
 
 APPLICATIONS = [
-    ('LI-Docker', 'master'),
-    ('LI-Api-Carrinho', 'staging'),
-    ('LI-Api-Catalogo', 'staging'),
-    ('LI-Api-Envio', 'staging'),
-    ('LI-Api-Faturamento', 'staging'),
-    ('LI-Api-Integration', 'staging'),
-    ('LI-Api-Marketplace', 'staging'),
-    ('LI-Api-Pagador', 'staging'),
-    ('LI-Api-Pedido', 'staging'),
-    ('LI-Api-Plataforma', 'staging'),
-    ('LI-Api-V2', 'staging'),
-    ('LI-AppApi', 'staging'),
-    ('LI-AppConciliacao', 'staging'),
-    ('LI-AppLoja', 'staging'),
-    ('LI-AppPainel', 'staging'),
-    ('LI-Worker', 'staging'),
-    ('LI-Worker-Integration', 'staging'),
-    ('LI-Repo', 'master')
+    ('LI-Docker', ['master']),
+    ('LI-Api-Carrinho', ['development', 'staging', 'production']),
+    ('LI-Api-Catalogo', ['development', 'staging', 'production']),
+    ('LI-Api-Envio', ['development', 'staging', 'production']),
+    ('LI-Api-Faturamento', ['development', 'staging', 'production']),
+    ('LI-Api-Integration', ['development', 'staging', 'production']),
+    ('LI-Api-Marketplace', ['development', 'staging', 'production']),
+    ('LI-Api-Pagador', ['development', 'staging', 'production']),
+    ('LI-Api-Pedido', ['development', 'staging', 'production']),
+    ('LI-Api-Plataforma', ['development', 'staging', 'production']),
+    ('LI-Api-V2', ['development', 'staging', 'production']),
+    ('LI-AppApi', ['development', 'staging', 'production']),
+    ('LI-AppConciliacao', ['staging', 'production']),
+    ('LI-AppLoja', ['development', 'staging', 'production']),
+    ('LI-AppPainel', ['development', 'staging', 'production']),
+    ('LI-Worker', ['development', 'staging', 'production']),
+    ('LI-Api-Pagamento', ['beta', 'master']),
+    ('LI-Worker-Pagamento', ['beta', 'master']),
+    ('LI-Worker-Integration', ['development', 'staging', 'production']),
+    ('LI-Repo', ['master']),
+    ('LI-ApiClient', ['master']),
+    ('LI-Common', ['master']),
+    ('LI-Api-Flask', ['master'])
 ]
 
 MINIFY_BEFORE = [
@@ -109,14 +115,15 @@ def get_config_data(filename="li-config"):
         # Grava no bashrc a variavel LI_PROJECT_PATH
         profile_path = os.path.join(basepath, '.profile')
         project_path = config['project_path']
-        if 'LI_PROJECT_PATH' not in open(profile_path).read():
-            run_command(
-                title=None, command_list=[
-                    {
-                        'command': "echo export LI_PROJECT_PATH='{}' >> {}".format(
-                            project_path, profile_path), 'run_stdout': False}, {
-                        'command': "export LI_PROJECT_PATH='{}'".format(
-                            project_path), 'run_stdout': False}], )
+        if os.path.exists(profile_path):
+            if 'LI_PROJECT_PATH' not in open(profile_path).read():
+                run_command(
+                    title=None, command_list=[
+                        {
+                            'command': "echo export LI_PROJECT_PATH='{}' >> {}".format(
+                                project_path, profile_path), 'run_stdout': False}, {
+                            'command': "export LI_PROJECT_PATH='{}'".format(
+                                project_path), 'run_stdout': False}], )
 
         # Clona os repositorios LI
         if not os.path.exists(project_path):
@@ -127,19 +134,44 @@ def get_config_data(filename="li-config"):
                     {
                         'command': "git config --global credential.helper 'cache --timeout=3600'",
                         'run_stdout': False}])
-            for app, branch in APPLICATIONS:
-                run_command(
-                    title=None,
-                    command_list=[
-                        {
-                            'command': "git clone -b {branch} {url} {dir}".format(
-                                branch=branch,
-                                url="https://github.com/lojaintegrada/{}.git".format(app.lower()),
-                                dir=os.path.join(project_path, app)
-                            ),
-                            'run_stdout': False
-                        }
-                    ]
-                )
+            for app, branch_list in APPLICATIONS:
+                first_branch = True
+                for branch in branch_list:
+                    github_url = "https://github.com/lojaintegrada/{}.git".format(
+                        app.lower())
+                    if first_branch:
+                        run_command(
+                            title=None,
+                            command_list=[
+                                {
+                                    'command': 'git clone -b {branch} {url} "{dir}"'.format(
+                                        branch=branch,
+                                        url=github_url,
+                                        dir=os.path.join(project_path, app)
+                                    ),
+                                    'run_stdout': False
+                                }
+                            ]
+                        )
+                        first_branch = False
+                    else:
+                        os.chdir(os.path.join(project_path, app))
+                        run_command(
+                            title=None,
+                            command_list=[
+                                {
+                                    'command': 'git checkout -b {branch} remotes/origin/{branch}'.format(
+                                        branch=branch
+                                    ),
+                                    'run_stdout': False
+                                }
+                            ]
+                        )
 
+    print("\n\n\nConfiguração concluída.")
+    print("Para trabalhar com os repositórios certifique-se que:")
+    print("* O docker e o docker-compose estejam instalados.")
+    if platform.system() == "Windows":
+        print("* A variável de ambiente 'LI_PROJECT_PATH' esteja configurada.")
+    print("* O comando 'EB init' tenha sido rodado no repositório, antes do deploy.")
     return False

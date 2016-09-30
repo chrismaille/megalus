@@ -8,9 +8,18 @@ from deploy.messages import Message
 from deploy.utils import run_command
 from deploy.compress import minifyCSS, minifyJS
 
+ECR_NAME = {
+    'LI-AppPainel': 'app-painel-production',
+    'LI-AppApi': 'li-api-v1',
+    'LI-AppLoja': 'li-app-loja'
+}
+
 
 def main():
     config = get_config_data()
+
+    if not config:
+        return False
 
     # Pega a pasta atual e verifica
     # se é uma pasta valida para deploy
@@ -20,8 +29,8 @@ def main():
         branch = repo.active_branch
     except:
         print("Repositório GIT não encontrado.")
-        print("O comando deve ser executado na mesma "
-              "pasta onde se encontra a subpasta .git.")
+        print("O comando deve ser executado na pasta raiz")
+        print("do repositório a ser enviado.")
         print("Comando abortado.")
         return False
     app_list = [
@@ -43,19 +52,24 @@ def main():
 
     resposta_ok = False
     while not resposta_ok:
-        resposta = input("Deseja continuar (s/n)? ")
+        resposta = raw_input("Deseja continuar (s/n)? ")
         if resposta[0].upper() in ["S", "N"]:
             resposta_ok = True
     if resposta[0].upper() == "N":
         return False
 
     # Gera Dockerrun
+    app_name = ECR_NAME.get(folder_name, None)
+    if not app_name:
+        app_name = folder_name.lower()
     json_model = {
         'AWSEBDockerrunVersion': '1',
         'Image': {
             'Name': '{account}.dkr.ecr.{region}.amazonaws.com/{app}:{branch}'.format(
-                app=folder_name,
-                branch=branch_name),
+                account=config['aws_account'],
+                app=app_name,
+                branch=branch_name,
+                region=config['aws_region']),
             'Update': 'true'},
         'Ports': [
             {
@@ -66,7 +80,7 @@ def main():
     print("*********************")
     with open("./Dockerrun.aws.json", 'w') as file:
         file.write(json.dumps(json_model, indent=2))
-
+    print("Ok")
     # Atualiza GitHub
     ret = run_command(
         title="Atualiza GitHub",
@@ -100,25 +114,18 @@ def main():
                 'run_stdout': True
             },
             {
-                'command': "docker build -f Dockerfile_local -t {} .".format(
-                    folder_name
-                ),
-                'run_stdout': False
-            },
-            {
-                'command': "docker tag {app}:latest {account}.dkr.ecr.{region}.amazonaws.com/{app}:latest".format(
-                    account=config['aws_account'],
-                    region=config['aws_region'],
-                    app=folder_name,
+                'command': "docker build -f Dockerfile_local -t {app}:{branch} .".format(
+                    app=app_name,
                     branch=branch_name
                 ),
                 'run_stdout': False
             },
             {
-                'command': "docker push {account}.dkr.ecr.{region}.amazonaws.com/{app}:latest".format(
+                'command': "docker tag {app}:{branch} {account}.dkr.ecr.{region}.amazonaws.com/{app}:{branch}".format(
                     account=config['aws_account'],
                     region=config['aws_region'],
-                    app=folder_name
+                    app=app_name,
+                    branch=branch_name
                 ),
                 'run_stdout': False
             },
@@ -126,11 +133,11 @@ def main():
                 'command': "docker push {account}.dkr.ecr.{region}.amazonaws.com/{app}:{branch}".format(
                     account=config['aws_account'],
                     region=config['aws_region'],
-                    app=folder_name,
+                    app=app_name,
                     branch=branch_name
                 ),
                 'run_stdout': False
-            }
+            },
         ]
     )
     if not ret:
@@ -138,7 +145,7 @@ def main():
 
     # Ações específicas do App
     # 1. Minify estáticos
-    if branch_name in MINIFY_BEFORE:
+    if folder_name in MINIFY_BEFORE:
         print("\n>> Minificando arquivos estáticos")
         print("*********************************")
         ret = minifyCSS()
@@ -150,12 +157,12 @@ def main():
             return False
 
     # 2. Sincronizar estáticos
-    if branch_name in SYNC_S3:
+    if folder_name in SYNC_S3:
         ret = run_command(
             title="Sincronizando arquivos estáticos no S3/{}".format(branch_name),
             command_list=[
                 {
-                    'command': "aws s3 sync static/ s3://lojaintegrada.cdn/{branch}/static/ --acl public-read".format(branch_name),
+                    'command': "aws s3 sync static/ s3://lojaintegrada.cdn/{branch}/static/ --acl public-read".format(branch=branch_name),
                     'run_stdout': False}])
         if not ret:
             return False
@@ -190,12 +197,12 @@ def main():
 def start():
     print(
         "\n\n************************\n\n"
-        "LI-Deploy v1.0\n\n"
+        "LI-Deploy v1.1\n\n"
         "************************\n"
     )
     retorno = main()
     if not retorno:
-        print("Operação não concluída.\n")
+        print("Operação finalizada.\n")
 
 if __name__ == "__main__":
     start()

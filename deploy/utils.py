@@ -10,23 +10,22 @@ def run_command(command_list, title=None):
     # try:
     for task in command_list:
         if task['run_stdout']:
-            ret = subprocess.call(
-                [task['command']],
-                shell=True,
-                stdout=subprocess.PIPE
+            command = subprocess.check_output(
+                task['command'],
+                shell=True
                 )
 
-            if ret.returncode != 0:
+            if not command:
                 print('Ocorreu um erro. Processo abortado')
                 return False
 
             ret = subprocess.call(
-                [ret.stdout],
+                command,
                 shell=True
                 )
         else:
             ret = subprocess.call(
-                [task['command']],
+                task['command'],
                 shell=True
                 )
 
