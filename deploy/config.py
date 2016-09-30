@@ -172,6 +172,7 @@ def get_config_data(filename="li-config"):
     print("Para trabalhar com os repositórios certifique-se que:")
     print("* O docker e o docker-compose estejam instalados.")
     if platform.system() == "Windows":
-        print("* A variável de ambiente 'LI_PROJECT_PATH' esteja configurada.")
+        print("* (Windows) A variável de ambiente 'LI_PROJECT_PATH' esteja configurada.")
+        print("* (Windows) Rode o comando 'aws configure'")
     print("* O comando 'EB init' tenha sido rodado no repositório, antes do deploy.")
     return False
