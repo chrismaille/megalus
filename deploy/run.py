@@ -76,11 +76,23 @@ def main():
                 'ContainerPort': '80'}],
         'Logging': "/var/eb_log"}
 
-    print("\n>> Atualiza Dockerrun")
-    print("*********************")
     with open("./Dockerrun.aws.json", 'w') as file:
         file.write(json.dumps(json_model, indent=2))
-    print("Ok")
+
+    ret = run_command(
+        title="Adiciona Dockerrun",
+        command_list=[
+            {
+                'command': "git add ./Dockerrun.aws.json",
+                'run_stdout': False
+            },
+            {
+                'command': "git commit -m \"{}\"".format(last_commit),
+                'run_stdout': False
+            }
+        ]
+    )
+
     # Atualiza GitHub
     ret = run_command(
         title="Atualiza GitHub",
@@ -148,11 +160,11 @@ def main():
     if folder_name in MINIFY_BEFORE:
         print("\n>> Minificando arquivos estáticos")
         print("*********************************")
-        ret = minifyCSS()
+        ret = minifyCSS(current_dir=current_dir)
         if not ret:
             return False
 
-        ret = minifyJS()
+        ret = minifyJS(current_dir=current_dir)
         if not ret:
             return False
 
@@ -187,7 +199,8 @@ def main():
             branch,
             last_commit,
             folder_name,
-            action="FINALIZADO")
+            action="FINALIZADO",
+            alert_type="success")
         message.send_datadog()
         message.send_slack()
 

@@ -13,7 +13,7 @@ def run_command(command_list, title=None):
             command = subprocess.check_output(
                 task['command'],
                 shell=True
-                )
+            )
 
             if not command:
                 print('Ocorreu um erro. Processo abortado')
@@ -22,12 +22,13 @@ def run_command(command_list, title=None):
             ret = subprocess.call(
                 command,
                 shell=True
-                )
+            )
         else:
             ret = subprocess.call(
                 task['command'],
-                shell=True
-                )
+                shell=True,
+                stderr=subprocess.STDOUT
+            )
 
         if ret != 0:
             print('Ocorreu um erro. Processo abortado')

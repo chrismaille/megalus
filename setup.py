@@ -17,9 +17,7 @@ install_requires = [
     'GitPython',
     'nose',
     'PyGithub',
-    'rcssmin',
     'requests',
-    'rjsmin',
     'slackweb',
     'awscli',
     'awsebcli'
@@ -28,7 +26,7 @@ install_requires = [
 
 setup(
     name='LI-AWS-Deploy',
-    version='1.1.42',
+    version='1.1.61',
     description='Deploy tool for Loja Integrada Web Applications',
     long_description=long_description,
     author='Chris Maillefaud',
