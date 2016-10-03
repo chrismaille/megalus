@@ -58,6 +58,31 @@ def main():
     if resposta[0].upper() == "N":
         return False
 
+
+    # Ações específicas do App
+    # 1. Minify estáticos
+    if folder_name in MINIFY_BEFORE:
+        print("\n>> Minificando arquivos estáticos")
+        print("*********************************")
+        ret = minifyCSS(current_dir=current_dir)
+        if not ret:
+            return False
+
+        ret = minifyJS(current_dir=current_dir)
+        if not ret:
+            return False
+
+    # 2. Sincronizar estáticos
+    if folder_name in SYNC_S3:
+        ret = run_command(
+            title="Sincronizando arquivos estáticos no S3/{}".format(branch_name),
+            command_list=[
+                {
+                    'command': "aws s3 sync static/ s3://lojaintegrada.cdn/{branch}/static/ --acl public-read".format(branch=branch_name),
+                    'run_stdout': False}])
+        if not ret:
+            return False
+
     # Gera Dockerrun
     app_name = ECR_NAME.get(folder_name, None)
     if not app_name:
@@ -83,7 +108,7 @@ def main():
         title="Adiciona Dockerrun",
         command_list=[
             {
-                'command': "git add ./Dockerrun.aws.json",
+                'command': "git add .",
                 'run_stdout': False
             },
             {
@@ -155,30 +180,6 @@ def main():
     if not ret:
         return False
 
-    # Ações específicas do App
-    # 1. Minify estáticos
-    if folder_name in MINIFY_BEFORE:
-        print("\n>> Minificando arquivos estáticos")
-        print("*********************************")
-        ret = minifyCSS(current_dir=current_dir)
-        if not ret:
-            return False
-
-        ret = minifyJS(current_dir=current_dir)
-        if not ret:
-            return False
-
-    # 2. Sincronizar estáticos
-    if folder_name in SYNC_S3:
-        ret = run_command(
-            title="Sincronizando arquivos estáticos no S3/{}".format(branch_name),
-            command_list=[
-                {
-                    'command': "aws s3 sync static/ s3://lojaintegrada.cdn/{branch}/static/ --acl public-read".format(branch=branch_name),
-                    'run_stdout': False}])
-        if not ret:
-            return False
-
     # Rodar EB Deploy
     ret = run_command(
         title="Rodando EB Deploy",
@@ -210,7 +211,7 @@ def main():
 def start():
     print(
         "\n\n************************\n\n"
-        "LI-Deploy v1.1\n\n"
+        "LI-Deploy v1.2.1\n\n"
         "************************\n"
     )
     retorno = main()

@@ -39,8 +39,12 @@ def saveFile(sourcePaths, destPath, minPath, baseDir, header=None):
             for dirc, srcFile in sourcePaths:
                 print(srcFile)
                 with open(os.path.join(baseDir, dirc, srcFile)) as inputFile:
-                    srcText = inputFile.read()
-                f.write(srcText)
+                    if destPath[-2:] == "js":
+                        srcText = "{};\n".format(
+                            inputFile.read().decode("utf-8"))
+                    else:
+                        srcText = inputFile.read().decode("utf-8")
+                    f.write(srcText.encode("utf-8"))
 
         ret = run_command(
             title=None,
