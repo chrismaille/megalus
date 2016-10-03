@@ -5,7 +5,7 @@ import json
 from git import Repo
 from deploy.config import get_config_data, APPLICATIONS, MINIFY_BEFORE, SYNC_S3
 from deploy.messages import Message
-from deploy.utils import run_command
+from deploy.utils import bcolors, run_command
 from deploy.compress import minifyCSS, minifyJS
 
 ECR_NAME = {
@@ -46,8 +46,21 @@ def main():
     # Confirma operação
     branch_name = branch.name
     last_commit = repo.head.commit.message
-    print("Repositório: {}".format(folder_name))
-    print("Branch Atual: {}".format(branch_name))
+    text_repo = "{}{}{}{}".format(
+        bcolors.BOLD,
+        bcolors.OKBLUE,
+        folder_name,
+        bcolors.ENDC
+    )
+    print("Repositório: {}".format(text_repo))
+    text_branch = "{}{}{}{}".format(
+        bcolors.BOLD,
+        bcolors.FAIL if branch_name in [
+            'production',
+            'master'] else bcolors.WARNING,
+        branch_name.upper(),
+        bcolors.ENDC)
+    print("Branch Atual: {}".format(text_branch))
     print("Último Commit: {}".format(last_commit))
 
     resposta_ok = False
@@ -57,7 +70,6 @@ def main():
             resposta_ok = True
     if resposta[0].upper() == "N":
         return False
-
 
     # Ações específicas do App
     # 1. Minify estáticos
@@ -211,7 +223,7 @@ def main():
 def start():
     print(
         "\n\n************************\n\n"
-        "LI-Deploy v1.2.1\n\n"
+        "LI-Deploy v1.2.3\n\n"
         "************************\n"
     )
     retorno = main()
