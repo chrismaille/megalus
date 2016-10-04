@@ -2,6 +2,7 @@
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import os
 import json
+import platform
 from git import Repo
 from deploy.config import get_config_data, APPLICATIONS, MINIFY_BEFORE, SYNC_S3
 from deploy.messages import Message
@@ -52,7 +53,9 @@ def main():
         folder_name,
         bcolors.ENDC
     )
-    print("Repositório: {}".format(text_repo))
+    print("Repositório: {}".format(
+        text_repo if platform.system() != "Windows" else folder_name.upper()
+    ))
     text_branch = "{}{}{}{}".format(
         bcolors.BOLD,
         bcolors.FAIL if branch_name in [
@@ -60,7 +63,9 @@ def main():
             'master'] else bcolors.WARNING,
         branch_name.upper(),
         bcolors.ENDC)
-    print("Branch Atual: {}".format(text_branch))
+    print("Branch Atual: {}".format(
+        text_branch if platform.system() != "Windows" else branch_name.upper()
+    ))
     print("Último Commit: {}".format(last_commit))
 
     resposta_ok = False
@@ -223,7 +228,7 @@ def main():
 def start():
     print(
         "\n\n************************\n\n"
-        "LI-Deploy v1.2.3\n\n"
+        "LI-Deploy v1.3.0\n\n"
         "************************\n"
     )
     retorno = main()

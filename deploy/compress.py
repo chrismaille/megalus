@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import os
+import platform
 from deploy.utils import run_command
 
 baseDirStatic = ["static", "loja", "estrutura", "v1"]
-minify_command = "java -jar ./yuicompressor-2.4.8.jar {all} -o {min} --charset utf-8"
+minify_command = "java -jar yuicompressor-2.4.8.jar {all} -o {min} --charset utf-8"
+minify_command_windows = "java -jar yuicompressor-2.4.8.jar {all} --charset utf-8 > {min}"
 
 jsSources = [
     ("js", "jquery-1.10.1.min.js"),
@@ -46,14 +48,21 @@ def saveFile(sourcePaths, destPath, minPath, baseDir, header=None):
                         srcText = inputFile.read().decode("utf-8")
                     f.write(srcText.encode("utf-8"))
 
+        if platform.system() == "Windows":
+            command = minify_command_windows
+        else:
+            command = minify_command
+
+        compress_cmd = command.format(
+            all=destPath,
+            min=minPath
+        )
+
         ret = run_command(
             title=None,
             command_list=[
                 {
-                    'command': minify_command.format(
-                        all=destPath,
-                        min=minPath
-                    ),
+                    'command': compress_cmd,
                     'run_stdout': False
                 }
             ]
