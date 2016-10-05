@@ -228,7 +228,7 @@ def main():
 def start():
     print(
         "\n\n************************\n\n"
-        "LI-Deploy v1.3.0\n\n"
+        "LI-Deploy v1.3.1\n\n"
         "************************\n"
     )
     retorno = main()
