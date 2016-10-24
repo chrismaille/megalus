@@ -12,7 +12,8 @@ from deploy.compress import minifyCSS, minifyJS
 ECR_NAME = {
     'LI-AppPainel': 'app-painel-production',
     'LI-AppApi': 'li-api-v1',
-    'LI-AppLoja': 'li-app-loja'
+    'LI-AppLoja': 'li-app-loja',
+    'LI-AppConciliacao': 'li-app-conciliacao'
 }
 
 
@@ -228,7 +229,7 @@ def main():
 def start():
     print(
         "\n\n************************\n\n"
-        "LI-Deploy v1.3.3\n\n"
+        "LI-Deploy v1.3.4\n\n"
         "************************\n"
     )
     retorno = main()
