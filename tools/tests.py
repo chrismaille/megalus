@@ -2,10 +2,10 @@
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import unittest
 import os
-from deploy.config import get_config_data
-from deploy.compress import minifyJS, minifyCSS
-from deploy.messages import Message
-from deploy.utils import run_command
+from tools.config import get_config_data
+from tools.compress import minifyJS, minifyCSS
+from tools.messages import Message
+from tools.utils import run_command
 from os.path import expanduser
 from unittest.mock import Mock
 

@@ -26,8 +26,8 @@ install_requires = [
 
 setup(
     name='LI-AWS-Deploy',
-    version='1.3.4',
-    description='Deploy tool for Loja Integrada Web Applications',
+    version='1.4b2',
+    description='Dev tools for Loja Integrada Web Applications',
     long_description=long_description,
     author='Chris Maillefaud',
     # Choose your license
@@ -42,7 +42,7 @@ setup(
     install_requires=install_requires,
     entry_points={
         'console_scripts': [
-            'lideploy=deploy.run:start',
+            'li=tools.run:start',
         ],
     },
 )

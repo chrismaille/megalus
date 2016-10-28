@@ -4,10 +4,11 @@ import os
 import json
 import platform
 from git import Repo
-from deploy.config import get_config_data, APPLICATIONS, MINIFY_BEFORE, SYNC_S3
-from deploy.messages import Message
-from deploy.utils import bcolors, run_command
-from deploy.compress import minifyCSS, minifyJS
+from tools.config import get_config_data, APPLICATIONS, MINIFY_BEFORE, SYNC_S3
+from tools.messages import Message
+from tools.utils import bcolors, run_command, confirma
+from tools.compress import minifyCSS, minifyJS
+
 
 ECR_NAME = {
     'LI-AppPainel': 'app-painel-production',
@@ -17,7 +18,7 @@ ECR_NAME = {
 }
 
 
-def main():
+def run_deploy():
     config = get_config_data()
 
     if not config:
@@ -41,7 +42,7 @@ def main():
     ]
     folder_name = os.path.split(current_dir)[-1]
     if folder_name.lower() not in app_list and not folder_name in [
-            "LI-Deploy", "li-deploy"]:
+            "LI-Tools", "li-tools"]:
         print("Repositório não reconhecido.")
         return False
 
@@ -69,12 +70,8 @@ def main():
     ))
     print("Último Commit: {}".format(last_commit))
 
-    resposta_ok = False
-    while not resposta_ok:
-        resposta = raw_input("Deseja continuar (s/n)? ")
-        if resposta[0].upper() in ["S", "N"]:
-            resposta_ok = True
-    if resposta[0].upper() == "N":
+    resposta = confirma("Confirma o Deploy")
+    if resposta == "N":
         return False
 
     # Ações específicas do App
@@ -224,17 +221,3 @@ def main():
         message.send_slack()
 
     return True
-
-
-def start():
-    print(
-        "\n\n************************\n\n"
-        "LI-Deploy v1.3.4\n\n"
-        "************************\n"
-    )
-    retorno = main()
-    if not retorno:
-        print("Operação finalizada.\n")
-
-if __name__ == "__main__":
-    start()

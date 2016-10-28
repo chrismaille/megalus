@@ -3,7 +3,17 @@ from __future__ import print_function, unicode_literals, with_statement, nested_
 import subprocess
 
 
-def run_command(command_list, title=None):
+def confirma(pergunta):
+    """Retorna S ou N"""
+    resposta_ok = False
+    while not resposta_ok:
+        resposta = raw_input("{} (s/n)? ".format(pergunta))
+        if resposta[0].upper() in ["S", "N"]:
+            resposta_ok = True
+    return resposta[0].upper()
+
+
+def run_command(command_list, title=None, get_stdout=False):
     if title:
         print("\n\n>> {}".format(title))
         print("{:*^{num}}".format('', num=len(title) + 3))
@@ -23,6 +33,11 @@ def run_command(command_list, title=None):
                 command,
                 shell=True
             )
+        elif get_stdout is True:
+            ret = subprocess.check_output(
+                task['command'],
+                shell=True
+            )
         else:
             ret = subprocess.call(
                 task['command'],
@@ -30,11 +45,12 @@ def run_command(command_list, title=None):
                 stderr=subprocess.STDOUT
             )
 
-        if ret != 0:
+        if ret != 0 and not get_stdout:
             print('Ocorreu um erro. Processo abortado')
             return False
 
-    return True
+    return True if not get_stdout else ret
+
 
 class bcolors:
     HEADER = '\033[95m'

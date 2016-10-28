@@ -3,7 +3,7 @@ from __future__ import print_function, unicode_literals, with_statement, nested_
 import os
 import platform
 from os.path import expanduser
-from deploy.utils import run_command
+from tools.utils import run_command
 
 APPLICATIONS = [
     ('LI-Docker', ['master']),
@@ -41,7 +41,7 @@ SYNC_S3 = [
 ]
 
 
-def get_config_data(filename="li-config"):
+def get_config_data(filename="li-config", start_over=False):
     # Verifica se a configuracao existe
     # Caso nao exista perguntar
     config = {
@@ -86,7 +86,7 @@ def get_config_data(filename="li-config"):
         elif not os.path.exists(os.environ.get('LI_PROJECT_PATH')):
             ret = False
 
-    if ret:
+    if ret and not start_over:
         return config
     else:
         print("\n>> Configuração")

@@ -2,7 +2,7 @@
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import os
 import platform
-from deploy.utils import run_command
+from tools.utils import run_command
 
 baseDirStatic = ["static", "loja", "estrutura", "v1"]
 minify_command = "java -jar yuicompressor-2.4.8.jar {all} -o {min} --charset utf-8"
