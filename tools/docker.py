@@ -28,7 +28,7 @@ def get_app(application):
     i = 1
 
     for obj in raw_list:
-        if obj == "CONTAINER ID":
+        if obj.startswith("CONTAINER ID"):
             continue
         if len(obj.split(" ")) != 2:
             continue
@@ -44,18 +44,19 @@ def get_app(application):
     pass
 
 
-def run_deploy(application):
+def run_debug(application):
     # 1. Identifica o container
     container_id, name = get_app(application)
     if not container_id:
         return False
-    
+
     # 2. Parar o container
     # docker-compose stop $app
     pass
-    
+
     # 3. Inicia o container para Depurar
     # clear
     # echo "Rodando Depuração em $app"
     # echo "================="
     # docker-compose run --service-ports $app
+    pass
