@@ -5,10 +5,10 @@
 Usage:
     li config
     li deploy
-    li debug    <app>
-    li test     <app> (--django | --unit)
-    li telnet   <app> (--p)
-    li bash     <app>
+    li debug    [<app>]
+    li test     [<app>] (--django | --unit)
+    li telnet   [<app>] (--p)
+    li bash     [<app>]
 
 Options:
     -h  --help          Mostra esta tela
