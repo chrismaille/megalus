@@ -11,7 +11,7 @@ APPLICATIONS = [
     ('LI-Api-Catalogo', ['development', 'staging', 'production']),
     ('LI-Api-Envio', ['development', 'staging', 'production']),
     ('LI-Api-Faturamento', ['development', 'staging', 'production']),
-    ('LI-Api-Integration', ['development', 'staging', 'production']),
+    ('li-api-integration', ['development', 'staging', 'production']),
     ('LI-Api-Marketplace', ['development', 'staging', 'production']),
     ('LI-Api-Pagador', ['development', 'staging', 'production']),
     ('LI-Api-Pedido', ['development', 'staging', 'production']),
@@ -22,14 +22,14 @@ APPLICATIONS = [
     ('LI-AppLoja', ['development', 'staging', 'production']),
     ('LI-AppPainel', ['development', 'staging', 'production']),
     ('LI-Worker', ['development', 'staging', 'production']),
-    ('LI-Api-Pagamento', ['beta', 'master']),
-    ('LI-Worker-Pagamento', ['beta', 'master']),
-    ('LI-Worker-Integration', ['development', 'staging', 'production']),
+    ('li-api-pagamento', ['beta', 'master']),
+    ('li-worker-pagamento', ['beta', 'master']),
+    ('li-worker-integration', ['development', 'staging', 'production']),
     ('LI-Repo', ['master']),
     ('LI-ApiClient', ['master']),
     ('LI-Common', ['master']),
-    ('LI-Api-Flask', ['master'])
-    ('Li-Worker-Importacao', ['production', 'staging'])
+    ('LI-Api-Flask', ['master']),
+    ('Li-Worker-Importacao', ['production', 'staging']),
 ]
 
 MINIFY_BEFORE = [
