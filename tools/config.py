@@ -135,6 +135,8 @@ def get_config_data(filename="li-config", start_over=False):
                         'command': "git config --global credential.helper 'cache --timeout=3600'",
                         'run_stdout': False}])
             for app, branch_list in APPLICATIONS:
+                if os.path.exists(os.path.join(project_path, app)):
+                    continue
                 first_branch = True
                 for branch in branch_list:
                     github_url = "https://github.com/lojaintegrada/{}.git".format(
