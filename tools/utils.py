@@ -112,7 +112,7 @@ def get_app(application, data, title=None):
         while not resposta_ok:
             try:
                 rep = raw_input(
-                    "Selecione a Aplicação: (1-{}): ".format(i - 1))
+                    "Selecione o App: (1-{}): ".format(i - 1))
                 if int(rep) in xrange(1, i):
                     resposta_ok = True
             except KeyboardInterrupt:

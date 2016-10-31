@@ -6,15 +6,15 @@ Usage:
     li config
     li deploy
     li debug    [<app>]
-    li test     [<app>] (--django | --unit)
-    li telnet   [<app>] (--p)
+    li test     [<app>] [--django] [--rds]
+    li telnet   [<app>] (<port>)
     li bash     [<app>]
 
 Options:
-    -h  --help          Mostra esta tela
-    -p <port>           Porta para Telnet
-    -j  --django        Roda o teste unitario do Django
-    -u  --unit          Roda o teste unitario do Python
+    --help          Mostra esta tela
+    --django        Roda o teste unitario do Django. (Padrao: Unittest.)
+    --rds           Nos testes usar o RDS da Amazon
+
 """
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import json
@@ -22,7 +22,7 @@ from docopt import docopt
 from tools.config import get_config_data
 from tools.utils import confirma
 from tools.deploy import run_deploy
-from tools.docker import run_debug
+from tools.docker import run_debug, run_telnet, run_test, run_bash
 
 VERSION = "1.4b3"
 
@@ -56,6 +56,32 @@ def main():
             application=arguments['<app>']
         )
         return ret
+    #
+    # TELNET
+    #
+    if arguments['telnet'] is True:
+        ret = run_telnet(
+            application=arguments['<app>'],
+            port=arguments['<port>']
+        )
+        return ret
+    #
+    # BASH
+    #
+    if arguments['bash'] is True:
+        ret = run_bash(
+            application=arguments['<app>']
+        )
+        return ret
+    #
+    # TEST
+    #
+    if arguments['test'] is True:
+        ret = run_test(
+            application=arguments['<app>'],
+            test_type="django" if arguments['--django'] else None,
+            rds=arguments['--rds']
+        )
 
 
 def start():
@@ -69,6 +95,7 @@ def start():
         print('\n')
     else:
         print("Operação finalizada.\n")
+
 
 if __name__ == "__main__":
     start()
