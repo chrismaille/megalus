@@ -16,8 +16,8 @@ def confirma(pergunta):
 
 def run_command(command_list, title=None, get_stdout=False):
     if title:
-        print("\n\n>> {}".format(title.decode('utf-8')))
-        print("{:*^{num}}".format('', num=len(title) + 3))
+        print(u"\n\n>> {}".format(title.decode('utf-8')))
+        print(u"{:*^{num}}".format('', num=len(title) + 3))
     # try:
     for task in command_list:
         if task['run_stdout']:

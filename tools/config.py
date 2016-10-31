@@ -129,47 +129,47 @@ def get_config_data(filename="li-config", start_over=False):
         # Clona os repositorios LI
         if not os.path.exists(project_path):
             os.makedirs(project_path)
-            run_command(
-                title="Clonando Repositórios",
-                command_list=[
-                    {
-                        'command': "git config --global credential.helper 'cache --timeout=3600'",
-                        'run_stdout': False}])
-            for app, branch_list in APPLICATIONS:
-                if os.path.exists(os.path.join(project_path, app)):
-                    continue
-                first_branch = True
-                for branch in branch_list:
-                    github_url = "https://github.com/lojaintegrada/{}.git".format(
-                        app.lower())
-                    if first_branch:
-                        run_command(
-                            title=None,
-                            command_list=[
-                                {
-                                    'command': 'git clone -b {branch} {url} "{dir}"'.format(
-                                        branch=branch,
-                                        url=github_url,
-                                        dir=os.path.join(project_path, app)
-                                    ),
-                                    'run_stdout': False
-                                }
-                            ]
-                        )
-                        first_branch = False
-                    else:
-                        os.chdir(os.path.join(project_path, app))
-                        run_command(
-                            title=None,
-                            command_list=[
-                                {
-                                    'command': 'git checkout -b {branch} remotes/origin/{branch}'.format(
-                                        branch=branch
-                                    ),
-                                    'run_stdout': False
-                                }
-                            ]
-                        )
+        run_command(
+            title="Clonando Repositorios",
+            command_list=[
+                {
+                    'command': "git config --global credential.helper 'cache --timeout=3600'",
+                    'run_stdout': False}])
+        for app, branch_list in APPLICATIONS:
+            if os.path.exists(os.path.join(project_path, app)):
+                continue
+            first_branch = True
+            for branch in branch_list:
+                github_url = "https://github.com/lojaintegrada/{}.git".format(
+                    app.lower())
+                if first_branch:
+                    run_command(
+                        title=None,
+                        command_list=[
+                            {
+                                'command': 'git clone -b {branch} {url} "{dir}"'.format(
+                                    branch=branch,
+                                    url=github_url,
+                                    dir=os.path.join(project_path, app)
+                                ),
+                                'run_stdout': False
+                            }
+                        ]
+                    )
+                    first_branch = False
+                else:
+                    os.chdir(os.path.join(project_path, app))
+                    run_command(
+                        title=None,
+                        command_list=[
+                            {
+                                'command': 'git checkout -b {branch} remotes/origin/{branch}'.format(
+                                    branch=branch
+                                ),
+                                'run_stdout': False
+                            }
+                        ]
+                    )
 
     print("\n\n\nConfiguração concluída.")
     print("Para trabalhar com os repositórios certifique-se que:")
@@ -177,5 +177,6 @@ def get_config_data(filename="li-config", start_over=False):
     if platform.system() == "Windows":
         print("* (Windows) A variável de ambiente 'LI_PROJECT_PATH' esteja configurada.")
         print("* (Windows) Rode o comando 'aws configure'")
-    print("* O comando 'EB init' tenha sido rodado no repositório, antes do deploy.")
+    print("* O comando 'aws configure' tenha sido rodado no repositório, antes do deploy.")
+    print("* O comando 'eb init' tenha sido rodado no repositório, antes do deploy.")
     return False
