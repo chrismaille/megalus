@@ -30,8 +30,9 @@ Use para abrir a aplicação informada num TTY que faz um telnet dentro do Docke
 > Uso: `li test <app> [--django] [--rds]`
 
 Use para rodar os testes unitários da aplicação selecionada usando Python Unittest. Utilize as opções abaixo para configurar os testes:
---django: Use os testes do Django ao invés de Unittest
---rds: Use o banco de dados na Amazon (utilizado pelo Travis) ao invés do banco de dados local, para rodar os testes
+
+* --django: Use os testes do Django ao invés de Unittest
+* --rds: Use o banco de dados na Amazon (utilizado pelo Travis) ao invés do banco de dados local, para rodar os testes
 
 #### Bash
 > Uso: `li debug <app>`
