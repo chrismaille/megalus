@@ -29,6 +29,7 @@ APPLICATIONS = [
     ('LI-ApiClient', ['master']),
     ('LI-Common', ['master']),
     ('LI-Api-Flask', ['master'])
+    ('Li-Worker-Importacao', ['production', 'staging'])
 ]
 
 MINIFY_BEFORE = [
