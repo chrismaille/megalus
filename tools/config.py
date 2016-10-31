@@ -103,12 +103,13 @@ def get_config_data(filename="li-config", start_over=False):
         aws_folder = os.path.join(basepath, ".aws")
         if not os.path.exists(aws_folder):
             os.makedirs(aws_folder)
-            with open(os.path.join(aws_folder, "config"), 'w') as file:
-                file.write("[config]")
+        with open(os.path.join(aws_folder, "config"), 'w') as file:
+            file.write("[config]")
+            file.write('region = {}\n'.format(config['aws_region']))
 
         with open(os.path.join(aws_folder, "credentials"), 'w') as file:
             file.write('[default]')
-            file.write('aws_access_key_id = {}'.format(config['aws_key']))
+            file.write('aws_access_key_id = {}\n'.format(config['aws_key']))
             file.write(
                 'aws_secret_access_key = {}'.format(
                     config['aws_secret']))
