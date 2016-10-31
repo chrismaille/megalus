@@ -21,12 +21,13 @@ install_requires = [
     'awscli',
     'awsebcli',
     'requests',
+    'ipdb'
 ]
 
 
 setup(
     name='LI-AWS-Deploy',
-    version='1.4b2',
+    version='2.0',
     description='Dev tools for Loja Integrada Web Applications',
     long_description=long_description,
     author='Chris Maillefaud',
