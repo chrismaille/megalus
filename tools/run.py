@@ -24,7 +24,7 @@ from tools.utils import confirma
 from tools.deploy import run_deploy
 from tools.docker import run_debug, run_telnet, run_test, run_bash
 
-VERSION = "2.2.3"
+VERSION = "2.2.4"
 
 
 def main():

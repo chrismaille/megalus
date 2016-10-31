@@ -27,7 +27,7 @@ install_requires = [
 
 setup(
     name='LI-AWS-Deploy',
-    version='2.2.3',
+    version='2.2.4',
     description='Dev tools for Loja Integrada Web Applications',
     long_description=long_description,
     author='Chris Maillefaud',
