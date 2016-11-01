@@ -15,6 +15,7 @@ def confirma(pergunta):
 
 
 def run_command(command_list, title=None, get_stdout=False):
+    import ipdb; ipdb.set_trace()  # breakpoint 0eb5c561 //
     if title:
         print(u"\n\n>> {}".format(title.decode('utf-8')))
         print(u"{:*^{num}}".format('', num=len(title) + 3))
