@@ -20,14 +20,14 @@ install_requires = [
     'slackweb',
     'awscli',
     'awsebcli',
-    'requests',
+    'requests<=2.9.1',
     'ipdb'
 ]
 
 
 setup(
     name='LI-AWS-Deploy',
-    version='2.2.8',
+    version='2.2.9',
     description='Dev tools for Loja Integrada Web Applications',
     long_description=long_description,
     author='Chris Maillefaud',
