@@ -2,6 +2,7 @@
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import os
 import subprocess
+import unicodedata
 
 
 def confirma(pergunta):
@@ -15,9 +16,11 @@ def confirma(pergunta):
 
 
 def run_command(command_list, title=None, get_stdout=False):
-    import ipdb; ipdb.set_trace()  # breakpoint 0eb5c561 //
     if title:
-        print(u"\n\n>> {}".format(title.decode('utf-8')))
+        try:
+            print(u"\n\n>> {}".format(title))
+        except UnicodeDecodeError:
+            print(u"\n\n>> {}".format(title.decode('utf-8')))
         print(u"{:*^{num}}".format('', num=len(title) + 3))
     # try:
     for task in command_list:

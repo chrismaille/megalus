@@ -37,6 +37,15 @@ def run_debug(application):
         )
     )
 
+    print("Reiniciando o container...")
+    run_command(
+        command_list=[
+            {
+                'command': "docker-compose up -d {}".format(name),
+                'run_stdout': False
+            },
+        ]
+    )
     return False
 
 
@@ -107,7 +116,7 @@ def run_test(application, test_type, rds):
     os.system('cls' if os.name == 'nt' else 'clear')
     # Parar o container
     print("Rodar Testes - {}".format(name))
-    print("Subindo container...")
+    print("Reiniciando container...")
     run_command(
         get_stdout=True,
         command_list=[
@@ -145,12 +154,14 @@ def run_test(application, test_type, rds):
             {
                 'command': "docker exec -ti {} printenv | grep DATABASE_HOST".format(new_container_id),
                 'run_stdout': False}])
-    print("\nRodando testes em: {}".format(
+    print("\n************************************")
+    print("Rodando testes em: {}".format(
         "Django" if test_type == "django" else "Unittest"))
-    print("Usando banco de dados: {}:{}".format(
-        database_path.replace("\n", "").split("=")[1],
-        port)
+    print("Usando banco de dados: {}".format(
+        database_path.replace("\n", "").split("=")[1])
     )
+    print("Usando a Porta: {}".format(port))
+    print("************************************\n")
     if test_type == "django":
         command = "python /opt/app/manage.py test"
     else:
@@ -162,8 +173,8 @@ def run_test(application, test_type, rds):
         )
     )
 
-    print("Parando container...")
+    print("Reiniciando container...")
     os.system("docker stop {}".format(new_container_id))
-    # os.system("docker-compose run -d {}".format(name))
+    os.system("docker-compose run -d {}".format(name))
 
     return False

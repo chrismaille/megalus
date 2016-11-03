@@ -24,7 +24,7 @@ from tools.utils import confirma
 from tools.deploy import run_deploy
 from tools.docker import run_debug, run_telnet, run_test, run_bash
 
-VERSION = "2.2.4"
+VERSION = "2.2.8"
 
 
 def main():
@@ -39,7 +39,7 @@ def main():
             print("Configuração Atual:")
             print(json.dumps(data, indent=2))
             resposta = confirma("Confirma os dados")
-            if resposta == "S":
+            if resposta == "N":
                 data = get_config_data(start_over=True)
         return True
     #

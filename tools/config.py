@@ -3,7 +3,7 @@ from __future__ import print_function, unicode_literals, with_statement, nested_
 import os
 import platform
 from os.path import expanduser
-from tools.utils import run_command
+from tools.utils import run_command, confirma
 
 APPLICATIONS = [
     ('LI-Docker', ['master']),
@@ -94,9 +94,15 @@ def get_config_data(filename="li-config", start_over=False):
         print("***************")
         with open(filepath, 'a') as file:
             for key in config:
-                if not config.get(key):
-                    value = raw_input("Informe {}: ".format(key))
+                if config.get(key):
+                    ask = "Informe {} [{}]: ".format(key, config.get(key))
+                else:
+                    ask = "Informe {}: ".format(key)
+
+                value = raw_input(ask)
+                if value:
                     config[key] = value
+                if value and config[key] != value:
                     file.write("{}={}\n".format(key.upper(), value))
 
         # Grava arquivo de credenciais da Amazon
@@ -111,12 +117,13 @@ def get_config_data(filename="li-config", start_over=False):
             file.write('[default]\n')
             file.write('aws_access_key_id = {}\n'.format(config['aws_key']))
             file.write(
-                'aws_secret_access_key = {}'.format(
+                'aws_secret_access_key = {}\n'.format(
                     config['aws_secret']))
 
         # Grava no bashrc a variavel LI_PROJECT_PATH
         profile_path = os.path.join(basepath, '.profile')
         project_path = config['project_path']
+        bashrc_path = os.path.join(basepath, '.bashrc')
         if os.path.exists(profile_path):
             if 'LI_PROJECT_PATH' not in open(profile_path).read():
                 run_command(
@@ -126,51 +133,63 @@ def get_config_data(filename="li-config", start_over=False):
                                 project_path, profile_path), 'run_stdout': False}, {
                             'command': "export LI_PROJECT_PATH='{}'".format(
                                 project_path), 'run_stdout': False}], )
+        if os.path.exists(bashrc_path):
+            if 'LI_PROJECT_PATH' not in open(bashrc_path).read():
+                run_command(
+                    title=None,
+                    command_list=[
+                        {
+                            'command': "echo LI_PROJECT_PATH='{}' >> {}".format(
+                                project_path,
+                                bashrc_path),
+                            'run_stdout': False}])
 
         # Clona os repositorios LI
-        if not os.path.exists(project_path):
-            os.makedirs(project_path)
-        run_command(
-            title="Clonando Repositorios",
-            command_list=[
-                {
-                    'command': "git config --global credential.helper 'cache --timeout=3600'",
-                    'run_stdout': False}])
-        for app, branch_list in APPLICATIONS:
-            if os.path.exists(os.path.join(project_path, app)):
-                continue
-            first_branch = True
-            for branch in branch_list:
-                github_url = "https://github.com/lojaintegrada/{}.git".format(
-                    app.lower())
-                if first_branch:
-                    run_command(
-                        title=None,
-                        command_list=[
-                            {
-                                'command': 'git clone -b {branch} {url} "{dir}"'.format(
-                                    branch=branch,
-                                    url=github_url,
-                                    dir=os.path.join(project_path, app)
-                                ),
-                                'run_stdout': False
-                            }
-                        ]
-                    )
-                    first_branch = False
-                else:
-                    os.chdir(os.path.join(project_path, app))
-                    run_command(
-                        title=None,
-                        command_list=[
-                            {
-                                'command': 'git checkout -b {branch} remotes/origin/{branch}'.format(
-                                    branch=branch
-                                ),
-                                'run_stdout': False
-                            }
-                        ]
-                    )
+        resp = confirma("\nDeseja clonar os Repositorios")
+        if resp == "S":
+            if not os.path.exists(project_path):
+                os.makedirs(project_path)
+            run_command(
+                title="Clonando Repositorios",
+                command_list=[
+                    {
+                        'command': "git config --global credential.helper 'cache --timeout=3600'",
+                        'run_stdout': False}])
+            for app, branch_list in APPLICATIONS:
+                if os.path.exists(os.path.join(project_path, app)):
+                    continue
+                first_branch = True
+                for branch in branch_list:
+                    github_url = "https://github.com/lojaintegrada/{}.git".format(
+                        app.lower())
+                    if first_branch:
+                        run_command(
+                            title=None,
+                            command_list=[
+                                {
+                                    'command': 'git clone -b {branch} {url} "{dir}"'.format(
+                                        branch=branch,
+                                        url=github_url,
+                                        dir=os.path.join(project_path, app)
+                                    ),
+                                    'run_stdout': False
+                                }
+                            ]
+                        )
+                        first_branch = False
+                    else:
+                        os.chdir(os.path.join(project_path, app))
+                        run_command(
+                            title=None,
+                            command_list=[
+                                {
+                                    'command': 'git checkout -b {branch} remotes/origin/{branch}'.format(
+                                        branch=branch
+                                    ),
+                                    'run_stdout': False
+                                }
+                            ]
+                        )
 
     print("\n\n\nConfiguração concluída.")
     print("Para trabalhar com os repositórios certifique-se que:")
