@@ -2,7 +2,6 @@
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import os
 import subprocess
-import unicodedata
 
 
 def confirma(pergunta):
@@ -10,7 +9,7 @@ def confirma(pergunta):
     resposta_ok = False
     while not resposta_ok:
         resposta = raw_input("{} (s/n)? ".format(pergunta))
-        if resposta[0].upper() in ["S", "N"]:
+        if resposta and resposta[0].upper() in ["S", "N"]:
             resposta_ok = True
     return resposta[0].upper()
 
@@ -117,7 +116,7 @@ def get_app(application, data, title=None):
             try:
                 rep = raw_input(
                     "Selecione o App: (1-{}): ".format(i - 1))
-                if int(rep) in xrange(1, i):
+                if rep and int(rep) in xrange(1, i):
                     resposta_ok = True
             except KeyboardInterrupt:
                 print("\n")

@@ -26,7 +26,7 @@ def run_debug(application):
         get_stdout=True,
         command_list=[
             {
-                'command': "docker-compose stop {}".format(name),
+                'command': "cd {} && docker-compose stop {}".format(data['docker_compose_path'], name),
                 'run_stdout': False
             },
         ]
@@ -41,7 +41,7 @@ def run_debug(application):
     run_command(
         command_list=[
             {
-                'command': "docker-compose up -d {}".format(name),
+                'command': "cd {} && docker-compose up -d {}".format(data['docker_compose_path'], name),
                 'run_stdout': False
             },
         ]
@@ -121,7 +121,7 @@ def run_test(application, test_type, rds):
         get_stdout=True,
         command_list=[
             {
-                'command': "docker-compose stop {}".format(name),
+                'command': "cd {} && docker-compose stop {}".format(data['docker_compose_path'], name),
                 'run_stdout': False
             },
         ]
@@ -140,7 +140,7 @@ def run_test(application, test_type, rds):
         get_stdout=True,
         command_list=[
             {
-                'command': "docker-compose run -d -e DATABASE_HOST={} -e DATABASE_PORT={} {}".format(host, port, name),
+                'command': "cd {} && docker-compose run -d -e DATABASE_HOST={} -e DATABASE_PORT={} {}".format(data['docker_compose_path'], host, port, name),
                 'run_stdout': False
             },
         ]
@@ -175,6 +175,6 @@ def run_test(application, test_type, rds):
 
     print("Reiniciando container...")
     os.system("docker stop {}".format(new_container_id))
-    os.system("docker-compose run -d {}".format(name))
+    os.system("cd {} && docker-compose run -d {}".format(data['docker_compose_path'], name))
 
     return False

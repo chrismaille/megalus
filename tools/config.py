@@ -56,7 +56,8 @@ def get_config_data(filename="li-config", start_over=False):
         "slack_channel": None,
         "slack_icon": None,
         "datadog_api_key": None,
-        "datadog_app_key": None
+        "datadog_app_key": None,
+        "docker_compose_path": None
     }
     basepath = expanduser("~")
     filepath = os.path.join(basepath, ".{}".format(filename))
@@ -94,6 +95,8 @@ def get_config_data(filename="li-config", start_over=False):
         print("***************")
         with open(filepath, 'a') as file:
             for key in config:
+                if key == "docker_compose_path" and not config.get(key):
+                    continue
                 if config.get(key):
                     ask = "Informe {} [{}]: ".format(key, config.get(key))
                 else:
@@ -124,25 +127,33 @@ def get_config_data(filename="li-config", start_over=False):
         profile_path = os.path.join(basepath, '.profile')
         project_path = config['project_path']
         bashrc_path = os.path.join(basepath, '.bashrc')
+        path_message = None
         if os.path.exists(profile_path):
-            if 'LI_PROJECT_PATH' not in open(profile_path).read():
-                run_command(
-                    title=None, command_list=[
-                        {
-                            'command': "echo export LI_PROJECT_PATH='{}' >> {}".format(
-                                project_path, profile_path), 'run_stdout': False}, {
-                            'command': "export LI_PROJECT_PATH='{}'".format(
-                                project_path), 'run_stdout': False}], )
+            try:
+                if 'LI_PROJECT_PATH' not in open(profile_path).read():
+                    run_command(
+                        title=None, command_list=[
+                            {
+                                'command': "echo export LI_PROJECT_PATH='{}' >> {}".format(
+                                    project_path, profile_path), 'run_stdout': False}, {
+                                'command': "export LI_PROJECT_PATH='{}'".format(
+                                    project_path), 'run_stdout': False}], )
+            except:
+                path_message = "Certifique que o LI_PROJECT_PATH='{}'\nesteja no seu arquivo .profile".format(project_path)
+
         if os.path.exists(bashrc_path):
-            if 'LI_PROJECT_PATH' not in open(bashrc_path).read():
-                run_command(
-                    title=None,
-                    command_list=[
-                        {
-                            'command': "echo LI_PROJECT_PATH='{}' >> {}".format(
-                                project_path,
-                                bashrc_path),
-                            'run_stdout': False}])
+            try:
+                if 'LI_PROJECT_PATH' not in open(bashrc_path).read():
+                    run_command(
+                        title=None,
+                        command_list=[
+                            {
+                                'command': "echo LI_PROJECT_PATH='{}' >> {}".format(
+                                    project_path,
+                                    bashrc_path),
+                                'run_stdout': False}])
+            except:
+                path_message = "Certifique que o LI_PROJECT_PATH='{}'\nesteja no seu arquivo .bashrc".format(project_path)
 
         # Clona os repositorios LI
         resp = confirma("\nDeseja clonar os Repositorios")
@@ -191,12 +202,66 @@ def get_config_data(filename="li-config", start_over=False):
                             ]
                         )
 
+        # Confirma o caminho do docker-compose.yml
+        if not config.get('docker_compose_path'):
+            ret = run_command(
+                title="Localizando arquivo docker-compose.yml",
+                get_stdout=True,
+                command_list=[
+                    {
+                        'command': "locate docker-compose.yml",
+                        'run_stdout': False
+                    }
+                ]
+            )
+            paths_found = ret.split('\n')
+            if paths_found[-1] == '':
+                paths_found.pop(-1)
+            if len(paths_found) == 1:
+                config['docker_compose_path'] = paths_found[
+                    0].replace('docker-compose.yml', '')
+            elif paths_found:
+                print(
+                    u"Informe a localização do arquivo 'docker-compose.yml' da Loja Integrada")
+                print(u"(A localização padrão é: '{}/LI-Docker')\n".format(
+                    project_path
+                ))
+                print("Os caminhos encontrados foram:")
+                for num, path in enumerate(paths_found):
+                    print("{}. {}".format(num + 1, path))
+                resposta_ok = False
+                print("\n")
+                while not resposta_ok:
+                    try:
+                        rep = raw_input(
+                            "Selecione o caminho: (1-{}): ".format(num + 1))
+                        if rep and int(rep) in xrange(1, num + 1):
+                            resposta_ok = True
+                    except KeyboardInterrupt:
+                        print("Operação interrompida\n")
+                        return False
+                    except:
+                        pass
+                config['docker_compose_path'] = paths_found[
+                    int(rep) - 1].replace('docker-compose.yml', '')
+
+            if config.get('docker_compose_path'):
+                print('Arquivo encontrado!')
+                with open(filepath, 'a') as file:
+                    file.write(
+                        "{}={}\n".format(
+                            "DOCKER_COMPOSE_PATH",
+                            config.get('docker_compose_path')
+                        ))
+
     print("\n\n\nConfiguração concluída.")
     print("Para trabalhar com os repositórios certifique-se que:")
     print("* O docker e o docker-compose estejam instalados.")
     if platform.system() == "Windows":
         print("* (Windows) A variável de ambiente 'LI_PROJECT_PATH' esteja configurada.")
         print("* (Windows) Rode o comando 'aws configure'")
+    elif path_message:
+        print(path_message)
     print("* O comando 'aws configure' tenha sido rodado no repositório, antes do deploy.")
     print("* O comando 'eb init' tenha sido rodado no repositório, antes do deploy.")
     return False
