@@ -1,0 +1,8 @@
+.teste, #id01 {
+	display: flex;
+	justify-content: flex-start;
+}
+p {
+    font-family: "Times New Roman", Georgia, Serif;
+    color:  rgba(255, 255, 128, 10);
+}
