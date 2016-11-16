@@ -32,9 +32,7 @@ def run_debug(application):
         ]
     )
     os.system(
-        'docker-compose run --service-ports {}\n'.format(
-            name
-        )
+        'cd {} && docker-compose run --service-ports {}\n'.format(data['docker_compose_path'], name)
     )
 
     print("Reiniciando o container...")

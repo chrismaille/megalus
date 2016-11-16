@@ -65,7 +65,7 @@ def get_app(application, data, title=None):
         get_stdout=True,
         command_list=[
             {
-                'command': "docker ps | awk '{print $1,$2}'",
+                'command': "docker ps | awk '{print $1, $NF}'",
                 'run_stdout': False
             }
         ]
@@ -75,15 +75,15 @@ def get_app(application, data, title=None):
     app_list = []
 
     for obj in raw_list:
-        if obj.startswith("CONTAINER ID"):
+        if obj.startswith("CONTAINER"):
             continue
         if len(obj.split(" ")) != 2:
             continue
-        if obj.split(" ")[1].startswith(folder_name):
-            app_list.append((
-                obj.split(" ")[0],
-                obj.split(" ")[1].replace("{}_".format(folder_name), "")
-            ))
+
+        app_list.append((
+            obj.split(" ")[0],
+            obj.split(" ")[1]
+        ))
 
     # 2. Identifica qual o container que bate com o app solicitado
     filtered_list = [

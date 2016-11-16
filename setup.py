@@ -2,6 +2,17 @@ from setuptools import setup, find_packages
 from codecs import open
 from os import path
 
+
+def get_version_from_file():
+    # get version number from __init__ file
+    # before module is installed
+
+    fname = 'tools/__init__.py'
+    with open(fname) as f:
+        fcontent = f.readlines()
+    version_line = [l for l in fcontent if 'VERSION' in l][0]
+    return version_line.split('=')[1].strip().strip("'").strip('"')
+
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -27,7 +38,7 @@ install_requires = [
 
 setup(
     name='LI-AWS-Deploy',
-    version='2.3.5',
+    version=get_version_from_file(),
     description='Dev tools for Loja Integrada Web Applications',
     long_description=long_description,
     author='Chris Maillefaud',
