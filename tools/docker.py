@@ -32,7 +32,8 @@ def run_debug(application):
         ]
     )
     os.system(
-        'docker-compose run --service-ports {}\n'.format(
+        'cd {} && docker-compose run --service-ports {}\n'.format(
+            data['docker_compose_path'],
             name
         )
     )
@@ -133,7 +134,7 @@ def run_test(application, test_type, rds):
         host = "li-db-staging.ciksobkqlidb.us-east-1.rds.amazonaws.com"
         port = "5432"
     else:
-        host = "postgres_host"
+        host = "meg_postgres_host"
         port = "5432"
 
     new_container_id = run_command(

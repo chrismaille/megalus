@@ -23,8 +23,7 @@ from tools.config import get_config_data
 from tools.utils import confirma
 from tools.deploy import run_deploy
 from tools.docker import run_debug, run_telnet, run_test, run_bash
-
-VERSION = "1.0.0"
+from tools import VERSION
 
 
 def main():
