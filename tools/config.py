@@ -140,7 +140,7 @@ def get_config_data(filename="li-config", start_over=False):
                         config['aws_secret']))
 
             # Grava no bashrc a variavel LI_PROJECT_PATH
-            profile_path = os.path.join(basepath, '.profile')
+            profile_path = os.path.join(basepath, '.bash_profile')
             project_path = config['project_path']
             bashrc_path = os.path.join(basepath, '.bashrc')
             if os.path.exists(profile_path):
