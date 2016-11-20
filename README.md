@@ -38,3 +38,15 @@ Use para rodar os testes unitários da aplicação selecionada usando Python Uni
 > Uso: `li debug <app>`
 
 Use para abrir a aplicação informada num terminal bash (usuario root). Se não informar a aplicação a ferramenta irá perguntar qual aplicação abrir, a partir dos containers em atividade.
+
+#### Run
+> Uso: `li run <app>`
+
+Roda a aplicação informada e suas dependências ou todas as aplicações/containers se não informar nenhuma aplicação.
+
+#### Build
+> Uso: `li build <app> [--no-cache]`
+
+Use para fazer a build do container da aplicação selecionada. Se nenhuma aplicação for informada, será feito a build de todos os containers:
+
+* --no-cache: Durante a build, forçar o download de todas as livrarias/dependencias
