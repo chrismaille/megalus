@@ -3,7 +3,8 @@ import os
 from tools.utils import run_command, get_app
 from tools.config import get_config_data
 
-def run_runapp(application, action, opt):
+
+def run_runapp(application, action, opt=None):
     data = get_config_data()
     if not data:
         return False
@@ -35,6 +36,7 @@ def run_runapp(application, action, opt):
             },
         ]
     )
+
 
 def run_debug(application):
     data = get_config_data()
@@ -68,14 +70,8 @@ def run_debug(application):
     )
 
     print("Reiniciando o container...")
-    run_command(
-        command_list=[
-            {
-                'command': "cd {} && docker-compose up -d {}".format(data['docker_compose_path'], name),
-                'run_stdout': False
-            },
-        ]
-    )
+    run_command(command_list=[{'command': "cd {} && docker-compose up -d {}".format(
+        data['docker_compose_path'], name), 'run_stdout': False}, ])
     return False
 
 
@@ -170,11 +166,13 @@ def run_test(application, test_type, rds):
         get_stdout=True,
         command_list=[
             {
-                'command': "cd {} && docker-compose run -d -e DATABASE_HOST={} -e DATABASE_PORT={} {}".format(data['docker_compose_path'], host, port, name),
-                'run_stdout': False
-            },
-        ]
-    )
+                'command': "cd {} && docker-compose run -d -e DATABASE_HOST={} -e DATABASE_PORT={} {}".format(
+                    data['docker_compose_path'],
+                    host,
+                    port,
+                    name),
+                'run_stdout': False},
+        ])
     new_container_id = new_container_id.replace("\n", "")
     # os.system("docker-compose run -d -e DATABASE_HOST={} {}".format(host, name))
 
@@ -205,6 +203,7 @@ def run_test(application, test_type, rds):
 
     print("Reiniciando container...")
     os.system("docker stop {}".format(new_container_id))
-    os.system("cd {} && docker-compose run -d {}".format(data['docker_compose_path'], name))
+    os.system(
+        "cd {} && docker-compose run -d {}".format(data['docker_compose_path'], name))
 
     return False
