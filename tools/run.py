@@ -9,11 +9,14 @@ Usage:
     li test     [<app>] [--django] [--rds]
     li telnet   [<app>] (<port>)
     li bash     [<app>]
+    li run      [<app>]
+    li build    [<app>] [--no-cache]
 
 Options:
     --help          Mostra esta tela
     --django        Roda o teste unitario do Django. (Padrao: Unittest.)
     --rds           Nos testes usar o RDS da Amazon
+    --no-cache      Na build nao utilizar o cache
 
 """
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
@@ -22,7 +25,7 @@ from docopt import docopt
 from tools.config import get_config_data
 from tools.utils import confirma
 from tools.deploy import run_deploy
-from tools.docker import run_debug, run_telnet, run_test, run_bash
+from tools.docker import run_debug, run_telnet, run_test, run_bash, run_runapp
 from tools import VERSION
 
 
@@ -37,8 +40,8 @@ def main():
         if data:
             print("Configuração Atual:")
             print(json.dumps(data, indent=2))
-            resposta = confirma("Confirma os dados")
-            if resposta == "N":
+            resposta = confirma("Deseja alterar os dados?")
+            if resposta == "S":
                 data = get_config_data(start_over=True)
         return True
     #
@@ -80,6 +83,23 @@ def main():
             application=arguments['<app>'],
             test_type="django" if arguments['--django'] else None,
             rds=arguments['--rds']
+        )
+    #
+    # RUN APP
+    # 
+    if arguments['run'] is True:
+        ret = run_runapp(
+            application=arguments['<app>'],
+            action='up'
+        )
+    #
+    # BUILD ADD
+    # 
+    if arguments['build'] is True:
+        ret = run_runapp(
+            application=arguments['<app>'],
+            action='build',
+            opt="--no-cache" if arguments['--no-cache'] else None
         )
 
 

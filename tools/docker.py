@@ -3,6 +3,38 @@ import os
 from tools.utils import run_command, get_app
 from tools.config import get_config_data
 
+def run_runapp(application, action, opt):
+    data = get_config_data()
+    if not data:
+        return False
+
+    name = ""
+    if application:
+        container_id, name = get_app(
+            application=application,
+            title="Build/Run da Aplicacao",
+            data=data,
+            stop=True
+        )
+
+    run_command(
+        get_stdout=False,
+        command_list=[
+            {
+                'command': "cd {} && docker-compose stop".format(
+                    data['docker_compose_path']),
+                'run_stdout': False
+            },
+            {
+                'command': "cd {folder} && docker-compose {cmd} {opt} {app}".format(
+                    folder=data['docker_compose_path'],
+                    cmd=action,
+                    app=name,
+                    opt=opt if opt else ""),
+                'run_stdout': False
+            },
+        ]
+    )
 
 def run_debug(application):
     data = get_config_data()

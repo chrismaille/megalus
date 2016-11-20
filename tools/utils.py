@@ -21,55 +21,68 @@ def run_command(command_list, title=None, get_stdout=False):
         except UnicodeDecodeError:
             print(u"\n\n>> {}".format(title.decode('utf-8')))
         print(u"{:*^{num}}".format('', num=len(title) + 3))
-    # try:
-    for task in command_list:
-        if task['run_stdout']:
-            command = subprocess.check_output(
-                task['command'],
-                shell=True
-            )
+    try:
+        for task in command_list:
+            if task['run_stdout']:
+                command = subprocess.check_output(
+                    task['command'],
+                    shell=True
+                )
 
-            if not command:
+                if not command:
+                    print('Ocorreu um erro. Processo abortado')
+                    return False
+
+                ret = subprocess.call(
+                    command,
+                    shell=True
+                )
+            elif get_stdout is True:
+                ret = subprocess.check_output(
+                    task['command'],
+                    shell=True
+                )
+            else:
+                ret = subprocess.call(
+                    task['command'],
+                    shell=True,
+                    stderr=subprocess.STDOUT
+                )
+
+            if ret != 0 and not get_stdout:
                 print('Ocorreu um erro. Processo abortado')
                 return False
-
-            ret = subprocess.call(
-                command,
-                shell=True
-            )
-        elif get_stdout is True:
-            ret = subprocess.check_output(
-                task['command'],
-                shell=True
-            )
-        else:
-            ret = subprocess.call(
-                task['command'],
-                shell=True,
-                stderr=subprocess.STDOUT
-            )
-
-        if ret != 0 and not get_stdout:
-            print('Ocorreu um erro. Processo abortado')
-            return False
+    except:
+        return False
 
     return True if not get_stdout else ret
 
 
-def get_app(application, data, title=None):
-    folder_name = os.path.split(data['project_path'])[-1]
+def get_app(application, data, title=None, stop=False):
     # 1. Lista todos os containers que estao rodando
     # docker ps -a | grep painel | awk '{print $1,$2}'
-    ret = run_command(
-        title=title,
-        get_stdout=True,
-        command_list=[
-            {
-                'command': "docker ps | awk '{print $1, $NF}'",
-                'run_stdout': False
-            }
-        ]
-    )
+    if not stop:
+        ret = run_command(
+            title=title,
+            get_stdout=True,
+            command_list=[
+                {
+                    'command': "docker ps | awk '{print $1, $NF}'",
+                    'run_stdout': False
+                }
+            ]
+        )
+    else:
+        ret = run_command(
+            title=title,
+            get_stdout=True,
+            command_list=[
+                {
+                    'command': "docker ps -a | awk '{print $1, $NF}'",
+                    'run_stdout': False
+                }
+            ]
+        )
     raw_list = ret.split('\n')
 
     app_list = []
