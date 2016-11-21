@@ -6,7 +6,7 @@ from os.path import expanduser
 from tools.utils import run_command, confirma
 
 APPLICATIONS = [
-    ('LI-Docker', ['master']),
+    ('li-docker', ['master']),
     ('LI-Api-Carrinho', ['development', 'staging', 'production']),
     ('LI-Api-Catalogo', ['development', 'staging', 'production']),
     ('LI-Api-Envio', ['development', 'staging', 'production']),
@@ -30,7 +30,20 @@ APPLICATIONS = [
     ('LI-Common', ['master']),
     ('LI-Api-Flask', ['master']),
     ('Li-Worker-Importacao', ['production', 'staging']),
-    ('LI-AWS-Deploy', ['master', 'develop'])
+    ('LI-AWS-Deploy', ['master', 'develop']),
+    ('LI-OpsWorks', ['production', 'staging']),
+    ('LI-Standalone', ['production', 'staging']),
+    ('LI-Pagador', ['master']),
+    ('LI-Pagador-Deposito', ['master']),
+    ('LI-Pagador-MercadoPago', ['master']),
+    ('LI-Pagador-Paghiper', ['master']),
+    ('LI-Pagador-Boleto', ['master']),
+    ('LI-Pagador-PagSeguro', ['master']),
+    ('LI-Pagador-Entrega', ['master']),
+    ('LI-Pagador-PayPal', ['master']),
+    ('LI-Pagador-PagarMe', ['master']),
+    ('LI-Pagador-PayPal-Transparente', ['master']),
+    ('LI-Pagador-MercadoPago-Transparente', ['master'])
 ]
 
 MINIFY_BEFORE = [
@@ -76,9 +89,10 @@ def get_config_data(filename="li-config", start_over=False):
     else:
         with open(filepath, 'r') as file:
             for line in file:
-                key = line.split("=")[0].lower()
-                value = line.split("=")[1].rstrip()
-                config[key] = value
+                if "=" in line:
+                    key = line.split("=")[0].lower()
+                    value = line.split("=")[1].rstrip()
+                    config[key] = value
 
         for key in config:
             if not config.get(key):
@@ -95,6 +109,13 @@ def get_config_data(filename="li-config", start_over=False):
         path_message = None
         print("\n>> Configuração")
         print("***************")
+        project_path = config['project_path']
+        config_list = [
+            '.bash_profile',
+            '.bashrc',
+            '.zshrc',
+            '.profile'
+        ]
         if start_over:
             resp = confirma("Deseja configurar as chaves")
         else:
@@ -112,17 +133,19 @@ def get_config_data(filename="li-config", start_over=False):
                     resposta_ok = False
                     while not resposta_ok:
                         try:
-                            value = raw_input(ask)
+                            value = str(raw_input(ask))
+                            if not value and config[key]:
+                                file.write("{}={}\n".format(key.upper(), config[key]))
+                                resposta_ok = True
                             if value:
                                 config[key] = value
                                 file.write("{}={}\n".format(key.upper(), value))
-                                resposta_ok = True
-                            elif config[key]:
                                 resposta_ok = True
                         except KeyboardInterrupt:
                             print("\nOperação interrompida")
                             return False
                         except:
+                            print('erro')
                             pass
             # Grava arquivo de credenciais da Amazon
             aws_folder = os.path.join(basepath, ".aws")
@@ -139,36 +162,51 @@ def get_config_data(filename="li-config", start_over=False):
                     'aws_secret_access_key = {}\n'.format(
                         config['aws_secret']))
 
-            # Grava no bashrc a variavel LI_PROJECT_PATH
-            profile_path = os.path.join(basepath, '.bash_profile')
-            project_path = config['project_path']
-            bashrc_path = os.path.join(basepath, '.bashrc')
-            if os.path.exists(profile_path):
-                try:
-                    if 'LI_PROJECT_PATH' not in open(profile_path).read():
-                        run_command(
-                            title=None, command_list=[
-                                {
-                                    'command': "echo export LI_PROJECT_PATH='{}' >> {}".format(
-                                        project_path, profile_path), 'run_stdout': False}, {
-                                    'command': "export LI_PROJECT_PATH='{}'".format(
-                                        project_path), 'run_stdout': False}], )
-                except:
-                    path_message = "Certifique que o LI_PROJECT_PATH='{}'\nesteja no seu arquivo .profile".format(project_path)
-
-            if os.path.exists(bashrc_path):
-                try:
-                    if 'LI_PROJECT_PATH' not in open(bashrc_path).read():
-                        run_command(
-                            title=None,
+        # Grava a variavel LI_PROJECT_PATH nos arquivos de configuracao
+        print("\n")
+        one_file_ok = False
+        for filename in config_list:
+            export_found = False
+            try:
+                profile_path = os.path.join(basepath, filename)
+                with open(profile_path) as file:
+                    for line in file:
+                        if 'LI_PROJECT_PATH' in line:
+                            export_found = True
+                            one_file_ok = True
+                    if not export_found:
+                        ret = run_command(
+                            title=None, 
                             command_list=[
                                 {
-                                    'command': "echo LI_PROJECT_PATH='{}' >> {}".format(
-                                        project_path,
-                                        bashrc_path),
-                                    'run_stdout': False}])
-                except:
-                    path_message = "Certifique que o LI_PROJECT_PATH='{}'\nesteja no seu arquivo .bashrc".format(project_path)
+                                    'command': "echo export LI_PROJECT_PATH='{}' >> {}".format(
+                                        project_path, profile_path),
+                                    'run_stdout': False
+                                }
+                            ]
+                        )
+                        if ret:
+                            print("Adicionando LI_PROJECT_PATH no arquivo {}".format(filename))
+                            export_found = True
+                            one_file_ok = True
+                    else:
+                        export_found = True
+                        one_file_ok = True
+            except:
+                pass
+            finally:
+                run_command(
+                    title=None, 
+                    command_list=[
+                        {
+                            'command': "export LI_PROJECT_PATH='{}'".format(
+                                project_path),
+                            'run_stdout': False
+                        }
+                    ]
+                )
+        if not one_file_ok:
+            path_message = "Certifique-se que o LI_PROJECT_PATH esteja no seu arquivo .profile, .bashrc ou .zshrc correspondente"
 
         # Clona os repositorios LI
         resp = confirma("\nDeseja clonar os Repositorios")
@@ -291,7 +329,7 @@ def get_config_data(filename="li-config", start_over=False):
         print("* (Windows) A variável de ambiente 'LI_PROJECT_PATH' esteja configurada.")
         print("* (Windows) Rode o comando 'aws configure'")
     elif path_message:
-        print(path_message)
+        print("* {}".format(path_message))
     print("* O comando 'aws configure' tenha sido rodado no repositório, antes do deploy.")
     print("* O comando 'eb init' tenha sido rodado no repositório, antes do deploy.")
     return False

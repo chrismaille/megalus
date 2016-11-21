@@ -9,7 +9,7 @@ Usage:
     li test     [<app>] [--django] [--rds]
     li telnet   [<app>] (<port>)
     li bash     [<app>]
-    li run      [<app>]
+    li run      [<app>] [<command> ...]
     li build    [<app>] [--no-cache]
 
 Options:
@@ -17,6 +17,7 @@ Options:
     --django        Roda o teste unitario do Django. (Padrao: Unittest.)
     --rds           Nos testes usar o RDS da Amazon
     --no-cache      Na build nao utilizar o cache
+    <command>       Rode um comando para o run do container
 
 """
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
