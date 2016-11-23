@@ -27,6 +27,7 @@ from tools.config import get_config_data
 from tools.utils import confirma
 from tools.deploy import run_deploy
 from tools.docker import run_debug, run_telnet, run_test, run_bash, run_runapp
+from tools.version import show_version_warning
 from tools import VERSION
 
 
@@ -91,7 +92,7 @@ def main():
     if arguments['run'] is True:
         ret = run_runapp(
             application=arguments['<app>'],
-            action='up'
+            action='up' if not arguments['<app>'] else 'run'
         )
     #
     # BUILD ADD
@@ -106,10 +107,11 @@ def main():
 
 def start():
     print(
-        "\n\n************************\n\n"
+        "\033[94m\033[1m\n\n************************\n\n"
         "LI-Tools v{version}\n\n"
-        "************************\n".format(version=VERSION)
+        "************************\n\033[0m".format(version=VERSION)
     )
+    show_version_warning()
     retorno = main()
     if retorno:
         print('\n')

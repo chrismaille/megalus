@@ -3,6 +3,15 @@ from __future__ import print_function, unicode_literals, with_statement, nested_
 import os
 import subprocess
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 def confirma(pergunta):
     """Retorna S ou N"""
@@ -17,10 +26,13 @@ def confirma(pergunta):
 def run_command(command_list, title=None, get_stdout=False):
     if title:
         try:
-            print(u"\n\n>> {}".format(title))
+            print(u"\033[1m\033[93m\n\n>> {}".format(title))
         except UnicodeDecodeError:
-            print(u"\n\n>> {}".format(title.decode('utf-8')))
-        print(u"{:*^{num}}".format('', num=len(title) + 3))
+            print(u"\033[1m\033[93m\n\n>> {}".format(title.decode('utf-8')))
+        print(u"{:*^{num}}\033[0m".format(
+            '',
+            num=len(title) + 3)
+        )
     try:
         for task in command_list:
             if task['run_stdout']:
@@ -139,12 +151,3 @@ def get_app(application, data, title=None, stop=False):
         return (all_apps[int(rep) - 1][0], all_apps[int(rep) - 1][1])
 
 
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'

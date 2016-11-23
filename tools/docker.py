@@ -37,17 +37,16 @@ def run_runapp(application, action, opt=None, arg=None):
                 'command': "cd {} && docker-compose stop".format(
                     data['docker_compose_path']),
                 'run_stdout': False
-            },
-            {
-                'command': "cd {folder} && docker-compose {cmd} {opt} {app} {arg}".format(
-                    folder=data['docker_compose_path'],
-                    cmd=action,
-                    app=name,
-                    opt=opt if opt else "",
-                    arg=arg if arg else ""),
-                'run_stdout': False
-            },
+            }
         ]
+    )
+    os.system(
+        "cd {folder} && docker-compose {cmd} {opt} {app} {arg}".format(
+            folder=data['docker_compose_path'],
+            cmd=action,
+            app=name,
+            opt=opt if opt else "",
+            arg=arg if arg else "")
     )
 
 
@@ -85,6 +84,12 @@ def run_debug(application):
     print("Reiniciando o container...")
     run_command(command_list=[{'command': "cd {} && docker-compose up -d {}".format(
         data['docker_compose_path'], name), 'run_stdout': False}, ])
+    
+    # Exclui container extra
+    # docker rm $(docker ps -a | grep host_run |  awk '{print $1}')
+    os.system(
+        "docker rm $(docker ps -a | grep host_run |  awk '{print $1}')"
+    )
     return False
 
 
