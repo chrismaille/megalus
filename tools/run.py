@@ -92,7 +92,8 @@ def main():
     if arguments['run'] is True:
         ret = run_runapp(
             application=arguments['<app>'],
-            action='up' if not arguments['<app>'] else 'run'
+            action='up' if not arguments['<command>'] else 'run',
+            arg=arguments['<command>']
         )
     #
     # BUILD ADD

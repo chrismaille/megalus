@@ -48,6 +48,12 @@ def run_runapp(application, action, opt=None, arg=None):
             opt=opt if opt else "",
             arg=arg if arg else "")
     )
+    # Exclui container extra
+    # docker rm $(docker ps -a | grep host_run |  awk '{print $1}')
+    if action == "run":
+        os.system(
+            "docker rm $(docker ps -a | grep host_run |  awk '{print $1}')"
+        )
 
 
 def run_debug(application):
