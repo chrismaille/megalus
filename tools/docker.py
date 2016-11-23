@@ -206,14 +206,14 @@ def run_test(application, test_type, rds):
             {
                 'command': "docker exec -ti {} printenv | grep DATABASE_HOST".format(new_container_id),
                 'run_stdout': False}])
-    print("\n************************************")
+    print("\033[93m\n************************************")
     print("Rodando testes em: {}".format(
         "Django" if test_type == "django" else "Unittest"))
     print("Usando banco de dados: {}".format(
         database_path.replace("\n", "").split("=")[1])
     )
     print("Usando a Porta: {}".format(port))
-    print("************************************\n")
+    print("************************************\n\033[0m")
     if test_type == "django":
         command = "python /opt/app/manage.py test"
     else:
@@ -230,4 +230,9 @@ def run_test(application, test_type, rds):
     os.system(
         "cd {} && docker-compose run -d {}".format(data['docker_compose_path'], name))
 
+    # Exclui container extra
+    # docker rm $(docker ps -a | grep host_run |  awk '{print $1}')
+    os.system(
+        "docker rm $(docker ps -a | grep host_run |  awk '{print $1}')"
+    )
     return False
