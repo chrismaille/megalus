@@ -197,7 +197,7 @@ def run_deploy():
 
     # Rodar EB Deploy
     ret = run_command(
-        title="Rodando EB Deploy - {}".folder_name,
+        title="Rodando EB Deploy - {}".format(folder_name),
         command_list=[
             {
                 'command': "eb deploy --timeout 60",
