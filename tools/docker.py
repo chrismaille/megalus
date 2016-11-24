@@ -30,31 +30,31 @@ def run_runapp(application, action, opt=None, arg=None):
         #     ]
         # )
 
-    run_command(
-        get_stdout=False,
-        title="Rodar Comando Docker: {}".format(action.upper()),
-        command_list=[
-            {
-                'command': "cd {} && docker-compose stop".format(
-                    data['docker_compose_path']),
-                'run_stdout': False
-            }
-        ]
-    )
-    os.system(
-        "cd {folder} && docker-compose {cmd} {opt} {app} {arg}".format(
-            folder=data['docker_compose_path'],
-            cmd=action,
-            app=name,
-            opt=opt if opt else "",
-            arg=arg if arg else "")
-    )
-    # Exclui container extra
-    # docker rm $(docker ps -a | grep host_run |  awk '{print $1}')
-    if action == "run":
-        os.system(
-            "docker rm $(docker ps -a | grep host_run |  awk '{print $1}')"
+        run_command(
+            get_stdout=False,
+            title="Rodar Comando Docker: {}".format(action.upper()),
+            command_list=[
+                {
+                    'command': "cd {} && docker-compose stop".format(
+                        data['docker_compose_path']),
+                    'run_stdout': False
+                }
+            ]
         )
+        os.system(
+            "cd {folder} && docker-compose {cmd} {opt} {app} {arg}".format(
+                folder=data['docker_compose_path'],
+                cmd=action,
+                app=name,
+                opt=opt if opt else "",
+                arg=arg if arg else "")
+        )
+        # Exclui container extra
+        # docker rm $(docker ps -a | grep host_run |  awk '{print $1}')
+        if action == "run":
+            os.system(
+                "docker rm $(docker ps -a | grep host_run |  awk '{print $1}')"
+            )
 
 
 def run_debug(application):

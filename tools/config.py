@@ -6,9 +6,9 @@ from os.path import expanduser
 from tools.utils import run_command, confirma
 
 APPLICATIONS = [
-    ('megdocker', ['master', 'develop']),
+    ('megdocker', ['master']),
     ('megpainel', ['master', 'develop']),
-    ('megtools', ['master', 'develop'])
+    ('megtools', ['master'])
 ]
 
 MINIFY_BEFORE = [
@@ -22,17 +22,17 @@ def get_config_data(filename="li-config", start_over=False):
     # Verifica se a configuracao existe
     # Caso nao exista perguntar
     config = {
-        "aws_key": None,
-        "aws_secret": None,
-        "aws_account": None,
-        "aws_region": None,
+        # "aws_key": None,
+        # "aws_secret": None,
+        # "aws_account": None,
+        # "aws_region": None,
         "project_path": None,
         "slack_user": None,
         "slack_url": None,
         "slack_channel": None,
         "slack_icon": None,
-        "datadog_api_key": None,
-        "datadog_app_key": None,
+        # "datadog_api_key": None,
+        # "datadog_app_key": None,
         "docker_compose_path": None
     }
     basepath = expanduser("~")
@@ -110,19 +110,20 @@ def get_config_data(filename="li-config", start_over=False):
                             print('erro')
                             pass
             # Grava arquivo de credenciais da Amazon
-            aws_folder = os.path.join(basepath, ".aws")
-            if not os.path.exists(aws_folder):
-                os.makedirs(aws_folder)
-            with open(os.path.join(aws_folder, "config"), 'w') as file:
-                file.write("[config]\n")
-                file.write('region = {}\n'.format(config['aws_region']))
+            if config.get('aws_key', None):
+                aws_folder = os.path.join(basepath, ".aws")
+                if not os.path.exists(aws_folder):
+                    os.makedirs(aws_folder)
+                with open(os.path.join(aws_folder, "config"), 'w') as file:
+                    file.write("[config]\n")
+                    file.write('region = {}\n'.format(config['aws_region']))
 
-            with open(os.path.join(aws_folder, "credentials"), 'w') as file:
-                file.write('[default]\n')
-                file.write('aws_access_key_id = {}\n'.format(config['aws_key']))
-                file.write(
-                    'aws_secret_access_key = {}\n'.format(
-                        config['aws_secret']))
+                with open(os.path.join(aws_folder, "credentials"), 'w') as file:
+                    file.write('[default]\n')
+                    file.write('aws_access_key_id = {}\n'.format(config['aws_key']))
+                    file.write(
+                        'aws_secret_access_key = {}\n'.format(
+                            config['aws_secret']))
 
         # Grava a variavel MEGALUS_PATH nos arquivos de configuracao
         print("\n")

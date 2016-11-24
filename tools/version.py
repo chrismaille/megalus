@@ -7,7 +7,7 @@ from tools import VERSION
 
 
 def versions():
-    url = "https://pypi.python.org/pypi/li-aws-deploy/json"
+    url = "https://pypi.python.org/pypi/meg-tools/json"
     data = None
     versions = None
     try:
