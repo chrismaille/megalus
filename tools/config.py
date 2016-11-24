@@ -6,9 +6,9 @@ from os.path import expanduser
 from tools.utils import run_command, confirma
 
 APPLICATIONS = [
-    ('MegDocker', ['master', 'develop']),
-    ('MegPainel', ['master', 'develop']),
-    ('MegTools', ['master', 'develop'])
+    ('megdocker', ['master', 'develop']),
+    ('megpainel', ['master', 'develop']),
+    ('megtools', ['master', 'develop'])
 ]
 
 MINIFY_BEFORE = [
@@ -51,9 +51,10 @@ def get_config_data(filename="li-config", start_over=False):
     else:
         with open(filepath, 'r') as file:
             for line in file:
-                key = line.split("=")[0].lower()
-                value = line.split("=")[1].rstrip()
-                config[key] = value
+                if "=" in line:
+                    key = line.split("=")[0].lower()
+                    value = line.split("=")[1].rstrip()
+                    config[key] = value
 
         for key in config:
             if not config.get(key):
@@ -67,71 +68,109 @@ def get_config_data(filename="li-config", start_over=False):
     if ret and not start_over:
         return config
     else:
+        path_message = None
         print("\n>> Configuração")
         print("***************")
-        with open(filepath, 'a') as file:
-            for key in config:
-                if key == "docker_compose_path" and not config.get(key):
-                    continue
-                if config.get(key):
-                    ask = "Informe {} [{}]: ".format(key, config.get(key))
-                else:
-                    ask = "Informe {}: ".format(key)
-
-                value = raw_input(ask)
-                if value:
-                    config[key] = value
-                if value and config[key] != value:
-                    file.write("{}={}\n".format(key.upper(), value))
-
-        # Grava arquivo de credenciais da Amazon
-        aws_folder = os.path.join(basepath, ".aws")
-        if not os.path.exists(aws_folder):
-            os.makedirs(aws_folder)
-        with open(os.path.join(aws_folder, "config"), 'w') as file:
-            file.write("[config]\n")
-            file.write('region = {}\n'.format(config['aws_region']))
-
-        with open(os.path.join(aws_folder, "credentials"), 'w') as file:
-            file.write('[default]\n')
-            file.write('aws_access_key_id = {}\n'.format(config['aws_key']))
-            file.write(
-                'aws_secret_access_key = {}\n'.format(
-                    config['aws_secret']))
-
-        # Grava no bashrc a variavel LI_PROJECT_PATH
-        profile_path = os.path.join(basepath, '.profile')
         project_path = config['project_path']
-        bashrc_path = os.path.join(basepath, '.bashrc')
-        path_message = None
-        if os.path.exists(profile_path):
-            try:
-                if 'MEGALUS_PATH' not in open(profile_path).read():
-                    run_command(
-                        title=None, command_list=[
-                            {
-                                'command': "echo export MEGALUS_PATH='{}' >> {}".format(
-                                    project_path, profile_path), 'run_stdout': False}, {
-                                'command': "export MEGALUS_PATH='{}'".format(
-                                    project_path), 'run_stdout': False}], )
-            except:
-                path_message = "Certifique que o MEGALUS_PATH='{}'\nesteja no seu arquivo .profile".format(project_path)
+        config_list = [
+            '.bash_profile',
+            '.bashrc',
+            '.zshrc',
+            '.profile'
+        ]
+        if start_over:
+            resp = confirma("Deseja configurar as chaves")
+        else:
+            resp = "S"
+        if resp == "S":
+            with open(filepath, 'w') as file:
+                for key in config:
+                    if key == "docker_compose_path" and not config.get(key):
+                        continue
+                    if config.get(key):
+                        ask = "Informe {} [{}]: ".format(key.upper(), config.get(key))
+                    else:
+                        ask = "Informe {}: ".format(key.upper())
 
-        if os.path.exists(bashrc_path):
-            try:
-                if 'MEGALUS_PATH' not in open(bashrc_path).read():
-                    run_command(
-                        title=None,
-                        command_list=[
-                            {
-                                'command': "echo MEGALUS_PATH='{}' >> {}".format(
-                                    project_path,
-                                    bashrc_path),
-                                'run_stdout': False}])
-            except:
-                path_message = "Certifique que o MEGALUS_PATH='{}'\nesteja no seu arquivo .bashrc".format(project_path)
+                    resposta_ok = False
+                    while not resposta_ok:
+                        try:
+                            value = str(raw_input(ask))
+                            if not value and config[key]:
+                                file.write("{}={}\n".format(key.upper(), config[key]))
+                                resposta_ok = True
+                            if value:
+                                config[key] = value
+                                file.write("{}={}\n".format(key.upper(), value))
+                                resposta_ok = True
+                        except KeyboardInterrupt:
+                            print("\nOperação interrompida")
+                            return False
+                        except:
+                            print('erro')
+                            pass
+            # Grava arquivo de credenciais da Amazon
+            aws_folder = os.path.join(basepath, ".aws")
+            if not os.path.exists(aws_folder):
+                os.makedirs(aws_folder)
+            with open(os.path.join(aws_folder, "config"), 'w') as file:
+                file.write("[config]\n")
+                file.write('region = {}\n'.format(config['aws_region']))
 
-        # Clona os repositorios LI
+            with open(os.path.join(aws_folder, "credentials"), 'w') as file:
+                file.write('[default]\n')
+                file.write('aws_access_key_id = {}\n'.format(config['aws_key']))
+                file.write(
+                    'aws_secret_access_key = {}\n'.format(
+                        config['aws_secret']))
+
+        # Grava a variavel MEGALUS_PATH nos arquivos de configuracao
+        print("\n")
+        one_file_ok = False
+        for filename in config_list:
+            export_found = False
+            try:
+                profile_path = os.path.join(basepath, filename)
+                with open(profile_path) as file:
+                    for line in file:
+                        if 'MEGALUS_PATH' in line:
+                            export_found = True
+                            one_file_ok = True
+                    if not export_found:
+                        ret = run_command(
+                            title=None, 
+                            command_list=[
+                                {
+                                    'command': "echo export MEGALUS_PATH='{}' >> {}".format(
+                                        project_path, profile_path),
+                                    'run_stdout': False
+                                }
+                            ]
+                        )
+                        if ret:
+                            print("Adicionando MEGALUS_PATH no arquivo {}".format(filename))
+                            export_found = True
+                            one_file_ok = True
+                    else:
+                        export_found = True
+                        one_file_ok = True
+            except:
+                pass
+            finally:
+                run_command(
+                    title=None, 
+                    command_list=[
+                        {
+                            'command': "export MEGALUS_PATH='{}'".format(
+                                project_path),
+                            'run_stdout': False
+                        }
+                    ]
+                )
+        if not one_file_ok:
+            path_message = "Certifique-se que o MEGALUS_PATH esteja no seu arquivo .profile, .bashrc ou .zshrc correspondente"
+
+        # Clona os repositorios MEGALUS
         resp = confirma("\nDeseja clonar os Repositorios")
         if resp == "S":
             if not os.path.exists(project_path):
@@ -147,7 +186,7 @@ def get_config_data(filename="li-config", start_over=False):
                     continue
                 first_branch = True
                 for branch in branch_list:
-                    github_url = "https://github.com/Megalus/{}.git".format(
+                    github_url = "https://chrismaille@bitbucket.org/maisimovel/{}.git".format(
                         app.lower())
                     if first_branch:
                         run_command(
@@ -190,36 +229,51 @@ def get_config_data(filename="li-config", start_over=False):
                     }
                 ]
             )
-            paths_found = ret.split('\n')
-            if paths_found[-1] == '':
-                paths_found.pop(-1)
-            if len(paths_found) == 1:
-                config['docker_compose_path'] = paths_found[
-                    0].replace('docker-compose.yml', '')
-            elif paths_found:
-                print(
-                    u"Informe a localização do arquivo 'docker-compose.yml' da Loja Integrada")
-                print(u"(A localização padrão é: '{}/MegDocker')\n".format(
-                    project_path
-                ))
-                print("Os caminhos encontrados foram:")
-                for num, path in enumerate(paths_found):
-                    print("{}. {}".format(num + 1, path))
+            if ret:
+                paths_found = ret.split('\n')
+                if paths_found[-1] == '':
+                    paths_found.pop(-1)
+                if len(paths_found) == 1:
+                    config['docker_compose_path'] = paths_found[
+                        0].replace('docker-compose.yml', '')
+                elif paths_found:
+                    print(
+                        u"Informe a localização do arquivo 'docker-compose.yml' da Loja Integrada")
+                    print(u"(A localização padrão é: '{}/megdocker')\n".format(
+                        project_path
+                    ))
+                    print("Os caminhos encontrados foram:")
+                    for num, path in enumerate(paths_found):
+                        print("{}. {}".format(num + 1, path))
+                    resposta_ok = False
+                    print("\n")
+                    while not resposta_ok:
+                        try:
+                            rep = raw_input(
+                                "Selecione o caminho: (1-{}): ".format(num + 1))
+                            if rep and int(rep) in xrange(1, num + 1):
+                                resposta_ok = True
+                        except KeyboardInterrupt:
+                            print("Operação interrompida\n")
+                            return False
+                        except:
+                            pass
+                    config['docker_compose_path'] = paths_found[
+                        int(rep) - 1].replace('docker-compose.yml', '')
+            else:
                 resposta_ok = False
-                print("\n")
                 while not resposta_ok:
                     try:
                         rep = raw_input(
-                            "Selecione o caminho: (1-{}): ".format(num + 1))
-                        if rep and int(rep) in xrange(1, num + 1):
+                            "Informe o caminho do arquivo docker-compose.yml: ")
+                        if os.path.exists(os.path.join(rep,"docker-compose.yml")):
                             resposta_ok = True
+                            config['docker_compose_path'] = rep
                     except KeyboardInterrupt:
                         print("Operação interrompida\n")
                         return False
                     except:
                         pass
-                config['docker_compose_path'] = paths_found[
-                    int(rep) - 1].replace('docker-compose.yml', '')
 
             if config.get('docker_compose_path'):
                 print('Arquivo encontrado!')
@@ -237,7 +291,7 @@ def get_config_data(filename="li-config", start_over=False):
         print("* (Windows) A variável de ambiente 'MEGALUS_PATH' esteja configurada.")
         print("* (Windows) Rode o comando 'aws configure'")
     elif path_message:
-        print(path_message)
+        print("* {}".format(path_message))
     print("* O comando 'aws configure' tenha sido rodado no repositório, antes do deploy.")
     print("* O comando 'eb init' tenha sido rodado no repositório, antes do deploy.")
     return False

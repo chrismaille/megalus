@@ -4,6 +4,59 @@ from tools.utils import run_command, get_app
 from tools.config import get_config_data
 
 
+def run_runapp(application, action, opt=None, arg=None):
+    data = get_config_data()
+    if not data:
+        return False
+
+    name = ""
+    if application:
+        container_id, name = get_app(
+            application=application,
+            title="Build/Run da Aplicacao",
+            data=data,
+            stop=True
+        )
+
+    if action == 'build':
+        # O comando abaixo é para fazer login no AWS ECR
+        # run_command(
+        #     get_stdout=False,
+        #     command_list=[
+        #         {
+        #             'command': "aws ecr get-login --region {region}".format(region=data['aws_region']),
+        #             'run_stdout': True
+        #         }
+        #     ]
+        # )
+
+    run_command(
+        get_stdout=False,
+        title="Rodar Comando Docker: {}".format(action.upper()),
+        command_list=[
+            {
+                'command': "cd {} && docker-compose stop".format(
+                    data['docker_compose_path']),
+                'run_stdout': False
+            }
+        ]
+    )
+    os.system(
+        "cd {folder} && docker-compose {cmd} {opt} {app} {arg}".format(
+            folder=data['docker_compose_path'],
+            cmd=action,
+            app=name,
+            opt=opt if opt else "",
+            arg=arg if arg else "")
+    )
+    # Exclui container extra
+    # docker rm $(docker ps -a | grep host_run |  awk '{print $1}')
+    if action == "run":
+        os.system(
+            "docker rm $(docker ps -a | grep host_run |  awk '{print $1}')"
+        )
+
+
 def run_debug(application):
     data = get_config_data()
     if not data:
@@ -32,20 +85,17 @@ def run_debug(application):
         ]
     )
     os.system(
-        'cd {} && docker-compose run --service-ports {}\n'.format(
-            data['docker_compose_path'],
-            name
-        )
+        'cd {} && docker-compose run --service-ports {}\n'.format(data['docker_compose_path'], name)
     )
 
     print("Reiniciando o container...")
-    run_command(
-        command_list=[
-            {
-                'command': "cd {} && docker-compose up -d {}".format(data['docker_compose_path'], name),
-                'run_stdout': False
-            },
-        ]
+    run_command(command_list=[{'command': "cd {} && docker-compose up -d {}".format(
+        data['docker_compose_path'], name), 'run_stdout': False}, ])
+    
+    # Exclui container extra
+    # docker rm $(docker ps -a | grep host_run |  awk '{print $1}')
+    os.system(
+        "docker rm $(docker ps -a | grep host_run |  awk '{print $1}')"
     )
     return False
 
@@ -141,11 +191,13 @@ def run_test(application, test_type, rds):
         get_stdout=True,
         command_list=[
             {
-                'command': "cd {} && docker-compose run -d -e DATABASE_HOST={} -e DATABASE_PORT={} {}".format(data['docker_compose_path'], host, port, name),
-                'run_stdout': False
-            },
-        ]
-    )
+                'command': "cd {} && docker-compose run -d -e DATABASE_HOST={} -e DATABASE_PORT={} {}".format(
+                    data['docker_compose_path'],
+                    host,
+                    port,
+                    name),
+                'run_stdout': False},
+        ])
     new_container_id = new_container_id.replace("\n", "")
     # os.system("docker-compose run -d -e DATABASE_HOST={} {}".format(host, name))
 
@@ -155,14 +207,14 @@ def run_test(application, test_type, rds):
             {
                 'command': "docker exec -ti {} printenv | grep DATABASE_HOST".format(new_container_id),
                 'run_stdout': False}])
-    print("\n************************************")
-    print("Rodando testes em: {}".format(
+    print("\033[93m\n************************************")
+    print("Rodando testes com: {}".format(
         "Django" if test_type == "django" else "Unittest"))
     print("Usando banco de dados: {}".format(
         database_path.replace("\n", "").split("=")[1])
     )
     print("Usando a Porta: {}".format(port))
-    print("************************************\n")
+    print("************************************\n\033[0m")
     if test_type == "django":
         command = "python /opt/app/manage.py test"
     else:
@@ -176,6 +228,12 @@ def run_test(application, test_type, rds):
 
     print("Reiniciando container...")
     os.system("docker stop {}".format(new_container_id))
-    os.system("cd {} && docker-compose run -d {}".format(data['docker_compose_path'], name))
+    os.system(
+        "cd {} && docker-compose run -d {}".format(data['docker_compose_path'], name))
 
+    # Exclui container extra
+    # docker rm $(docker ps -a | grep host_run |  awk '{print $1}')
+    os.system(
+        "docker rm $(docker ps -a | grep host_run |  awk '{print $1}')"
+    )
     return False

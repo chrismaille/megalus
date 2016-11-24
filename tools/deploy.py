@@ -11,7 +11,6 @@ from tools.compress import minifyCSS, minifyJS
 
 
 ECR_NAME = {
-
 }
 
 
@@ -131,7 +130,7 @@ def run_deploy():
 
     # Atualiza GitHub
     ret = run_command(
-        title="Atualiza GitHub",
+        title="Atualiza GitHub - {}".format(folder_name),
         command_list=[
             {
                 'command': "git push origin {}".format(branch.name),
@@ -155,7 +154,7 @@ def run_deploy():
 
     # Gerar imagem do Docker
     ret = run_command(
-        title="Gera Imagem no Docker",
+        title="Gera Imagem no Docker - {}".format(folder_name),
         command_list=[
             {
                 'command': "aws ecr get-login --region {region}".format(region=config['aws_region']),
@@ -193,7 +192,7 @@ def run_deploy():
 
     # Rodar EB Deploy
     ret = run_command(
-        title="Rodando EB Deploy",
+        title="Rodando EB Deploy - {}".format(folder_name),
         command_list=[
             {
                 'command': "eb deploy --timeout 60",

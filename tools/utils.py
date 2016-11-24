@@ -3,6 +3,15 @@ from __future__ import print_function, unicode_literals, with_statement, nested_
 import os
 import subprocess
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 def confirma(pergunta):
     """Retorna S ou N"""
@@ -17,59 +26,75 @@ def confirma(pergunta):
 def run_command(command_list, title=None, get_stdout=False):
     if title:
         try:
-            print(u"\n\n>> {}".format(title))
+            print(u"\033[1m\033[93m\n\n>> {}".format(title))
         except UnicodeDecodeError:
-            print(u"\n\n>> {}".format(title.decode('utf-8')))
-        print(u"{:*^{num}}".format('', num=len(title) + 3))
-    # try:
-    for task in command_list:
-        if task['run_stdout']:
-            command = subprocess.check_output(
-                task['command'],
-                shell=True
-            )
+            print(u"\033[1m\033[93m\n\n>> {}".format(title.decode('utf-8')))
+        print(u"{:*^{num}}\033[0m".format(
+            '',
+            num=len(title) + 3)
+        )
+    try:
+        for task in command_list:
+            if task['run_stdout']:
+                command = subprocess.check_output(
+                    task['command'],
+                    shell=True
+                )
 
-            if not command:
+                if not command:
+                    print('Ocorreu um erro. Processo abortado')
+                    return False
+
+                ret = subprocess.call(
+                    command,
+                    shell=True
+                )
+            elif get_stdout is True:
+                ret = subprocess.check_output(
+                    task['command'],
+                    shell=True
+                )
+            else:
+                ret = subprocess.call(
+                    task['command'],
+                    shell=True,
+                    stderr=subprocess.STDOUT
+                )
+
+            if ret != 0 and not get_stdout:
                 print('Ocorreu um erro. Processo abortado')
                 return False
-
-            ret = subprocess.call(
-                command,
-                shell=True
-            )
-        elif get_stdout is True:
-            ret = subprocess.check_output(
-                task['command'],
-                shell=True
-            )
-        else:
-            ret = subprocess.call(
-                task['command'],
-                shell=True,
-                stderr=subprocess.STDOUT
-            )
-
-        if ret != 0 and not get_stdout:
-            print('Ocorreu um erro. Processo abortado')
-            return False
+    except:
+        return False
 
     return True if not get_stdout else ret
 
 
-def get_app(application, data, title=None):
-    folder_name = os.path.split(data['project_path'])[-1]
+def get_app(application, data, title=None, stop=False):
     # 1. Lista todos os containers que estao rodando
     # docker ps -a | grep painel | awk '{print $1,$2}'
-    ret = run_command(
-        title=title,
-        get_stdout=True,
-        command_list=[
-            {
-                'command': "docker ps | awk '{print $1,$NF}'",
-                'run_stdout': False
-            }
-        ]
-    )
+    if not stop:
+        ret = run_command(
+            title=title,
+            get_stdout=True,
+            command_list=[
+                {
+                    'command': "docker ps | awk '{print $1, $NF}'",
+                    'run_stdout': False
+                }
+            ]
+        )
+    else:
+        ret = run_command(
+            title=title,
+            get_stdout=True,
+            command_list=[
+                {
+                    'command': "docker ps -a | awk '{print $1, $NF}'",
+                    'run_stdout': False
+                }
+            ]
+        )
     raw_list = ret.split('\n')
 
     app_list = []
@@ -79,11 +104,11 @@ def get_app(application, data, title=None):
             continue
         if len(obj.split(" ")) != 2:
             continue
-        if obj.split(" ")[1].startswith(folder_name):
-            app_list.append((
-                obj.split(" ")[0],
-                obj.split(" ")[1]
-            ))
+
+        app_list.append((
+            obj.split(" ")[0],
+            obj.split(" ")[1]
+        ))
 
     # 2. Identifica qual o container que bate com o app solicitado
     filtered_list = [
@@ -124,14 +149,3 @@ def get_app(application, data, title=None):
             except:
                 pass
         return (all_apps[int(rep) - 1][0], all_apps[int(rep) - 1][1])
-
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'

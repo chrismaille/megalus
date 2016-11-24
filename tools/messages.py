@@ -21,8 +21,8 @@ class Message():
         self.repo = repo
         self.test = test
         self.action = action
-        print("\n>> Enviando mensagens")
-        print("*********************")
+        print("\033[1m\033[93m\n>> Enviando mensagens")
+        print("*********************\033[0m")
 
     def send_datadog(self, alert_type="info"):
 
