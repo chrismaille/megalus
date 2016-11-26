@@ -2,6 +2,7 @@
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import datadog
 import slackweb
+from tools import settings
 
 
 class Message():
@@ -24,7 +25,13 @@ class Message():
         print("\033[1m\033[93m\n>> Enviando mensagens")
         print("*********************\033[0m")
 
-    def send_datadog(self, alert_type="info"):
+    def send(self, alert_type="info"):
+        if settings.USE_DATADOG:
+            self.send_datadog(alert_type)
+        if settings.USE_SLACK:
+            self.send_slack()
+
+    def send_datadog(self, alert_type):
 
         options = {
             'api_key': self.config['datadog_api_key'],
@@ -65,7 +72,7 @@ class Message():
             slack.notify(
                 text=text,
                 channel="#{}".format(
-                    self.config['slack_channel']) if not self.test else "#teste_automacao",
+                    self.config['slack_channel']) if not self.test else settings.TEST_CHANNEL,
                 username=self.config['slack_user'],
                 icon_emoji=":{}:".format(
                     self.config['slack_icon']))

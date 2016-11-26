@@ -2,6 +2,7 @@
 import os
 from tools.utils import run_command, get_app
 from tools.config import get_config_data
+from tools import settings
 
 
 def run_runapp(application, action, opt=None, arg=None):
@@ -10,46 +11,56 @@ def run_runapp(application, action, opt=None, arg=None):
         return False
 
     name = ""
+    container_id = None
     if application:
         container_id, name = get_app(
             application=application,
             title="Build/Run da Aplicacao",
             data=data,
-            stop=True
+            stop=False if action == "exec" else True
+        )
+        if not container_id:
+            return False
+
+    if action == 'build' and settings.USE_ECR:
+        run_command(
+            get_stdout=False,
+            command_list=[
+                {
+                    'command': "aws ecr get-login --region {region}".format(region=data['aws_region']),
+                    'run_stdout': True
+                }
+            ]
         )
 
-    if action == 'build':
-        pass
-        # O comando abaixo é para fazer login no AWS ECR
-        # run_command(
-        #     get_stdout=False,
-        #     command_list=[
-        #         {
-        #             'command': "aws ecr get-login --region {region}".format(region=data['aws_region']),
-        #             'run_stdout': True
-        #         }
-        #     ]
-        # )
-
-    run_command(
-        get_stdout=False,
-        title="Rodar Comando Docker: {}".format(action.upper()),
-        command_list=[
-            {
-                'command': "cd {} && docker-compose stop".format(
-                    data['docker_compose_path']),
-                'run_stdout': False
-            }
-        ]
-    )
-    os.system(
-        "cd {folder} && docker-compose {cmd} {opt} {app} {arg}".format(
-            folder=data['docker_compose_path'],
-            cmd=action,
-            app=name,
-            opt=opt if opt else "",
-            arg=arg if arg else "")
-    )
+    if action == "exec":
+        print("\n\033[1m\033[94mRodando comando '{}' em '{}'\033[0m".format(
+            " ".join(arg), name))
+        os.system(
+            "docker {cmd} -ti {app}{arg}".format(
+                cmd=action,
+                app=container_id,
+                arg=" {}".format(" ".join(arg)) if arg else "")
+        )
+    else:
+        run_command(
+            get_stdout=False,
+            title="Rodar Comando Docker: {}".format(action.upper()),
+            command_list=[
+                {
+                    'command': "cd {} && docker-compose stop".format(
+                        data['docker_compose_path']),
+                    'run_stdout': False
+                }
+            ]
+        )
+        os.system(
+            "cd {folder} && docker-compose {cmd} {opt} {app}".format(
+                folder=data['docker_compose_path'],
+                cmd=action,
+                app=name,
+                opt=opt if opt else "")
+        )
     # Exclui container extra
     # docker rm $(docker ps -a | grep host_run |  awk '{print $1}')
     if action == "run":
@@ -92,7 +103,7 @@ def run_debug(application):
     print("Reiniciando o container...")
     run_command(command_list=[{'command': "cd {} && docker-compose up -d {}".format(
         data['docker_compose_path'], name), 'run_stdout': False}, ])
-    
+
     # Exclui container extra
     # docker rm $(docker ps -a | grep host_run |  awk '{print $1}')
     os.system(
@@ -182,11 +193,11 @@ def run_test(application, test_type, rds):
     # Rodar o container com o endereco do
     # Banco de dados selecionado
     if rds:
-        host = "li-db-staging.ciksobkqlidb.us-east-1.rds.amazonaws.com"
-        port = "5432"
+        host = settings.STAGE_DB
+        port = settings.STAGE_PORT
     else:
-        host = "meg_postgres_host"
-        port = "5432"
+        host = settings.LOCAL_DB
+        port = settings.LOCAL_PORT
 
     new_container_id = run_command(
         get_stdout=True,

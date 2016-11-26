@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
-import os
 import subprocess
+
 
 class bcolors:
     HEADER = '\033[95m'
@@ -13,11 +13,12 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
 def confirma(pergunta):
     """Retorna S ou N"""
     resposta_ok = False
     while not resposta_ok:
-        resposta = raw_input("{} (s/n)? ".format(pergunta))
+        resposta = raw_input(u"\n{} (s/n)? ".format(pergunta).encode("UTF-8"))
         if resposta and resposta[0].upper() in ["S", "N"]:
             resposta_ok = True
     return resposta[0].upper()
@@ -28,7 +29,7 @@ def run_command(command_list, title=None, get_stdout=False):
         try:
             print(u"\033[1m\033[93m\n\n>> {}".format(title))
         except UnicodeDecodeError:
-            print(u"\033[1m\033[93m\n\n>> {}".format(title.decode('utf-8')))
+            print(u"\033[1m\033[93m\n\n>> {}".format(title.encode('utf-8')))
         print(u"{:*^{num}}\033[0m".format(
             '',
             num=len(title) + 3)

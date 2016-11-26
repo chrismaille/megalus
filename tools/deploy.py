@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
-import os
 import json
+import os
 import platform
+import re
 from git import Repo
-from tools.config import get_config_data, APPLICATIONS, MINIFY_BEFORE, SYNC_S3
+from tools import settings
+from tools.compress import minifyCSS, minifyJS
+from tools.config import get_config_data
 from tools.messages import Message
 from tools.utils import bcolors, run_command, confirma
-from tools.compress import minifyCSS, minifyJS
-
-
-ECR_NAME = {
-}
 
 
 def run_deploy():
@@ -34,7 +32,7 @@ def run_deploy():
         return False
     app_list = [
         app.lower()
-        for app, br in APPLICATIONS
+        for app, br in settings.APPLICATIONS
     ]
     folder_name = os.path.split(current_dir)[-1]
     if folder_name.lower() not in app_list:
@@ -63,7 +61,42 @@ def run_deploy():
     print("Branch Atual: {}".format(
         text_branch if platform.system() != "Windows" else branch_name.upper()
     ))
-    print("Último Commit: {}".format(last_commit))
+    print("Último Commit:\n{}".format("{}{}{}".format(
+        bcolors.WARNING,
+        last_commit,
+        bcolors.ENDC
+        )))
+
+    # Roda EB Status
+    eb_status = False
+    ret = run_command(
+        get_stdout=True,
+        command_list=[
+            {
+                'command': "eb status",
+                'run_stdout': False
+            }
+        ]
+    )
+    if ret:
+        m = re.search("Status: (\w+)", ret)
+        if m:
+            eb_status_name = m.group(1)
+            if eb_status_name == "Ready":
+                eb_status = True
+            print ("O Status do ElasticBeanstalk é: {}".format(
+                "{}{}{}{}".format(
+                    bcolors.BOLD,
+                    bcolors.OKGREEN if eb_status else bcolors.FAIL,
+                    eb_status_name.upper(),
+                    bcolors.ENDC
+                )
+            ))
+        else:
+            print (ret)
+
+    if not eb_status:
+        return False
 
     resposta = confirma("Confirma o Deploy")
     if resposta == "N":
@@ -71,7 +104,7 @@ def run_deploy():
 
     # Ações específicas do App
     # 1. Minify estáticos
-    if folder_name in MINIFY_BEFORE:
+    if folder_name in settings.MINIFY_BEFORE:
         print("\n>> Minificando arquivos estáticos")
         print("*********************************")
         ret = minifyCSS(current_dir=current_dir)
@@ -83,18 +116,19 @@ def run_deploy():
             return False
 
     # 2. Sincronizar estáticos
-    if folder_name in SYNC_S3:
+    if folder_name in settings.SYNC_S3:
         ret = run_command(
             title="Sincronizando arquivos estáticos no S3/{}".format(branch_name),
             command_list=[
                 {
-                    'command': "aws s3 sync static/ s3://lojaintegrada.cdn/{branch}/static/ --acl public-read".format(branch=branch_name),
+                    'command': settings.S3_SYNC_CMD.format(
+                        branch=branch_name),
                     'run_stdout': False}])
         if not ret:
             return False
 
     # Gera Dockerrun
-    app_name = ECR_NAME.get(folder_name, None)
+    app_name = settings.ECR_NAME.get(folder_name, None)
     if not app_name:
         app_name = folder_name.lower()
     json_model = {
@@ -142,15 +176,14 @@ def run_deploy():
         return False
 
     # Envia Mensagem Datadog/Slack
-    if branch.name in ['master']:
+    if branch.name in ['production', 'master']:
         message = Message(
             config,
             branch,
             last_commit,
             folder_name,
             action="INICIADO")
-        message.send_datadog(alert_type="warning")
-        message.send_slack()
+        message.send(alert_type="warning")
 
     # Gerar imagem do Docker
     ret = run_command(
@@ -161,7 +194,8 @@ def run_deploy():
                 'run_stdout': True
             },
             {
-                'command': "docker build -f Dockerfile_local -t {app}:{branch} .".format(
+                'command': "docker build -f {name} -t {app}:{branch} .".format(
+                    name=settings.DOCKERFILE_NAME,
                     app=app_name,
                     branch=branch_name
                 ),
@@ -212,7 +246,6 @@ def run_deploy():
             folder_name,
             action="FINALIZADO",
             alert_type="success")
-        message.send_datadog()
-        message.send_slack()
+        message.send(alert_type="success")
 
     return True

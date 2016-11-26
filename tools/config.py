@@ -4,37 +4,14 @@ import os
 import platform
 from os.path import expanduser
 from tools.utils import run_command, confirma
-
-APPLICATIONS = [
-    ('megdocker', ['master']),
-    ('megpainel', ['master', 'develop']),
-    ('megtools', ['master'])
-]
-
-MINIFY_BEFORE = [
-]
-
-SYNC_S3 = [
-]
+from tools import settings
+from git import Repo
 
 
-def get_config_data(filename="li-config", start_over=False):
+def get_config_data(filename=settings.CONFIG_FILE, start_over=False):
     # Verifica se a configuracao existe
     # Caso nao exista perguntar
-    config = {
-        # "aws_key": None,
-        # "aws_secret": None,
-        # "aws_account": None,
-        # "aws_region": None,
-        "project_path": None,
-        "slack_user": None,
-        "slack_url": None,
-        "slack_channel": None,
-        "slack_icon": None,
-        # "datadog_api_key": None,
-        # "datadog_app_key": None,
-        "docker_compose_path": None
-    }
+    config = settings.CONFIG_DICT
     basepath = expanduser("~")
     filepath = os.path.join(basepath, ".{}".format(filename))
 
@@ -60,17 +37,17 @@ def get_config_data(filename="li-config", start_over=False):
             if not config.get(key):
                 ret = False
 
-        if not os.environ.get('MEGALUS_PATH'):
+        if not os.environ.get(settings.ENV_NAME):
             ret = False
-        elif not os.path.exists(os.environ.get('MEGALUS_PATH')):
+        elif not os.path.exists(os.environ.get(settings.ENV_NAME)):
             ret = False
 
     if ret and not start_over:
         return config
     else:
         path_message = None
-        print("\n>> Configuração")
-        print("***************")
+        print("\n\033[93m>> Configuração")
+        print("***************\033[0m")
         project_path = config['project_path']
         config_list = [
             '.bash_profile',
@@ -88,7 +65,8 @@ def get_config_data(filename="li-config", start_over=False):
                     if key == "docker_compose_path" and not config.get(key):
                         continue
                     if config.get(key):
-                        ask = "Informe {} [{}]: ".format(key.upper(), config.get(key))
+                        ask = "Informe {} [{}]: ".format(
+                            key.upper(), config.get(key))
                     else:
                         ask = "Informe {}: ".format(key.upper())
 
@@ -97,11 +75,15 @@ def get_config_data(filename="li-config", start_over=False):
                         try:
                             value = str(raw_input(ask))
                             if not value and config[key]:
-                                file.write("{}={}\n".format(key.upper(), config[key]))
+                                file.write(
+                                    "{}={}\n".format(
+                                        key.upper(), config[key]))
                                 resposta_ok = True
                             if value:
                                 config[key] = value
-                                file.write("{}={}\n".format(key.upper(), value))
+                                file.write(
+                                    "{}={}\n".format(
+                                        key.upper(), value))
                                 resposta_ok = True
                         except KeyboardInterrupt:
                             print("\nOperação interrompida")
@@ -110,7 +92,7 @@ def get_config_data(filename="li-config", start_over=False):
                             print('erro')
                             pass
             # Grava arquivo de credenciais da Amazon
-            if config.get('aws_key', None):
+            if settings.USE_AWS:
                 aws_folder = os.path.join(basepath, ".aws")
                 if not os.path.exists(aws_folder):
                     os.makedirs(aws_folder)
@@ -120,12 +102,14 @@ def get_config_data(filename="li-config", start_over=False):
 
                 with open(os.path.join(aws_folder, "credentials"), 'w') as file:
                     file.write('[default]\n')
-                    file.write('aws_access_key_id = {}\n'.format(config['aws_key']))
+                    file.write(
+                        'aws_access_key_id = {}\n'.format(
+                            config['aws_key']))
                     file.write(
                         'aws_secret_access_key = {}\n'.format(
                             config['aws_secret']))
 
-        # Grava a variavel MEGALUS_PATH nos arquivos de configuracao
+        # Grava a variavel de ambiente nos arquivos de configuracao
         print("\n")
         one_file_ok = False
         for filename in config_list:
@@ -134,22 +118,23 @@ def get_config_data(filename="li-config", start_over=False):
                 profile_path = os.path.join(basepath, filename)
                 with open(profile_path) as file:
                     for line in file:
-                        if 'MEGALUS_PATH' in line:
+                        if settings.ENV_NAME in line:
                             export_found = True
                             one_file_ok = True
                     if not export_found:
                         ret = run_command(
-                            title=None, 
+                            title=None,
                             command_list=[
                                 {
-                                    'command': "echo export MEGALUS_PATH='{}' >> {}".format(
-                                        project_path, profile_path),
-                                    'run_stdout': False
-                                }
-                            ]
-                        )
+                                    'command': "echo export {}='{}' >> {}".format(
+                                        settings.ENV_NAME,
+                                        project_path,
+                                        profile_path),
+                                    'run_stdout': False}])
                         if ret:
-                            print("Adicionando MEGALUS_PATH no arquivo {}".format(filename))
+                            print(
+                                "Adicionando {} no arquivo {}".format(
+                                    settings.ENV_NAME, filename))
                             export_found = True
                             one_file_ok = True
                     else:
@@ -159,20 +144,22 @@ def get_config_data(filename="li-config", start_over=False):
                 pass
             finally:
                 run_command(
-                    title=None, 
+                    title=None,
                     command_list=[
                         {
-                            'command': "export MEGALUS_PATH='{}'".format(
+                            'command': "export {}='{}'".format(
+                                settings.ENV_NAME,
                                 project_path),
                             'run_stdout': False
                         }
                     ]
                 )
         if not one_file_ok:
-            path_message = "Certifique-se que o MEGALUS_PATH esteja no seu arquivo .profile, .bashrc ou .zshrc correspondente"
+            path_message = "Certifique-se que o {} esteja no seu arquivo .profile, .bashrc ou .zshrc correspondente".format(
+                settings.ENV_NAME)
 
-        # Clona os repositorios MEGALUS
-        resp = confirma("\nDeseja clonar os Repositorios")
+        # Clona os repositorios LI
+        resp = confirma("\nDeseja clonar os Repositórios")
         if resp == "S":
             if not os.path.exists(project_path):
                 os.makedirs(project_path)
@@ -182,41 +169,9 @@ def get_config_data(filename="li-config", start_over=False):
                     {
                         'command': "git config --global credential.helper 'cache --timeout=3600'",
                         'run_stdout': False}])
-            for app, branch_list in APPLICATIONS:
-                if os.path.exists(os.path.join(project_path, app)):
-                    continue
-                first_branch = True
-                for branch in branch_list:
-                    github_url = "https://chrismaille@bitbucket.org/maisimovel/{}.git".format(
-                        app.lower())
-                    if first_branch:
-                        run_command(
-                            title=None,
-                            command_list=[
-                                {
-                                    'command': 'git clone -b {branch} {url} "{dir}"'.format(
-                                        branch=branch,
-                                        url=github_url,
-                                        dir=os.path.join(project_path, app)
-                                    ),
-                                    'run_stdout': False
-                                }
-                            ]
-                        )
-                        first_branch = False
-                    else:
-                        os.chdir(os.path.join(project_path, app))
-                        run_command(
-                            title=None,
-                            command_list=[
-                                {
-                                    'command': 'git checkout -b {branch} remotes/origin/{branch}'.format(
-                                        branch=branch
-                                    ),
-                                    'run_stdout': False
-                                }
-                            ]
-                        )
+
+            # Baixa APPLICATIONS
+            baixa_repositorios(config)
 
         # Confirma o caminho do docker-compose.yml
         if not config.get('docker_compose_path'):
@@ -240,8 +195,9 @@ def get_config_data(filename="li-config", start_over=False):
                 elif paths_found:
                     print(
                         u"Informe a localização do arquivo 'docker-compose.yml' da Loja Integrada")
-                    print(u"(A localização padrão é: '{}/megdocker')\n".format(
-                        project_path
+                    print(u"(A localização padrão é: '{}/{}')\n".format(
+                        project_path,
+                        settings.DOCKER_REPO_NAME
                     ))
                     print("Os caminhos encontrados foram:")
                     for num, path in enumerate(paths_found):
@@ -252,7 +208,7 @@ def get_config_data(filename="li-config", start_over=False):
                         try:
                             rep = raw_input(
                                 "Selecione o caminho: (1-{}): ".format(num + 1))
-                            if rep and int(rep) in xrange(1, num + 1):
+                            if rep and int(rep) in xrange(1, num + 2):
                                 resposta_ok = True
                         except KeyboardInterrupt:
                             print("Operação interrompida\n")
@@ -267,7 +223,10 @@ def get_config_data(filename="li-config", start_over=False):
                     try:
                         rep = raw_input(
                             "Informe o caminho do arquivo docker-compose.yml: ")
-                        if os.path.exists(os.path.join(rep,"docker-compose.yml")):
+                        if os.path.exists(
+                            os.path.join(
+                                rep,
+                                "docker-compose.yml")):
                             resposta_ok = True
                             config['docker_compose_path'] = rep
                     except KeyboardInterrupt:
@@ -289,10 +248,95 @@ def get_config_data(filename="li-config", start_over=False):
     print("Para trabalhar com os repositórios certifique-se que:")
     print("* O docker e o docker-compose estejam instalados.")
     if platform.system() == "Windows":
-        print("* (Windows) A variável de ambiente 'MEGALUS_PATH' esteja configurada.")
+        print("* (Windows) A variável de ambiente {} esteja configurada.".format(settings.ENV_NAME))
         print("* (Windows) Rode o comando 'aws configure'")
     elif path_message:
         print("* {}".format(path_message))
     print("* O comando 'aws configure' tenha sido rodado no repositório, antes do deploy.")
     print("* O comando 'eb init' tenha sido rodado no repositório, antes do deploy.")
     return False
+
+
+def run_update():
+    data = get_config_data()
+
+    if not data:
+        return False
+
+    print("\n\033[1m\033[93m>> Atualizar Repositórios")
+    print("****************************\033[0m")
+
+    resp = confirma(
+        u"Este comando atualiza todos os Repositórios\n"
+        "que estejam nas branchs 'production' ou 'master'.\n"
+        "Além disso, baixa novos repositórios que ainda\n"
+        "não estejam na pasta do projeto.\n"
+        "Deseja continuar")
+    if resp == "S":
+        # Iterar todos os repositórios
+        # Checar em que branch está
+        # Se tiver em production ou master, dar o git pull
+        for app in settings.APPLICATIONS:
+            app_name = app[0]
+            app_main_branch = app[1][-1]
+            caminho = os.path.join(data['project_path'], app_name)
+            if os.path.exists(caminho):
+                repo = Repo(
+                    os.path.join(data['project_path'], app_name)
+                )
+                branch = repo.active_branch.name
+                if branch == app_main_branch:
+                    print("\n\033[1m\033[94mAtualizando '{}'\033[0m".format(app_name))
+                    os.chdir(caminho)
+                    run_command(
+                        title=None,
+                        command_list=[
+                            {
+                                'command': 'git remote update && git fetch && git pull --all',
+                                'run_stdout': False
+                            }
+                        ]
+                    )
+        # Baixa os repositorios faltantes
+        baixa_repositorios(data)
+
+
+def baixa_repositorios(data):
+    for app, branch_list in settings.APPLICATIONS:
+        if os.path.exists(os.path.join(data['project_path'], app)):
+            continue
+        print("\n\033[1m\033[94mBaixando '{}'\033[0m".format(app))
+        first_branch = True
+        for branch in branch_list:
+            github_url = "{}{}.git".format(
+                settings.VCS_BASE_URL,
+                app.lower())
+            if first_branch:
+                ret = run_command(
+                    title=None,
+                    command_list=[
+                        {
+                            'command': 'git clone -b {branch} {url} "{dir}"'.format(
+                                branch=branch,
+                                url=github_url,
+                                dir=os.path.join(data['project_path'], app)
+                            ),
+                            'run_stdout': False
+                        }
+                    ]
+                )
+                first_branch = False
+            else:
+                if ret:
+                    os.chdir(os.path.join(data['project_path'], app))
+                    run_command(
+                        title=None,
+                        command_list=[
+                            {
+                                'command': 'git checkout -b {branch} remotes/origin/{branch}'.format(
+                                    branch=branch
+                                ),
+                                'run_stdout': False
+                            }
+                        ]
+                    )

@@ -3,46 +3,11 @@ from __future__ import print_function, unicode_literals, with_statement, nested_
 import os
 import platform
 from tools.utils import run_command
+from tools import settings
 
-baseDirStatic = ["static", "loja", "estrutura", "v1"]
+
 minify_command = "java -jar yuicompressor-2.4.8.jar {all} -o {min} --charset utf-8"
 minify_command_windows = "java -jar yuicompressor-2.4.8.jar {all} --charset utf-8 > {min}"
-
-jsSources = [
-    ("js", "jquery-1.10.1.min.js"),
-    ("js", "jquery-ui.js"),
-    ("js", "bootstrap.min.js"),
-    ("js", "css3-mediaqueries.js"),
-    ("js", "jquery.flexslider-min.js"),
-    ("js", "jquery.mask.min.js"),
-    ("js", "modernizr.custom.17475.js"),
-    ("js", "jquery.cookie.min.js"),
-    ("js", "jquery.rwdImageMaps.min.js"),
-    ("js", "main.js")
-]
-
-cssSources = [
-    ("css", "bootstrap.css"),
-    ("css", "font-awesome.css"),
-    ("css", "font-awesome-ie7.css"),
-    ("css", "font-awesome-v4.css"),
-    ("css", "flexslider.css"),
-    ("css", "prettify.css"),
-    ("css", "es-cus.css"),
-    ("css", "style.css"),
-    ("css", "cores.css")
-]
-
-jsAlone = [
-    ("js", "produto.js"),
-    ("js", "carrinho.js"),
-    ("js", "checkout.js")
-]
-
-cssAlone = [
-    ("css", "tema-escuro.css"),
-    ("css", "ie-fix.css")
-]
 
 
 def saveFile(sourcePaths, destPath, minPath, baseDir, header=None):
@@ -124,23 +89,29 @@ def saveAlone(workdir, alone_list):
     return True
 
 
-def minifyJS(current_dir, baseDir=baseDirStatic, source=jsSources):
+def minifyJS(
+        current_dir,
+        baseDir=settings.baseDirStatic,
+        source=settings.jsSources):
     workdir = os.path.join(current_dir, *baseDir)
     jsDestPath = os.path.join(workdir, "js", "all.js")
     jsMinPath = os.path.join(workdir, "js", "all.min.js")
     ret = saveFile(source, jsDestPath, jsMinPath, workdir)
     if ret:
-        return saveAlone(workdir, jsAlone)
+        return saveAlone(workdir, settings.jsAlone)
     else:
         return ret
 
 
-def minifyCSS(current_dir, baseDir=baseDirStatic, source=cssSources):
+def minifyCSS(
+        current_dir,
+        baseDir=settings.baseDirStatic,
+        source=settings.cssSources):
     workdir = os.path.join(current_dir, *baseDir)
     cssDestPath = os.path.join(workdir, "css", "all.css")
     cssMinPath = os.path.join(workdir, "css", "all.min.css")
     ret = saveFile(source, cssDestPath, cssMinPath, workdir)
     if ret:
-        return saveAlone(workdir, cssAlone)
+        return saveAlone(workdir, settings.cssAlone)
     else:
         return ret

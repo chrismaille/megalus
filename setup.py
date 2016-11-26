@@ -13,6 +13,16 @@ def get_version_from_file():
     version_line = [l for l in fcontent if 'VERSION' in l][0]
     return version_line.split('=')[1].strip().strip("'").strip('"')
 
+def get_cmd_from_file():
+    # get version number from __init__ file
+    # before module is installed
+
+    fname = 'tools/settings.py'
+    with open(fname) as f:
+        fcontent = f.readlines()
+    version_line = [l for l in fcontent if 'TERMINAL_CMD' in l][0]
+    return version_line.split('=')[1].strip().strip("'").strip('"')
+
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -39,7 +49,7 @@ install_requires = [
 setup(
     name='Meg-Tools',
     version=get_version_from_file(),
-    description='Dev tools for Megalus',
+    description='Dev tools for Megalus Web Applications',
     long_description=long_description,
     author='Chris Maillefaud',
     # Choose your license
@@ -54,7 +64,9 @@ setup(
     install_requires=install_requires,
     entry_points={
         'console_scripts': [
-            'meg=tools.run:start',
+            '{}=tools.run:start'.format(
+                get_cmd_from_file()
+            ),
         ],
     },
 )

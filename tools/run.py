@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 # coding: utf-8
 """Ferramenta Loja Integrada.
+Para mais detalhes acesse: https://bitbucket.org/maisimovel/megtools
 
 Usage:
     meg config
     meg deploy
+    meg update
     meg debug    [<app>]
     meg test     [<app>] [--django] [--rds]
-    meg telnet   <app> <port>
+    meg telnet   [<app>] (<port>)
     meg bash     [<app>]
     meg run      [<app>] [<command> ...]
     meg build    [<app>] [--no-cache]
@@ -23,12 +25,13 @@ Options:
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import json
 from docopt import docopt
-from tools.config import get_config_data
+from tools.config import get_config_data, run_update
 from tools.utils import confirma
 from tools.deploy import run_deploy
 from tools.docker import run_debug, run_telnet, run_test, run_bash, run_runapp
 from tools.version import show_version_warning
 from tools import VERSION
+from tools import settings
 
 
 def main():
@@ -42,7 +45,7 @@ def main():
         if data:
             print("Configuração Atual:")
             print(json.dumps(data, indent=2))
-            resposta = confirma("Deseja alterar os dados?")
+            resposta = confirma(u"Deseja rodar a configuração?")
             if resposta == "S":
                 data = get_config_data(start_over=True)
         return True
@@ -92,7 +95,7 @@ def main():
     if arguments['run'] is True:
         ret = run_runapp(
             application=arguments['<app>'],
-            action='up' if not arguments['<command>'] else 'run',
+            action='up' if not arguments['<command>'] else 'exec',
             arg=arguments['<command>']
         )
     #
@@ -104,13 +107,19 @@ def main():
             action='build',
             opt="--no-cache" if arguments['--no-cache'] else None
         )
+    #
+    # UPDATE
+    #
+    if arguments['update'] is True:
+        ret = run_update()
 
 
 def start():
     print(
         "\033[94m\033[1m\n\n************************\n\n"
-        "Meg-Tools v{version}\n\n"
-        "************************\n\033[0m".format(version=VERSION)
+        "{cmd}-Tools v{version}\n\n"
+        "************************\n\033[0m".format(
+            cmd=settings.TERMINAL_CMD.upper(), version=VERSION)
     )
     show_version_warning()
     retorno = main()

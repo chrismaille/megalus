@@ -4,10 +4,10 @@ import json
 import urllib2
 from distutils.version import StrictVersion, LooseVersion
 from tools import VERSION
-
+from tools import settings
 
 def versions():
-    url = "https://pypi.python.org/pypi/meg-tools/json"
+    url = "https://pypi.python.org/pypi/{}/json".format(settings.PYPI_NAME)
     data = None
     versions = None
     try:

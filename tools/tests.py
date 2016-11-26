@@ -16,15 +16,15 @@ class TestDeploy(unittest.TestCase):
 
     def test_ler_arquivo_config(self):
         self.assertIsInstance(
-            get_config_data(filename="test_meg"),
+            get_config_data(filename="test_tool"),
             dict
         )
-        filepath_test = "{}/.test_meg".format(expanduser("~"))
+        filepath_test = "{}/.test_tool".format(expanduser("~"))
         self.assertTrue(
             os.path.isfile(filepath_test)
         )
 
-    def test_compress_JS(self):
+    def teste_compress_JS(self):
         response = 'console.log("Olá Mundo");function teste(){var a=1;if(a>0){console.log("número positivo")}else{console.log("número menor ou igual a zero");a=a-1}};teste();console.log("fim");'
         source = [
             'js/javascript_file01.js',
@@ -44,7 +44,7 @@ class TestDeploy(unittest.TestCase):
             response
         )
 
-    def test_compress_CSS(self):
+    def teste_compress_CSS(self):
         response = '.teste,#id01{display:flex;justify-content:flex-start}p{font-family:"Times New Roman",Georgia,Serif;color:rgba(255,255,128,10)}@media screen and (min-width:480px){body{background-color:lightgreen}}'
         source = [
             'css/css_file01.css',
@@ -116,7 +116,3 @@ class TestDeploy(unittest.TestCase):
                 ]
             )
         )
-
-
-if __name__ == '__main__':
-    unittest.main()
