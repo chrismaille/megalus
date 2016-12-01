@@ -50,12 +50,10 @@ baseDirStatic = ["static"]
 
 # Arquivos JS para minificar num unico arquivo
 jsSources = [
-    ("js", "app_painel.js")
 ]
 
 # Arquivos CSS para minificar num unico arquivo
 cssSources = [
-    ("css", "app_painel.css")
 ]
 
 # Arquivos JS para minificar individualmente
@@ -76,7 +74,7 @@ DOCKERFILE_NAME = "Dockerfile_local"
 # CONFIGURAÇÃO PARA VCS
 #######################
 VCS_NAME = "Bitbucket"
-VCS_BASE_URL = "https://github.com/lojaintegrada/"
+VCS_BASE_URL = "https://bitbucket.org/maisimovel/"
 
 
 # CONFIGURACAO PARA AMAZON WEB SERVICES

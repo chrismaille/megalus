@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
-"""Ferramenta Loja Integrada.
+"""Ferramenta Megalus.
 Para mais detalhes acesse: https://bitbucket.org/maisimovel/megtools
 
 Usage:
     meg config
     meg deploy
-    meg update
+    meg update   [-y | --yes]
     meg debug    [<app>]
     meg test     [<app>] [--django] [--rds]
     meg telnet   [<app>] (<port>)
@@ -20,6 +20,7 @@ Options:
     --rds           Nos testes usar o RDS da Amazon
     --no-cache      Na build nao utilizar o cache
     <command>       Rode um comando para o run do container
+    -y --yes        Confirma automaticamente
 
 """
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
@@ -111,7 +112,7 @@ def main():
     # UPDATE
     #
     if arguments['update'] is True:
-        ret = run_update()
+        ret = run_update(no_confirm=arguments['--yes'])
 
 
 def start():

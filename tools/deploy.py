@@ -84,7 +84,7 @@ def run_deploy():
             eb_status_name = m.group(1)
             if eb_status_name == "Ready":
                 eb_status = True
-            print ("O Status do ElasticBeanstalk é: {}".format(
+            print ("\nO Status do ElasticBeanstalk é: {}".format(
                 "{}{}{}{}".format(
                     bcolors.BOLD,
                     bcolors.OKGREEN if eb_status else bcolors.FAIL,

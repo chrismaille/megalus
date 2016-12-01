@@ -208,7 +208,7 @@ def get_config_data(filename=settings.CONFIG_FILE, start_over=False):
                         try:
                             rep = raw_input(
                                 "Selecione o caminho: (1-{}): ".format(num + 1))
-                            if rep and int(rep) in xrange(1, num + 2):
+                            if rep and int(rep) in xrange(1, num + 1):
                                 resposta_ok = True
                         except KeyboardInterrupt:
                             print("Operação interrompida\n")
@@ -257,7 +257,7 @@ def get_config_data(filename=settings.CONFIG_FILE, start_over=False):
     return False
 
 
-def run_update():
+def run_update(no_confirm):
     data = get_config_data()
 
     if not data:
@@ -266,27 +266,63 @@ def run_update():
     print("\n\033[1m\033[93m>> Atualizar Repositórios")
     print("****************************\033[0m")
 
-    resp = confirma(
-        u"Este comando atualiza todos os Repositórios\n"
-        "que estejam nas branchs 'production' ou 'master'.\n"
-        "Além disso, baixa novos repositórios que ainda\n"
-        "não estejam na pasta do projeto.\n"
-        "Deseja continuar")
+    if no_confirm:
+        resp = "S"
+    else:
+        resp = confirma(
+            u"Este comando atualiza todos os Repositórios\n"
+            "que estejam nas branchs 'production', 'staging'\n"
+            "'release' ou 'master'.\n"
+            "Além disso, baixa novos repositórios que ainda\n"
+            "não estejam na pasta do projeto.\n"
+            "Deseja continuar")
+
     if resp == "S":
         # Iterar todos os repositórios
         # Checar em que branch está
         # Se tiver em production ou master, dar o git pull
         for app in settings.APPLICATIONS:
             app_name = app[0]
-            app_main_branch = app[1][-1]
             caminho = os.path.join(data['project_path'], app_name)
             if os.path.exists(caminho):
                 repo = Repo(
                     os.path.join(data['project_path'], app_name)
                 )
+                # 1. Checa se o remote existe e é válido
+                remote_url_list = repo.remotes
+                origin = [
+                    obj
+                    for obj in remote_url_list
+                    if obj.name == 'origin'
+                ]
+                if origin:
+                    origin = origin[0]
+                remote_url = "{}{}.git".format(
+                settings.VCS_BASE_URL,
+                app_name.lower())
+                if origin:
+                    if origin.url != remote_url:
+                        if no_confirm:
+                            resp = "S"
+                        else:
+                            resp = confirma(
+                                u"O repositório '{}' está com o endereço\n"
+                                "remoto: {}.\nDeseja trocar".format(app_name, origin.url)
+                            )
+                        if resp == "S":
+                            origin.set_url(
+                                new_url=remote_url
+                            )
+                else:
+                    repo.create_remote(name="origin", url=remote_url)
+
+
+                # 2. Checa se o repositorio é production/master
+                # e faz o update
                 branch = repo.active_branch.name
-                if branch == app_main_branch:
-                    print("\n\033[1m\033[94mAtualizando '{}'\033[0m".format(app_name))
+                if branch in ['production', 'staging', 'release', 'master']:
+                    print(
+                        "\n\033[1m\033[94mAtualizando '{}/{}'\033[0m".format(app_name, branch))
                     os.chdir(caminho)
                     run_command(
                         title=None,
@@ -297,6 +333,10 @@ def run_update():
                             }
                         ]
                     )
+                else:
+                    print(
+                        "\n\033[1m\033[93mRepositório '{}' ignorado. Branch: {}\033[0m".format(
+                            app_name, branch))
         # Baixa os repositorios faltantes
         baixa_repositorios(data)
 
@@ -319,12 +359,10 @@ def baixa_repositorios(data):
                             'command': 'git clone -b {branch} {url} "{dir}"'.format(
                                 branch=branch,
                                 url=github_url,
-                                dir=os.path.join(data['project_path'], app)
-                            ),
-                            'run_stdout': False
-                        }
-                    ]
-                )
+                                dir=os.path.join(
+                                    data['project_path'],
+                                    app)),
+                            'run_stdout': False}])
                 first_branch = False
             else:
                 if ret:

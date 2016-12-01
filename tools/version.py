@@ -25,6 +25,7 @@ def show_version_warning():
     version_data = versions()
     if version_data:
         last_version = version_data[-1]
-    if LooseVersion(last_version) > LooseVersion(VERSION):
+    if LooseVersion(last_version) > LooseVersion(VERSION) and \
+        "rc" not in last_version:
         print("\033[91mSua versão está desatualizada.")
         print("Última versão: {}\n\033[0m".format(last_version))

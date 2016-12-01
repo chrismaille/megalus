@@ -29,7 +29,7 @@ def run_command(command_list, title=None, get_stdout=False):
         try:
             print(u"\033[1m\033[93m\n\n>> {}".format(title))
         except UnicodeDecodeError:
-            print(u"\033[1m\033[93m\n\n>> {}".format(title.encode('utf-8')))
+            print(u"\033[1m\033[93m\n\n>> {}".format(title.decode('utf-8')))
         print(u"{:*^{num}}\033[0m".format(
             '',
             num=len(title) + 3)
