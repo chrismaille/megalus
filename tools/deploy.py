@@ -8,7 +8,7 @@ from git import Repo
 from tools import settings
 from tools.compress import minifyCSS, minifyJS
 from tools.config import get_config_data
-from tools.messages import Message
+from tools.messages import Message, notify
 from tools.utils import bcolors, run_command, confirma
 
 
@@ -65,7 +65,7 @@ def run_deploy():
         bcolors.WARNING,
         last_commit,
         bcolors.ENDC
-        )))
+    )))
 
     # Roda EB Status
     eb_status = False
@@ -248,4 +248,5 @@ def run_deploy():
             alert_type="success")
         message.send(alert_type="success")
 
+    notify(msg="O Deploy do {} foi finalizado".format(folder_name))
     return True

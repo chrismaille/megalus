@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import subprocess
-
+import sys
 
 class bcolors:
     HEADER = '\033[95m'
@@ -150,3 +150,17 @@ def get_app(application, data, title=None, stop=False):
             except:
                 pass
         return (all_apps[int(rep) - 1][0], all_apps[int(rep) - 1][1])
+
+def progress_bar(iteration, total, prefix='Lendo',
+                 suffix='Complete', barLength=50):
+    """
+    Gerador de Barra de Progresso
+    """
+    formatStr = "{0:.2f}"
+    percents = formatStr.format(100 * (iteration / float(total)))
+    filledLength = int(round(barLength * iteration / float(total)))
+    bar = '█' * filledLength + '-' * (barLength - filledLength)
+    sys.stdout.write(
+        '\r%s |%s| %s%s %s ' %
+        (prefix, bar, percents, '%', suffix)),
+    sys.stdout.flush()

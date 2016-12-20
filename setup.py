@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 from codecs import open
 from os import path
-
+from tools import __version__
 
 def get_version_from_file():
     # get version number from __init__ file
@@ -48,7 +48,7 @@ install_requires = [
 
 setup(
     name='Meg-Tools',
-    version=get_version_from_file(),
+    version=__version__,
     description='Dev tools for Megalus Web Applications',
     long_description=long_description,
     author='Chris Maillefaud',

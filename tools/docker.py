@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
-from tools.utils import run_command, get_app
-from tools.config import get_config_data
 from tools import settings
+from tools.config import get_config_data, run_update
+from tools.messages import notify
+from tools.utils import run_command, get_app, confirma
 
 
 def run_runapp(application, action, opt=None, arg=None):
@@ -65,8 +66,10 @@ def run_runapp(application, action, opt=None, arg=None):
     # docker rm $(docker ps -a | grep host_run |  awk '{print $1}')
     if action == "run":
         os.system(
-            "docker rm $(docker ps -a | grep host_run |  awk '{print $1}')"
+            "docker rm $(docker ps -a | grep _run_ |  awk '{print $1}')"
         )
+    if action == "build":
+        notify(msg=u"A operação de Build foi concluída")
 
 
 def run_debug(application):
@@ -107,7 +110,7 @@ def run_debug(application):
     # Exclui container extra
     # docker rm $(docker ps -a | grep host_run |  awk '{print $1}')
     os.system(
-        "docker rm $(docker ps -a | grep host_run |  awk '{print $1}')"
+        "docker rm $(docker ps -a | grep _run_ |  awk '{print $1}')"
     )
     return False
 
@@ -246,6 +249,74 @@ def run_test(application, test_type, rds):
     # Exclui container extra
     # docker rm $(docker ps -a | grep host_run |  awk '{print $1}')
     os.system(
-        "docker rm $(docker ps -a | grep host_run |  awk '{print $1}')"
+        "docker rm $(docker ps -a | grep _run_ |  awk '{print $1}')"
     )
+    notify(title="LI-Tools", msg="Teste Unitário em {} finalizado.".format(name))
     return False
+
+
+def rebuild_docker(no_confirm):
+    data = get_config_data()
+    if not data:
+        return False
+
+    if no_confirm:
+        resp = "S"
+    else:
+        resp = confirma(
+            u"Este comando exclui todas as imagens\n"
+            u"e containers existentes na máquina,\n"
+            u"e inicia um novo Update/Build.\n"
+            u"\n\033[91mCertifique-se que você tenha um backup\n"
+            u"do banco de dados antes de rodar esse comando.\033[0m\n\n"
+            u"Deseja continuar")
+
+    if resp == "S":
+        # Parar containers
+        run_command(
+            get_stdout=False,
+            title=None,
+            command_list=[
+                {
+                    'command': "cd {} && docker-compose stop".format(
+                        data['docker_compose_path']),
+                    'run_stdout': False
+                }
+            ]
+        )
+        # docker rm $(docker ps -a -q)
+        run_command(
+            title="Excluir Containers do Docker",
+            command_list=[
+                {
+                    'command': 'docker rm $(docker ps -a -q)',
+                    'run_stdout': False
+                }
+            ]
+        )
+        # docker rmi $(docker images -q)
+        run_command(
+            title="Excluir Imagens do Docker",
+            command_list=[
+                {
+                    'command': 'docker rmi $(docker images -q)',
+                    'run_stdout': False
+                }
+            ]
+        )
+
+        # Roda Update
+        run_update(no_confirm=True, stable=True, staging=False)
+
+        # Roda Build
+        run_runapp(application=None, action="build")
+
+        # Finaliza
+        notify(msg="Rebuild dos Containers finalizado")
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print(u"O Rebuild foi concluído.")
+        print(u"Antes de iniciar os containers, digite o comando:")
+        print(u"'cd {} && docker-compose up service.postgres.local'".format(data['docker_compose_path']))
+        print(u"para iniciar o Banco de dados pela primeira vez.")
+        print(u"Em seguida use o comando 'meg run'.")
+        return True

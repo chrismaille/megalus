@@ -2,13 +2,17 @@
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import os
 import platform
-from os.path import expanduser
-from tools.utils import run_command, confirma
-from tools import settings
 from git import Repo
+from os.path import expanduser
+from tools import settings
+from tools.messages import notify
+from tools.utils import run_command, confirma
 
 
-def get_config_data(filename=settings.CONFIG_FILE, start_over=False):
+def get_config_data(
+        clone_only=False,
+        filename=settings.CONFIG_FILE,
+        start_over=False):
     # Verifica se a configuracao existe
     # Caso nao exista perguntar
     config = settings.CONFIG_DICT
@@ -42,13 +46,13 @@ def get_config_data(filename=settings.CONFIG_FILE, start_over=False):
         elif not os.path.exists(os.environ.get(settings.ENV_NAME)):
             ret = False
 
+    project_path = config['project_path']
     if ret and not start_over:
         return config
-    else:
+    elif not clone_only:
         path_message = None
         print("\n\033[93m>> Configuração")
         print("***************\033[0m")
-        project_path = config['project_path']
         config_list = [
             '.bash_profile',
             '.bashrc',
@@ -158,91 +162,100 @@ def get_config_data(filename=settings.CONFIG_FILE, start_over=False):
             path_message = "Certifique-se que o {} esteja no seu arquivo .profile, .bashrc ou .zshrc correspondente".format(
                 settings.ENV_NAME)
 
-        # Clona os repositorios LI
+    # Clona os repositorios
+    clone_action = False
+    if clone_only:
+        resp = "S"
+    else:
         resp = confirma("\nDeseja clonar os Repositórios")
-        if resp == "S":
-            if not os.path.exists(project_path):
-                os.makedirs(project_path)
-            run_command(
-                title="Clonando Repositorios",
-                command_list=[
-                    {
-                        'command': "git config --global credential.helper 'cache --timeout=3600'",
-                        'run_stdout': False}])
+    if resp == "S":
+        clone_action = True
+        if not os.path.exists(project_path):
+            os.makedirs(project_path)
+        run_command(
+            title="Clonando Repositorios",
+            command_list=[
+                {
+                    'command': "git config --global credential.helper 'cache --timeout=3600'",
+                    'run_stdout': False}])
 
-            # Baixa APPLICATIONS
-            baixa_repositorios(config)
+        # Baixa APPLICATIONS
+        baixa_repositorios(config)
 
-        # Confirma o caminho do docker-compose.yml
-        if not config.get('docker_compose_path'):
-            ret = run_command(
-                title="Localizando arquivo docker-compose.yml",
-                get_stdout=True,
-                command_list=[
-                    {
-                        'command': "locate docker-compose.yml",
-                        'run_stdout': False
-                    }
-                ]
-            )
-            if ret:
-                paths_found = ret.split('\n')
-                if paths_found[-1] == '':
-                    paths_found.pop(-1)
-                if len(paths_found) == 1:
-                    config['docker_compose_path'] = paths_found[
-                        0].replace('docker-compose.yml', '')
-                elif paths_found:
-                    print(
-                        u"Informe a localização do arquivo 'docker-compose.yml' da Loja Integrada")
-                    print(u"(A localização padrão é: '{}/{}')\n".format(
-                        project_path,
-                        settings.DOCKER_REPO_NAME
-                    ))
-                    print("Os caminhos encontrados foram:")
-                    for num, path in enumerate(paths_found):
-                        print("{}. {}".format(num + 1, path))
-                    resposta_ok = False
-                    print("\n")
-                    while not resposta_ok:
-                        try:
-                            rep = raw_input(
-                                "Selecione o caminho: (1-{}): ".format(num + 1))
-                            if rep and int(rep) in xrange(1, num + 1):
-                                resposta_ok = True
-                        except KeyboardInterrupt:
-                            print("Operação interrompida\n")
-                            return False
-                        except:
-                            pass
-                    config['docker_compose_path'] = paths_found[
-                        int(rep) - 1].replace('docker-compose.yml', '')
-            else:
+    # Confirma o caminho do docker-compose.yml
+    if not config.get('docker_compose_path') and not clone_only:
+        ret = run_command(
+            title="Localizando arquivo docker-compose.yml",
+            get_stdout=True,
+            command_list=[
+                {
+                    'command': "locate docker-compose.yml",
+                    'run_stdout': False
+                }
+            ]
+        )
+        if ret:
+            paths_found = ret.split('\n')
+            if paths_found[-1] == '':
+                paths_found.pop(-1)
+            if len(paths_found) == 1:
+                config['docker_compose_path'] = paths_found[
+                    0].replace('docker-compose.yml', '')
+            elif paths_found:
+                print(
+                    u"Informe a localização do arquivo 'docker-compose.yml' do Projeto")
+                print(u"(A localização padrão é: '{}/{}')\n".format(
+                    project_path,
+                    settings.DOCKER_REPO_NAME
+                ))
+                print("Os caminhos encontrados foram:")
+                for num, path in enumerate(paths_found):
+                    print("{}. {}".format(num + 1, path))
                 resposta_ok = False
+                print("\n")
                 while not resposta_ok:
                     try:
                         rep = raw_input(
-                            "Informe o caminho do arquivo docker-compose.yml: ")
-                        if os.path.exists(
-                            os.path.join(
-                                rep,
-                                "docker-compose.yml")):
+                            "Selecione o caminho: (1-{}): ".format(num + 1))
+                        if rep and int(rep) in xrange(1, num + 1):
                             resposta_ok = True
-                            config['docker_compose_path'] = rep
                     except KeyboardInterrupt:
                         print("Operação interrompida\n")
                         return False
                     except:
                         pass
+                config['docker_compose_path'] = paths_found[
+                    int(rep) - 1].replace('docker-compose.yml', '')
+        else:
+            resposta_ok = False
+            while not resposta_ok:
+                try:
+                    rep = raw_input(
+                        "Informe o caminho do arquivo docker-compose.yml: ")
+                    if os.path.exists(
+                        os.path.join(
+                            rep,
+                            "docker-compose.yml")):
+                        resposta_ok = True
+                        config['docker_compose_path'] = rep
+                except KeyboardInterrupt:
+                    print("Operação interrompida\n")
+                    return False
+                except:
+                    pass
 
-            if config.get('docker_compose_path'):
-                print('Arquivo encontrado!')
-                with open(filepath, 'a') as file:
-                    file.write(
-                        "{}={}\n".format(
-                            "DOCKER_COMPOSE_PATH",
-                            config.get('docker_compose_path')
-                        ))
+        if config.get('docker_compose_path'):
+            print('Arquivo encontrado!')
+            with open(filepath, 'a') as file:
+                file.write(
+                    "{}={}\n".format(
+                        "DOCKER_COMPOSE_PATH",
+                        config.get('docker_compose_path')
+                    ))
+
+    if clone_only:
+        notify(msg="Configuração finalizada.")
+        return True
 
     print("\n\n\nConfiguração concluída.")
     print("Para trabalhar com os repositórios certifique-se que:")
@@ -254,10 +267,12 @@ def get_config_data(filename=settings.CONFIG_FILE, start_over=False):
         print("* {}".format(path_message))
     print("* O comando 'aws configure' tenha sido rodado no repositório, antes do deploy.")
     print("* O comando 'eb init' tenha sido rodado no repositório, antes do deploy.")
+    if clone_action:
+        notify(msg="Configuração finalizada.")
     return False
 
 
-def run_update(no_confirm):
+def run_update(no_confirm, stable, staging):
     data = get_config_data()
 
     if not data:
@@ -272,7 +287,7 @@ def run_update(no_confirm):
         resp = confirma(
             u"Este comando atualiza todos os Repositórios\n"
             "que estejam nas branchs 'production', 'staging'\n"
-            "'release' ou 'master'.\n"
+            "'release', 'beta' ou 'master'.\n"
             "Além disso, baixa novos repositórios que ainda\n"
             "não estejam na pasta do projeto.\n"
             "Deseja continuar")
@@ -283,6 +298,7 @@ def run_update(no_confirm):
         # Se tiver em production ou master, dar o git pull
         for app in settings.APPLICATIONS:
             app_name = app[0]
+            stable_branch = app[1][-1]
             caminho = os.path.join(data['project_path'], app_name)
             if os.path.exists(caminho):
                 repo = Repo(
@@ -298,8 +314,8 @@ def run_update(no_confirm):
                 if origin:
                     origin = origin[0]
                 remote_url = "{}{}.git".format(
-                settings.VCS_BASE_URL,
-                app_name.lower())
+                    settings.VCS_BASE_URL,
+                    app_name.lower())
                 if origin:
                     if origin.url != remote_url:
                         if no_confirm:
@@ -307,8 +323,8 @@ def run_update(no_confirm):
                         else:
                             resp = confirma(
                                 u"O repositório '{}' está com o endereço\n"
-                                "remoto: {}.\nDeseja trocar".format(app_name, origin.url)
-                            )
+                                "remoto: {}.\nDeseja trocar".format(
+                                    app_name, origin.url))
                         if resp == "S":
                             origin.set_url(
                                 new_url=remote_url
@@ -316,11 +332,52 @@ def run_update(no_confirm):
                 else:
                     repo.create_remote(name="origin", url=remote_url)
 
+                # 2. Se tiver a opção 'stable'
+                # mudar para a branch mais estável
+                if stable:
+                    os.chdir(caminho)
+                    run_command(
+                        title=None,
+                        command_list=[
+                            {
+                                'command': 'git checkout {branch}'.format(
+                                    branch=stable_branch
+                                ),
+                                'run_stdout': False
+                            }
+                        ]
+                    )
 
-                # 2. Checa se o repositorio é production/master
+                # Checa Staging
+                if staging:
+                    stage_branch = None
+                    if 'staging' in app[1]:
+                        stage_branch = 'staging'
+                    if 'beta' in app[1]:
+                        stage_branch = 'beta'
+
+                    if not stage_branch:
+                        stage_branch = stable_branch
+
+                    os.chdir(caminho)
+                    run_command(
+                        title=None,
+                        command_list=[
+                            {
+                                'command': 'git checkout {branch}'.format(
+                                    branch=stage_branch
+                                ),
+                                'run_stdout': False
+                            }
+                        ]
+                    )
+
+                
+
+                # 3. Checa se o repositorio é production/master
                 # e faz o update
                 branch = repo.active_branch.name
-                if branch in ['production', 'staging', 'release', 'master']:
+                if branch in ['production', 'staging', 'beta', 'release', 'master']:
                     print(
                         "\n\033[1m\033[94mAtualizando '{}/{}'\033[0m".format(app_name, branch))
                     os.chdir(caminho)
@@ -339,6 +396,7 @@ def run_update(no_confirm):
                             app_name, branch))
         # Baixa os repositorios faltantes
         baixa_repositorios(data)
+        notify(msg="Update dos projetos finalizado.")
 
 
 def baixa_repositorios(data):

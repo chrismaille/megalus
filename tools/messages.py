@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import datadog
+import platform
 import slackweb
 from tools import settings
+from tools.utils import run_command
 
 
 class Message():
@@ -79,3 +81,28 @@ class Message():
             print("Slack OK")
         else:
             return text
+
+
+def notify(msg, title=None):
+    if not title:
+        title = "{}-Tools".format(settings.TERMINAL_CMD.upper())
+    if platform.system().lower() == 'linux':  # Linux
+        run_command(
+            command_list=[
+                {
+                    'command': 'notify-send -i gsd-xrandr {title} {msg}'.format(
+                        title='"{}"'.format(title),
+                        msg='"{}"'.format(msg)),
+                    'run_stdout': False}],
+            get_stdout=True,
+            title=None)
+    elif platform.system().lower() != "windows":  # Mac
+        run_command(
+            command_list=[
+                {
+                    'command': "osascript -e 'display notification {msg} with title {title}'".format(
+                        title='"{}"'.format(title),
+                        msg='"{}"'.format(msg)),
+                    'run_stdout': False}],
+            get_stdout=False,
+            title=None)

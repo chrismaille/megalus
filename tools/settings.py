@@ -34,6 +34,13 @@ APPLICATIONS = [
     ('megtools', ['master'])
 ]
 
+# Lista as Livrarias padrões do Projeto
+# Os nomes abaixo devem ser o mesmo que aparece no comando 'pip freeze'
+# Qto mais livrarias na lista, mais lento o comando 'meg list' vai ficar
+LIBRARIES = [
+
+]
+
 # Aplicações que minificam arquivos durante o deploy
 MINIFY_BEFORE = [
 
