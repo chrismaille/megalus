@@ -22,6 +22,8 @@ LOCAL_PORT = 5432
 
 PYPI_NAME = "meg-tools"
 
+DOCKER_PATH_VAR = '\$\{MEGALUS_PATH\}'
+
 # Lista de Aplicações do Projeto
 ################################
 
