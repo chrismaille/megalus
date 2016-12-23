@@ -23,8 +23,8 @@ def show_list(libs=[]):
     with open(dc_path, 'r') as file:
         dc_data = yaml.load(file)
 
-    print("\n\033[93m>> Lendo Aplicações no Docker")
-    print("***********************\033[0m\n")
+    print("\n\033[93m>> Lendo Aplicações Docker")
+    print("**************************\033[0m\n")
 
     services_list = dc_data['services']
 
@@ -140,7 +140,13 @@ def show_list(libs=[]):
                 else:
                     lib_list.append("--" if "SIM" in rodando else "")
 
-        table_data.append([service, branch, rodando] + lib_list)
+        # 5. Pega a Porta
+        try:
+            porta = dc_data['services'][service]['ports'][0].split(":")[0]
+        except:
+            porta = "--"
+            
+        table_data.append([service, branch, rodando, porta] + lib_list)
 
     # Exclui containers extra
     os.system(
@@ -148,9 +154,9 @@ def show_list(libs=[]):
     )
     os.system('cls' if os.name == 'nt' else 'clear')
     print("\n\033[93m>> Listar Aplicações Docker")
-    print("***********************\033[0m\n")
+    print("**************************\033[0m\n")
     print(tabulate(
         table_data,
-        headers=["Aplicação", "Branch", "Rodando"] + LIBRARIES + libs
+        headers=["Aplicação", "Branch", "Rodando", "Porta"] + LIBRARIES + libs
     )
     )
