@@ -105,8 +105,8 @@ def run_deploy():
     # Ações específicas do App
     # 1. Minify estáticos
     if folder_name in settings.MINIFY_BEFORE:
-        print("\n>> Minificando arquivos estáticos")
-        print("*********************************")
+        print("\n\033[1m\033[94m\n>> Minificando arquivos estáticos")
+        print("*********************************\033[0m")
         ret = minifyCSS(current_dir=current_dir)
         if not ret:
             return False

@@ -55,6 +55,25 @@ def run_runapp(application, action, opt=None, arg=None):
                 }
             ]
         )
+        ret_docker = run_command(
+            get_stdout=True,
+            command_list=[
+                {
+                    'command': 'docker ps -q',
+                    'run_stdout': False
+                }
+            ]
+        )
+        if ret_docker:
+            run_command(
+                get_stdout=False,
+                command_list=[
+                    {
+                        'command': 'docker stop $(docker ps -q)',
+                        'run_stdout': False
+                    }
+                ]
+            )
         os.system(
             "cd {folder} && docker-compose {cmd} {opt} {app}".format(
                 folder=data['docker_compose_path'],
@@ -164,7 +183,7 @@ def run_bash(application):
     return False
 
 
-def run_test(application, test_type, rds):
+def run_test(application, using, rds):
     data = get_config_data()
     if not data:
         return False
@@ -202,6 +221,24 @@ def run_test(application, test_type, rds):
         host = settings.LOCAL_DB
         port = settings.LOCAL_PORT
 
+    # Encontrar o programa
+    test_app = using if using else "unittest"
+    if not using:
+        ret_pip = run_command(
+            get_stdout=True,
+            command_list=[
+                {
+                    'command': "cd {} && docker-compose run {} pip freeze".format(
+                        data['docker_compose_path'],
+                        name),
+                    'run_stdout': False}])
+        for test in settings.TEST_PRIORITY:
+            if "{}==".format(test) in ret_pip:
+                test_app = test
+                break
+
+    # Rodar novo container
+    # Para Unittest, Django, Pytest e Nose rodar via Docker-Compose
     new_container_id = run_command(
         get_stdout=True,
         command_list=[
@@ -213,45 +250,53 @@ def run_test(application, test_type, rds):
                     name),
                 'run_stdout': False},
         ])
-    new_container_id = new_container_id.replace("\n", "")
-    # os.system("docker-compose run -d -e DATABASE_HOST={} {}".format(host, name))
 
-    database_path = run_command(
-        get_stdout=True,
-        command_list=[
-            {
-                'command': "docker exec -ti {} printenv | grep DATABASE_HOST".format(new_container_id),
-                'run_stdout': False}])
-    print("\033[93m\n************************************")
-    print("Rodando testes com: {}".format(
-        "Django" if test_type == "django" else "Unittest"))
-    print("Usando banco de dados: {}".format(
-        database_path.replace("\n", "").split("=")[1])
-    )
-    print("Usando a Porta: {}".format(port))
-    print("************************************\n\033[0m")
-    if test_type == "django":
-        command = "python /opt/app/manage.py test"
-    else:
-        command = "python -m unittest discover -v -s /opt/app"
+    if new_container_id:
 
-    os.system(
-        'docker exec -ti {} {}'.format(
-            new_container_id, command
+        new_container_id = new_container_id.replace("\n", "")
+
+        database_path = run_command(
+            get_stdout=True,
+            command_list=[
+                {
+                    'command': "docker exec -ti {} printenv | grep DATABASE_HOST".format(new_container_id),
+                    'run_stdout': False}])
+        print("\033[93m\n************************************")
+        print("Rodando testes com: {}".format(test_app.upper()))
+        print("Usando banco de dados: {}".format(
+            database_path.replace("\n", "").split("=")[1])
         )
-    )
+        print("Usando a Porta: {}".format(port))
+        print("************************************\n\033[0m")
+
+        if test_app == "django":
+            command = "python /opt/app/manage.py test"
+        elif test_app == "nose":
+            command = "nosetests --with-coverage --cover-package=app"
+        elif test_app == "pytest":
+            command = "pytest"
+        else:
+            command = "python -m unittest discover -v -s /opt/app"
+
+        os.system(
+            'docker exec -ti {} {}'.format(
+                new_container_id, command
+            )
+        )
+    else:
+        print("ERRO: Nenhum container encontrado")
 
     print("Reiniciando container...")
     os.system("docker stop {}".format(new_container_id))
     os.system(
-        "cd {} && docker-compose run -d {}".format(data['docker_compose_path'], name))
+        "cd {} && docker-compose up -d {}".format(data['docker_compose_path'], name))
 
     # Exclui container extra
     # docker rm $(docker ps -a | grep host_run |  awk '{print $1}')
     os.system(
         "docker rm $(docker ps -a | grep _run_ |  awk '{print $1}')"
     )
-    notify(title="LI-Tools", msg="Teste Unitário em {} finalizado.".format(name))
+    notify(msg="Teste Unitário em {} finalizado.".format(name))
     return False
 
 
@@ -268,7 +313,8 @@ def rebuild_docker(no_confirm):
             u"e containers existentes na máquina,\n"
             u"e inicia um novo Update/Build.\n"
             u"\n\033[91mCertifique-se que você tenha um backup\n"
-            u"do banco de dados antes de rodar esse comando.\033[0m\n\n"
+            u"do banco de dados antes de rodar esse comando e"
+            u"que todas as alterações importantes estejam commitadas.\033[0m\n\n"
             u"Deseja continuar")
 
     if resp == "S":
@@ -280,11 +326,26 @@ def rebuild_docker(no_confirm):
                 {
                     'command': "cd {} && docker-compose stop".format(
                         data['docker_compose_path']),
+                    'run_stdout': False}])
+        ret_docker = run_command(
+            get_stdout=True,
+            command_list=[
+                {
+                    'command': 'docker ps -q',
                     'run_stdout': False
                 }
             ]
         )
-        # docker rm $(docker ps -a -q)
+        if ret_docker:
+            run_command(
+                get_stdout=False,
+                command_list=[
+                    {
+                        'command': 'docker stop $(docker ps -q)',
+                        'run_stdout': False
+                    }
+                ]
+            )
         run_command(
             title="Excluir Containers do Docker",
             command_list=[
@@ -294,7 +355,6 @@ def rebuild_docker(no_confirm):
                 }
             ]
         )
-        # docker rmi $(docker images -q)
         run_command(
             title="Excluir Imagens do Docker",
             command_list=[
@@ -316,7 +376,8 @@ def rebuild_docker(no_confirm):
         os.system('cls' if os.name == 'nt' else 'clear')
         print(u"O Rebuild foi concluído.")
         print(u"Antes de iniciar os containers, digite o comando:")
-        print(u"'cd {} && docker-compose up service.postgres.local'".format(data['docker_compose_path']))
+        print(
+            u"'cd {} && docker-compose up service.postgres.local'".format(data['docker_compose_path']))
         print(u"para iniciar o Banco de dados pela primeira vez.")
         print(u"Em seguida use o comando 'meg run'.")
         return True

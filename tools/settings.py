@@ -24,6 +24,17 @@ PYPI_NAME = "meg-tools"
 
 DOCKER_PATH_VAR = '\$\{MEGALUS_PATH\}'
 
+CHECK_VPN = False
+
+# Configurações para Testes
+# Se não for informado no parametro
+# rodar o teste usando o programa pela prioridade abaixo
+# Se não encontrar nenhum destes, usa o unittest padrão
+TEST_PRIORITY = [
+    'nose',
+    'pytest'
+]
+
 # Lista de Aplicações do Projeto
 ################################
 
@@ -112,6 +123,11 @@ TEST_CHANNEL = "#teste_automacao"
 ###########################
 USE_DATADOG = False
 
+# CONFIGURACAO PARA GRAFANA
+###########################
+USE_GRAFANA = False
+GRAFANA_MSG_URL = "http://services-int.awsli.com.br:8086/write?db=msgs"
+GRAFANA_APP = 'li_aws_deploy'
 
 # DICIONARIO DE DADOS
 #####################

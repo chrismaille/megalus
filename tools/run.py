@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-"""Ferramenta Mais Imovel/Megalus.
+"""Ferramenta Megalus/Mais Imovel.
 Para mais detalhes digite 'meg help'
 
 Usage:
@@ -14,7 +14,8 @@ Usage:
     meg rebuild  [-y | --yes]
     meg run      [<app>] [<command> ...]
     meg telnet   [<app>] (<port>)
-    meg test     [<app>] [--django] [--rds]
+    meg test     [<app>] [--using=(django|nose|pytest|behave)] [--rds]
+    meg tunnel   [<subdomain>] [<app>]
     meg update   [-y | --yes] [--production | --staging]
 
 Options:
@@ -27,6 +28,7 @@ Options:
     <libs>          Mostrar a versão das livrarias solicitadas
     --production    Muda para a branch mais estável (ex. 'production')
     --staging       Altera as branchs para staging/beta durante o update
+    <subdomain>     O subdominio para o tunel reverso, via ngrok
 
 """
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
@@ -39,8 +41,30 @@ from tools.config import get_config_data, run_update
 from tools.deploy import run_deploy
 from tools.help import get_help
 from tools.lists import show_list
-from tools.utils import confirma
+from tools.tunnel import run_ngrok
+from tools.utils import bcolors, confirma, run_command
 from tools.version import show_version_warning
+
+
+def check_vpn():
+    # Checa se a VPN está ativa
+    if settings.CHECK_VPN:
+        ret_tun = run_command(
+            get_stdout=True,
+            command_list=[
+                {
+                    'command': 'ifconfig | grep tun',
+                    'run_stdout': False
+                }
+            ]
+        )
+
+        if not ret_tun:
+            print("\n{}{}ERRO:{} VPN não encontrada.".format(bcolors.BOLD,bcolors.FAIL,bcolors.ENDC))
+            print("Por favor, ative a VPN e tente novamente.")
+            return False
+
+    return True
 
 
 def main():
@@ -49,10 +73,11 @@ def main():
 
     if not arguments['help']:
         print("Para ajuda digite: meg help")
+
     #
     # CONFIG
     #
-    if arguments['config'] is True:
+    if arguments['config'] is True and check_vpn():
         clone_only = arguments['--clone-only']
         data = get_config_data()
         if data and not clone_only:
@@ -71,7 +96,7 @@ def main():
     #
     # DEPLOY
     #
-    if arguments['deploy'] is True:
+    if arguments['deploy'] is True and check_vpn():
         ret = run_deploy()
         return ret
     #
@@ -105,7 +130,7 @@ def main():
     if arguments['test'] is True:
         ret = docker.run_test(
             application=arguments['<app>'],
-            test_type="django" if arguments['--django'] else None,
+            using=arguments['--using'],
             rds=arguments['--rds']
         )
         return ret
@@ -155,6 +180,15 @@ def main():
     #
     if arguments['list'] is True:
         ret = show_list(libs=arguments['<libs>'])
+        return ret
+    #
+    # TUNNEL
+    # 
+    if arguments['tunnel'] is True and check_vpn():
+        ret = run_ngrok(
+            subdomain=arguments['<subdomain>'],
+            app=arguments['<app>']
+        )
         return ret
 
 

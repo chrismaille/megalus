@@ -2,6 +2,7 @@
 from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import subprocess
 import sys
+from unidecode import unidecode
 
 class bcolors:
     HEADER = '\033[95m'
@@ -24,12 +25,16 @@ def confirma(pergunta):
     return resposta[0].upper()
 
 
+def unitext(text):
+    if type(text) == str:
+        text = unicode(text, 'utf-8')
+    text = unidecode(text)
+    return text
+
+
 def run_command(command_list, title=None, get_stdout=False):
     if title:
-        try:
-            print(u"\033[1m\033[93m\n\n>> {}".format(title))
-        except UnicodeDecodeError:
-            print(u"\033[1m\033[93m\n\n>> {}".format(title.decode('utf-8')))
+        print(u"\033[1m\033[93m\n\n>> {}".format(unitext(title)))
         print(u"{:*^{num}}\033[0m".format(
             '',
             num=len(title) + 3)
@@ -164,3 +169,4 @@ def progress_bar(iteration, total, prefix='Lendo',
         '\r%s |%s| %s%s %s ' %
         (prefix, bar, percents, '%', suffix)),
     sys.stdout.flush()
+

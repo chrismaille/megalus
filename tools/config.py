@@ -47,6 +47,8 @@ def get_config_data(
             ret = False
 
     project_path = config['project_path']
+    if not project_path:
+        return False
     if ret and not start_over:
         return config
     elif not clone_only:
@@ -258,6 +260,7 @@ def get_config_data(
         return True
 
     print("\n\n\nConfiguração concluída.")
+    print("Feche esta tela e abra um novo terminal antes de continuar.")
     print("Para trabalhar com os repositórios certifique-se que:")
     print("* O docker e o docker-compose estejam instalados.")
     if platform.system() == "Windows":
@@ -372,12 +375,15 @@ def run_update(no_confirm, stable, staging):
                         ]
                     )
 
-                
-
                 # 3. Checa se o repositorio é production/master
                 # e faz o update
                 branch = repo.active_branch.name
-                if branch in ['production', 'staging', 'beta', 'release', 'master']:
+                if branch in [
+                    'production',
+                    'staging',
+                    'beta',
+                    'release',
+                        'master']:
                     print(
                         "\n\033[1m\033[94mAtualizando '{}/{}'\033[0m".format(app_name, branch))
                     os.chdir(caminho)
