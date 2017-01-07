@@ -113,6 +113,10 @@ ECR_NAME = {
 
 }
 
+# CONFIGURAÇÃO PARA SERVICOS
+############################
+USE_REDIS = True
+USE_MEMCACHED = True
 
 # CONFIGURACAO PARA SLACK
 #########################
@@ -151,3 +155,12 @@ if USE_SLACK:
 if USE_DATADOG:
     CONFIG_DICT['datadog_api_key'] = None
     CONFIG_DICT['datadog_app_key'] = None
+
+if USE_REDIS:
+    CONFIG_DICT['redis_host'] = None
+    CONFIG_DICT['redis_port'] = None
+    CONFIG_DICT['redis_db'] = None
+
+if USE_MEMCACHED:
+    CONFIG_DICT['memcached_host'] = None
+    CONFIG_DICT['memcached_port'] = None

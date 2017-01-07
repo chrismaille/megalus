@@ -42,7 +42,9 @@ install_requires = [
     'awscli',
     'awsebcli',
     'requests<=2.9.1',
-    'ipdb'
+    'ipdb',
+    'redis',
+    'python-memcached'
 ]
 
 

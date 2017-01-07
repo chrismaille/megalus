@@ -14,9 +14,10 @@ Usage:
     meg rebuild  [-y | --yes]
     meg run      [<app>] [<command> ...]
     meg telnet   [<app>] (<port>)
-    meg test     [<app>] [--using=(django|nose|pytest|behave)] [--rds]
+    meg test     [<app>] [--using=(django|nose|pytest)] [--rds]
     meg tunnel   [<subdomain>] [<app>]
     meg update   [-y | --yes] [--production | --staging]
+    meg service  (redis|memcached) [<key>]
 
 Options:
     --help          Mostra esta tela
@@ -41,6 +42,7 @@ from tools.config import get_config_data, run_update
 from tools.deploy import run_deploy
 from tools.help import get_help
 from tools.lists import show_list
+from tools.services import run_service
 from tools.tunnel import run_ngrok
 from tools.utils import bcolors, confirma, run_command
 from tools.version import show_version_warning
@@ -60,7 +62,8 @@ def check_vpn():
         )
 
         if not ret_tun:
-            print("\n{}{}ERRO:{} VPN não encontrada.".format(bcolors.BOLD,bcolors.FAIL,bcolors.ENDC))
+            print("\n{}{}ERRO:{} VPN não encontrada.".format(
+                bcolors.BOLD, bcolors.FAIL, bcolors.ENDC))
             print("Por favor, ative a VPN e tente novamente.")
             return False
 
@@ -183,11 +186,24 @@ def main():
         return ret
     #
     # TUNNEL
-    # 
+    #
     if arguments['tunnel'] is True and check_vpn():
         ret = run_ngrok(
             subdomain=arguments['<subdomain>'],
             app=arguments['<app>']
+        )
+        return ret
+    #
+    # SERVICE
+    #
+    if arguments['service'] is True:
+        if arguments['redis']:
+            service = 'redis'
+        else:
+            service = 'memcached'
+        ret = run_service(
+            service=service,
+            key=arguments['<key>']
         )
         return ret
 

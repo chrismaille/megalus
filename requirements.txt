@@ -31,3 +31,6 @@ smmap2==2.0.1
 traitlets==4.3.1
 wcwidth==0.1.7
 pyaml
+redis
+unidecode
+python-memcached
