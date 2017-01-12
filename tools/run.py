@@ -18,6 +18,7 @@ Usage:
     meg tunnel   [<subdomain>] [<app>]
     meg update   [-y | --yes] [--production | --staging]
     meg service  (redis|memcached) [<key>]
+    meg watch    <app>
 
 Options:
     --help          Mostra esta tela

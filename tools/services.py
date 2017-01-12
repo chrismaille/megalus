@@ -2,7 +2,6 @@
 import memcache
 import redis
 import telnetlib
-from itertools import groupby
 from li_tabulate import tabulate
 from tools.config import get_config_data
 from tools.utils import bcolors
