@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import json
 import os
 import platform
@@ -118,7 +116,8 @@ def run_deploy():
     # 2. Sincronizar estáticos
     if folder_name in settings.SYNC_S3:
         ret = run_command(
-            title="Sincronizando arquivos estáticos no S3/{}".format(branch_name),
+            title="Sincronizando arquivos "
+            "estáticos no S3/{}".format(branch_name),
             command_list=[
                 {
                     'command': settings.S3_SYNC_CMD.format(
@@ -134,7 +133,8 @@ def run_deploy():
     json_model = {
         'AWSEBDockerrunVersion': '1',
         'Image': {
-            'Name': '{account}.dkr.ecr.{region}.amazonaws.com/{app}:{branch}'.format(
+            'Name': '{account}.dkr.ecr.{region}'
+            '.amazonaws.com/{app}:{branch}'.format(
                 account=config['aws_account'],
                 app=app_name,
                 branch=branch_name,
@@ -162,9 +162,9 @@ def run_deploy():
         ]
     )
 
-    # Atualiza GitHub
+    # Atualiza VCS
     ret = run_command(
-        title="Atualiza GitHub - {}".format(folder_name),
+        title="Atualiza {} - {}".format(settings.VCS_NAME, folder_name),
         command_list=[
             {
                 'command': "git push origin {}".format(branch.name),
@@ -190,7 +190,8 @@ def run_deploy():
         title="Gera Imagem no Docker - {}".format(folder_name),
         command_list=[
             {
-                'command': "aws ecr get-login --region {region}".format(region=config['aws_region']),
+                'command': "aws ecr get-login "
+                "--region {region}".format(region=config['aws_region']),
                 'run_stdout': True
             },
             {
@@ -202,7 +203,9 @@ def run_deploy():
                 'run_stdout': False
             },
             {
-                'command': "docker tag {app}:{branch} {account}.dkr.ecr.{region}.amazonaws.com/{app}:{branch}".format(
+                'command': "docker tag {app}:{branch} "
+                "{account}.dkr.ecr.{region}.amazonaws.com"
+                "/{app}:{branch}".format(
                     account=config['aws_account'],
                     region=config['aws_region'],
                     app=app_name,
@@ -211,7 +214,8 @@ def run_deploy():
                 'run_stdout': False
             },
             {
-                'command': "docker push {account}.dkr.ecr.{region}.amazonaws.com/{app}:{branch}".format(
+                'command': "docker push {account}."
+                "dkr.ecr.{region}.amazonaws.com/{app}:{branch}".format(
                     account=config['aws_account'],
                     region=config['aws_region'],
                     app=app_name,

@@ -1,13 +1,10 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function, unicode_literals, with_statement, nested_scopes
-import yaml
 import os
 import re
-from li_tabulate import tabulate
+from .li_tabulate import tabulate
 from git import Repo
 from tools.config import get_config_data
-from tools.utils import run_command, bcolors, progress_bar
-from tools.settings import DOCKER_PATH_VAR, LIBRARIES
+from tools.utils import run_command, bcolors, progress_bar, get_compose_data
+from tools.settings import LIBRARIES
 
 
 def show_list(libs=[]):
@@ -15,13 +12,7 @@ def show_list(libs=[]):
     if not data:
         return False
 
-    dc_path = os.path.join(
-        data['docker_compose_path'],
-        'docker-compose.yml'
-    )
-
-    with open(dc_path, 'r') as file:
-        dc_data = yaml.load(file)
+    dc_data = get_compose_data(data)
 
     print("\n\033[93m>> Lendo Aplicações Docker")
     print("**************************\033[0m\n")
@@ -96,8 +87,14 @@ def show_list(libs=[]):
                     branch = "{} {}[{}{}{}]{}".format(
                         branch,
                         bcolors.WARNING,
-                        "{}+{}{}".format(bcolors.OKBLUE, ahead.group(1), bcolors.ENDC) if ahead else "",
-                        "{}-{}{}".format(bcolors.FAIL, behind.group(1), bcolors.ENDC) if behind else "",
+                        "{}+{}{}".format(
+                            bcolors.OKBLUE,
+                            ahead.group(1),
+                            bcolors.ENDC) if ahead else "",
+                        "{}-{}{}".format(
+                            bcolors.FAIL,
+                            behind.group(1),
+                            bcolors.ENDC) if behind else "",
                         bcolors.WARNING,
                         bcolors.ENDC
                     )
@@ -111,7 +108,9 @@ def show_list(libs=[]):
                     pip_ret = run_command(
                         command_list=[
                             {
-                                'command': 'docker exec -ti {container} pip freeze | grep -i {library}== | tail -1'.format(
+                                'command': 'docker exec -ti '
+                                '{container} pip freeze | grep -i '
+                                '{library}== | tail -1'.format(
                                     container=container,
                                     library=lib),
                                 'run_stdout': False}],
@@ -122,17 +121,16 @@ def show_list(libs=[]):
                         pip_ret = run_command(
                             command_list=[
                                 {
-                                    'command': 'cd {path} && docker-compose run {service} pip freeze | grep -i {library}== | tail -1'.format(
+                                    'command': 'cd {path} && '
+                                    'docker-compose run {service} '
+                                    'pip freeze | grep -i {library}== '
+                                    '| tail -1'.format(
                                         path=data['docker_compose_path'],
                                         service=service,
-                                        library=lib
-                                    ),
-                                    'run_stdout':False
-                                }
-                            ],
+                                        library=lib),
+                                    'run_stdout':False}],
                             get_stdout=True,
-                            title=None
-                        )
+                            title=None)
                     except:
                         pip_ret = None
                 if pip_ret:
@@ -145,7 +143,7 @@ def show_list(libs=[]):
             porta = dc_data['services'][service]['ports'][0].split(":")[0]
         except:
             porta = "--"
-            
+
         table_data.append([service, branch, rodando, porta] + lib_list)
 
     # Exclui containers extra

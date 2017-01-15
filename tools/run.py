@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# coding: utf-8
+#!/usr/bin/env python3
 """Ferramenta Megalus/Mais Imovel.
 Para mais detalhes digite 'meg help'
 
@@ -33,7 +32,7 @@ Options:
     <subdomain>     O subdominio para o tunel reverso, via ngrok
 
 """
-from __future__ import print_function, unicode_literals, with_statement, nested_scopes
+
 import json
 from docopt import docopt
 from tools import __version__
@@ -43,6 +42,7 @@ from tools.config import get_config_data, run_update
 from tools.deploy import run_deploy
 from tools.help import get_help
 from tools.lists import show_list
+from tools.npm import run_watch
 from tools.services import run_service
 from tools.tunnel import run_ngrok
 from tools.utils import bcolors, confirma, run_command
@@ -90,7 +90,7 @@ def main():
         if clone_only:
             resposta = "S"
         else:
-            resposta = confirma(u"Deseja rodar a configuração?")
+            resposta = confirma("Deseja rodar a configuração?")
         if resposta == "S":
             data = get_config_data(
                 start_over=True,
@@ -206,6 +206,12 @@ def main():
             service=service,
             key=arguments['<key>']
         )
+        return ret
+    #
+    # WATCH
+    #
+    if arguments['watch'] is True:
+        ret = run_watch(application=arguments['<app>'])
         return ret
 
 

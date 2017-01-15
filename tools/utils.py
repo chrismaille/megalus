@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function, unicode_literals, with_statement, nested_scopes
+import os
 import subprocess
 import sys
+import yaml
 from unidecode import unidecode
+
 
 class bcolors:
     HEADER = '\033[95m'
@@ -19,23 +20,21 @@ def confirma(pergunta):
     """Retorna S ou N"""
     resposta_ok = False
     while not resposta_ok:
-        resposta = raw_input(u"\n{} (s/n)? ".format(pergunta).encode("UTF-8"))
+        resposta = input("\n{} (s/n)? ".format(pergunta))
         if resposta and resposta[0].upper() in ["S", "N"]:
             resposta_ok = True
     return resposta[0].upper()
 
 
 def unitext(text):
-    if type(text) == str:
-        text = unicode(text, 'utf-8')
     text = unidecode(text)
     return text
 
 
 def run_command(command_list, title=None, get_stdout=False):
     if title:
-        print(u"\033[1m\033[93m\n\n>> {}".format(unitext(title)))
-        print(u"{:*^{num}}\033[0m".format(
+        print("\033[1m\033[93m\n\n>> {}".format(unitext(title)))
+        print("{:*^{num}}\033[0m".format(
             '',
             num=len(title) + 3)
         )
@@ -73,7 +72,7 @@ def run_command(command_list, title=None, get_stdout=False):
     except:
         return False
 
-    return True if not get_stdout else ret
+    return True if not get_stdout else ret.decode('utf-8')
 
 
 def get_app(application, data, title=None, stop=False):
@@ -145,9 +144,9 @@ def get_app(application, data, title=None, stop=False):
         print("\n")
         while not resposta_ok:
             try:
-                rep = raw_input(
+                rep = input(
                     "Selecione o App: (1-{}): ".format(i - 1))
-                if rep and int(rep) in xrange(1, i):
+                if rep and int(rep) in range(1, i):
                     resposta_ok = True
             except KeyboardInterrupt:
                 print("\n")
@@ -155,6 +154,7 @@ def get_app(application, data, title=None, stop=False):
             except:
                 pass
         return (all_apps[int(rep) - 1][0], all_apps[int(rep) - 1][1])
+
 
 def progress_bar(iteration, total, prefix='Lendo',
                  suffix='Complete', barLength=50):
@@ -170,3 +170,14 @@ def progress_bar(iteration, total, prefix='Lendo',
         (prefix, bar, percents, '%', suffix)),
     sys.stdout.flush()
 
+
+def get_compose_data(data):
+    dc_path = os.path.join(
+        data['docker_compose_path'],
+        'docker-compose.yml'
+    )
+
+    with open(dc_path, 'r') as file:
+        dc_data = yaml.load(file)
+
+    return dc_data

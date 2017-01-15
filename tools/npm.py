@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
 import os
-from tools import settings
-from tools.config import get_config_data, run_update
-from tools.messages import notify
-from tools.utils import run_command, get_app, confirma
+from tools.config import get_config_data
+from tools.utils import get_app, get_compose_data
 
 
 def run_watch(application):
@@ -16,16 +13,26 @@ def run_watch(application):
         title="Rodar em modo Watch",
         data=data
     )
-    if not container_id:
+    if not name:
         return False
 
-    watch_path = os.join(
+    dc_data = get_compose_data(data)
+
+    try:
+        app_folder = dc_data['services'][name][
+            'build']['context'].split('/')[-1]
+    except:
+        print('Pasta não encontrada.')
+        return False
+
+    watch_path = os.path.join(
         data['project_path'],
-        name.lower(),
+        app_folder,
         'frontend'
     )
 
     os.system(
-        'cd {}/ && ./node_modules/.bin/webpack --config webpack.config.js --watch\n'.format(
+        'cd {}/ && ./node_modules/.bin/webpack --config '
+        'webpack.config.js --watch\n'.format(
             watch_path)
     )

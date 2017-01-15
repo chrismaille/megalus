@@ -1,13 +1,13 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import os
 import platform
 from tools.utils import run_command
 from tools import settings
 
 
-minify_command = "java -jar yuicompressor-2.4.8.jar {all} -o {min} --charset utf-8"
-minify_command_windows = "java -jar yuicompressor-2.4.8.jar {all} --charset utf-8 > {min}"
+minify_command = "java -jar yuicompressor-2.4.8.jar "
+"{all} -o {min} --charset utf-8"
+minify_command_windows = "java -jar yuicompressor-2.4.8.jar "
+"{all} --charset utf-8 > {min}"
 
 
 def saveFile(sourcePaths, destPath, minPath, baseDir, header=None):

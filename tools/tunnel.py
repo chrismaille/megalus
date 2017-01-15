@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function, unicode_literals, with_statement, nested_scopes
+
 import yaml
 import os
 from tools.config import get_config_data
 from tools.utils import get_app
 
+
 def run_ngrok(subdomain, app):
-    # Busca configuração    
+    # Busca configuração
     data = get_config_data()
     if not data:
         return False
@@ -44,7 +45,8 @@ def run_ngrok(subdomain, app):
         return False
 
     os.system(
-            "cd {} && ./ngrok -subdomain={} {}".format(data['docker_compose_path'], subdomain, porta)
-        )
+        "cd {} && ./ngrok -subdomain={} {}".format(
+            data['docker_compose_path'], subdomain, porta)
+    )
 
     return True

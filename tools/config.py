@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import os
 import platform
 from git import Repo
@@ -79,7 +77,7 @@ def get_config_data(
                     resposta_ok = False
                     while not resposta_ok:
                         try:
-                            value = str(raw_input(ask))
+                            value = str(input(ask))
                             if not value and config[key]:
                                 file.write(
                                     "{}={}\n".format(
@@ -106,7 +104,8 @@ def get_config_data(
                     file.write("[config]\n")
                     file.write('region = {}\n'.format(config['aws_region']))
 
-                with open(os.path.join(aws_folder, "credentials"), 'w') as file:
+                with open(os.path.join(
+                        aws_folder, "credentials"), 'w') as file:
                     file.write('[default]\n')
                     file.write(
                         'aws_access_key_id = {}\n'.format(
@@ -132,7 +131,8 @@ def get_config_data(
                             title=None,
                             command_list=[
                                 {
-                                    'command': "echo export {}='{}' >> {}".format(
+                                    'command': "echo export "
+                                    "{}='{}' >> {}".format(
                                         settings.ENV_NAME,
                                         project_path,
                                         profile_path),
@@ -161,7 +161,8 @@ def get_config_data(
                     ]
                 )
         if not one_file_ok:
-            path_message = "Certifique-se que o {} esteja no seu arquivo .profile, .bashrc ou .zshrc correspondente".format(
+            path_message = "Certifique-se que o {} esteja no "
+            "seu arquivo .profile, .bashrc ou .zshrc correspondente".format(
                 settings.ENV_NAME)
 
     # Clona os repositorios
@@ -178,7 +179,8 @@ def get_config_data(
             title="Clonando Repositorios",
             command_list=[
                 {
-                    'command': "git config --global credential.helper 'cache --timeout=3600'",
+                    'command': "git config --global "
+                    "credential.helper 'cache --timeout=3600'",
                     'run_stdout': False}])
 
         # Baixa APPLICATIONS
@@ -205,8 +207,9 @@ def get_config_data(
                     0].replace('docker-compose.yml', '')
             elif paths_found:
                 print(
-                    u"Informe a localização do arquivo 'docker-compose.yml' do Projeto")
-                print(u"(A localização padrão é: '{}/{}')\n".format(
+                    "Informe a localização do arquivo"
+                    " 'docker-compose.yml' do Projeto")
+                print("(A localização padrão é: '{}/{}')\n".format(
                     project_path,
                     settings.DOCKER_REPO_NAME
                 ))
@@ -217,9 +220,9 @@ def get_config_data(
                 print("\n")
                 while not resposta_ok:
                     try:
-                        rep = raw_input(
+                        rep = input(
                             "Selecione o caminho: (1-{}): ".format(num + 1))
-                        if rep and int(rep) in xrange(1, num + 1):
+                        if rep and int(rep) in range(1, num + 1):
                             resposta_ok = True
                     except KeyboardInterrupt:
                         print("Operação interrompida\n")
@@ -232,7 +235,7 @@ def get_config_data(
             resposta_ok = False
             while not resposta_ok:
                 try:
-                    rep = raw_input(
+                    rep = input(
                         "Informe o caminho do arquivo docker-compose.yml: ")
                     if os.path.exists(
                         os.path.join(
@@ -264,12 +267,16 @@ def get_config_data(
     print("Para trabalhar com os repositórios certifique-se que:")
     print("* O docker e o docker-compose estejam instalados.")
     if platform.system() == "Windows":
-        print("* (Windows) A variável de ambiente {} esteja configurada.".format(settings.ENV_NAME))
+        print("* (Windows) A variável de ambiente"
+              " {} esteja configurada.".format(
+                  settings.ENV_NAME))
         print("* (Windows) Rode o comando 'aws configure'")
     elif path_message:
         print("* {}".format(path_message))
-    print("* O comando 'aws configure' tenha sido rodado no repositório, antes do deploy.")
-    print("* O comando 'eb init' tenha sido rodado no repositório, antes do deploy.")
+    print("* O comando 'aws configure' "
+          "tenha sido rodado no repositório, antes do deploy.")
+    print("* O comando 'eb init' tenha sido "
+          "rodado no repositório, antes do deploy.")
     if clone_action:
         notify(msg="Configuração finalizada.")
     return False
@@ -288,7 +295,7 @@ def run_update(no_confirm, stable, staging):
         resp = "S"
     else:
         resp = confirma(
-            u"Este comando atualiza todos os Repositórios\n"
+            "Este comando atualiza todos os Repositórios\n"
             "que estejam nas branchs 'production', 'staging'\n"
             "'release', 'beta' ou 'master'.\n"
             "Além disso, baixa novos repositórios que ainda\n"
@@ -325,7 +332,7 @@ def run_update(no_confirm, stable, staging):
                             resp = "S"
                         else:
                             resp = confirma(
-                                u"O repositório '{}' está com o endereço\n"
+                                "O repositório '{}' está com o endereço\n"
                                 "remoto: {}.\nDeseja trocar".format(
                                     app_name, origin.url))
                         if resp == "S":
@@ -385,20 +392,23 @@ def run_update(no_confirm, stable, staging):
                     'release',
                         'master']:
                     print(
-                        "\n\033[1m\033[94mAtualizando '{}/{}'\033[0m".format(app_name, branch))
+                        "\n\033[1m\033[94mAtualizando "
+                        "'{}/{}'\033[0m".format(app_name, branch))
                     os.chdir(caminho)
                     run_command(
                         title=None,
                         command_list=[
                             {
-                                'command': 'git remote update && git fetch && git pull --all',
+                                'command': 'git remote update '
+                                '&& git fetch && git pull --all',
                                 'run_stdout': False
                             }
                         ]
                     )
                 else:
                     print(
-                        "\n\033[1m\033[93mRepositório '{}' ignorado. Branch: {}\033[0m".format(
+                        "\n\033[1m\033[93mRepositório '{}' "
+                        "ignorado. Branch: {}\033[0m".format(
                             app_name, branch))
         # Baixa os repositorios faltantes
         baixa_repositorios(data)
@@ -420,7 +430,8 @@ def baixa_repositorios(data):
                     title=None,
                     command_list=[
                         {
-                            'command': 'git clone -b {branch} {url} "{dir}"'.format(
+                            'command': 'git clone -b'
+                            ' {branch} {url} "{dir}"'.format(
                                 branch=branch,
                                 url=github_url,
                                 dir=os.path.join(
@@ -435,7 +446,8 @@ def baixa_repositorios(data):
                         title=None,
                         command_list=[
                             {
-                                'command': 'git checkout -b {branch} remotes/origin/{branch}'.format(
+                                'command': 'git checkout'
+                                ' -b {branch} remotes/origin/{branch}'.format(
                                     branch=branch
                                 ),
                                 'run_stdout': False

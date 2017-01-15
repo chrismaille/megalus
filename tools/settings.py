@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 """
-Settings para o LI-Tools
+Settings para o MEG-Tools
 """
-from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 
 
 # Linha de comando para o prompt
@@ -14,7 +12,7 @@ TERMINAL_CMD = "meg"
 CONFIG_FILE = "meg-config"
 ENV_NAME = "MEGALUS_PATH"
 
-STAGE_DB = "li-db-staging.ciksobkqlidb.us-east-1.rds.amazonaws.com"
+STAGE_DB = ""  # ex.: li-db-staging.ciksobkqlidb.us-east-1.rds.amazonaws.com
 STAGE_PORT = 5432
 
 LOCAL_DB = "meg_postgres_host"
@@ -100,7 +98,8 @@ VCS_BASE_URL = "https://bitbucket.org/maisimovel/"
 # CONFIGURACAO PARA AMAZON WEB SERVICES
 #######################################
 USE_AWS = False
-S3_SYNC_CMD = "aws s3 sync static/ s3://lojaintegrada.cdn/{branch}/static/ --acl public-read"
+S3_SYNC_CMD = "aws s3 sync static/ "
+"s3://lojaintegrada.cdn/{branch}/static/ --acl public-read"
 
 # AWS EC2 CONTAINER SERVICE
 ###########################

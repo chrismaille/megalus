@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import json
-import urllib2
-from distutils.version import StrictVersion, LooseVersion
+import urllib.request
+import urllib.error
+import urllib.parse
+from distutils.version import LooseVersion
 from tools import __version__
 from tools import settings
 
@@ -12,12 +12,12 @@ def versions():
     data = None
     versions = None
     try:
-        ret = urllib2.urlopen(urllib2.Request(url), timeout=1)
+        ret = urllib.request.urlopen(urllib.request.Request(url), timeout=1)
         data = json.load(ret)
     except:
         pass
     if data:
-        versions = data["releases"].keys()
+        versions = list(data["releases"].keys())
         versions.sort(key=LooseVersion)
     return versions
 
@@ -28,6 +28,6 @@ def show_version_warning():
     if version_data:
         last_version = version_data[-1]
     if LooseVersion(last_version) > LooseVersion(__version__) and \
-        "rc" not in last_version:
+            "rc" not in last_version:
         print("\033[91mSua versão está desatualizada.")
         print("Última versão: {}\n\033[0m".format(last_version))

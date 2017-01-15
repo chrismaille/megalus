@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function, unicode_literals, with_statement, nested_scopes
 import datadog
 import platform
 import requests
@@ -77,7 +75,8 @@ class Message():
             slack.notify(
                 text=text,
                 channel="#{}".format(
-                    self.config['slack_channel']) if not self.test else settings.TEST_CHANNEL,
+                    self.config['slack_channel'])
+                if not self.test else settings.TEST_CHANNEL,
                 username=self.config['slack_user'],
                 icon_emoji=":{}:".format(
                     self.config['slack_icon']))
@@ -92,8 +91,9 @@ class Message():
         else:
             status = "ended"
             value = 0
-        
-        post_data="{},action=deploy,user={},repo={},status={},env={} value={}".format(
+
+        post_data = "{},action=deploy,user={},"
+        "repo={},status={},env={} value={}".format(
             settings.GRAFANA_APP,
             self.config['slack_user'],
             self.repo,
@@ -104,15 +104,14 @@ class Message():
         if not self.test:
             try:
                 ret = requests.post(
-                settings.GRAFANA_MSG_URL,
-                data=post_data,
-                headers={"Content-Type": "application/x-www-form-urlencoded"},
-                timeout=1
-                )
+                    settings.GRAFANA_MSG_URL, data=post_data, headers={
+                        "Content-Type":
+                        "application/x-www-form-urlencoded"}, timeout=1)
                 if ret.status_code == requests.codes.ok:
                     print("Grafana OK")
                 else:
-                    print("Ocorreu um erro ao tentar enviar mensagem ao Grafana")
+                    print("Ocorreu um erro ao "
+                          "tentar enviar mensagem ao Grafana")
             except:
                 print("Ocorreu um erro ao tentar enviar mensagem ao Grafana")
         else:
@@ -125,22 +124,29 @@ def notify(msg, title=None):
     if platform.system().lower() == 'linux':  # Linux
         run_command(
             command_list=[
-                    {
-                        'command': 'notify-send -i gsd-xrandr {title} {msg}'.format(
-                            title=u'"{}"'.format(unitext(title)),
-                            msg=u'"{}"'.format(unitext(msg))),
-                        'run_stdout': False
-                    }
-                ],
+                {
+                    'command': 'notify-send '
+                    '-i gsd-xrandr {title} {msg}'.format(
+                        title='"{}"'.format(
+                            unitext(title)),
+                        msg='"{}"'.format(
+                            unitext(msg))),
+                    'run_stdout': False}],
             get_stdout=True,
             title=None)
     elif platform.system().lower() != "windows":  # Mac
         run_command(
             command_list=[
                 {
-                    'command': "osascript -e 'display notification {msg} with title {title}'".format(
-                        title=u'"{}"'.format(unitext(title)),
-                        msg=u'"{}"'.format(unitext(msg))),
-                    'run_stdout': False}],
+                    'command': "osascript -e "
+                    "'display notification {msg} "
+                    "with title {title}'".format(
+                        title='"{}"'.format(
+                            unitext(title)),
+                        msg='"{}"'.format(
+                            unitext(msg))),
+                    'run_stdout': False
+                }
+            ],
             get_stdout=False,
             title=None)

@@ -8,29 +8,29 @@
 
 """
 
-from __future__ import print_function
-from __future__ import unicode_literals
+
+
 from collections import namedtuple, Iterable
 from platform import python_version_tuple
 import re
 
 
 if python_version_tuple()[0] < "3":
-    from itertools import izip_longest
+    from itertools import zip_longest
     from functools import partial
     _none_type = type(None)
     _bool_type = bool
     _int_type = int
-    _long_type = long
+    _long_type = int
     _float_type = float
-    _text_type = unicode
+    _text_type = str
     _binary_type = str
 
     def _is_file(f):
         return isinstance(f, file)
 
 else:
-    from itertools import zip_longest as izip_longest
+    from itertools import zip_longest
     from functools import reduce, partial
     _none_type = type(None)
     _bool_type = bool
@@ -760,9 +760,9 @@ def _normalize_tabular_data(tabular_data, headers, showindex="default"):
         # dict-like and pandas.DataFrame?
         if hasattr(tabular_data.values, "__call__"):
             # likely a conventional dict
-            keys = tabular_data.keys()
+            keys = list(tabular_data.keys())
             # columns have to be transposed
-            rows = list(izip_longest(*tabular_data.values()))
+            rows = list(zip_longest(*list(tabular_data.values())))
         elif hasattr(tabular_data, "index"):
             # values is a property, has .index => it's likely a
             # pandas.DataFrame (pandas 0.11.0)
@@ -807,11 +807,11 @@ def _normalize_tabular_data(tabular_data, headers, showindex="default"):
             keys = []  # storage for set
             if headers == "firstrow":
                 firstdict = rows[0] if len(rows) > 0 else {}
-                keys.extend(firstdict.keys())
+                keys.extend(list(firstdict.keys()))
                 uniq_keys.update(keys)
                 rows = rows[1:]
             for row in rows:
-                for k in row.keys():
+                for k in list(row.keys()):
                     # Save unique items in input order
                     if k not in uniq_keys:
                         keys.append(k)
@@ -843,7 +843,7 @@ def _normalize_tabular_data(tabular_data, headers, showindex="default"):
 
         elif headers == "keys" and len(rows) > 0:
             # keys are column indices
-            headers = list(map(_text_type, range(len(rows[0]))))
+            headers = list(map(_text_type, list(range(len(rows[0])))))
 
     # take headers from the first row if necessary
     if headers == "firstrow" and len(rows) > 0:
@@ -1168,7 +1168,7 @@ def tabulate(tabular_data, headers=(), tablefmt="simple",
         width_fn = len
 
     # format rows and columns, convert numeric values to strings
-    cols = list(izip_longest(*list_of_lists))
+    cols = list(zip_longest(*list_of_lists))
     numparses = _expand_numparse(disable_numparse, len(cols))
     coltypes = [_column_type(col, numparse=np) for col, np in
                 zip(cols, numparses)]
