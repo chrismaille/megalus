@@ -1,7 +1,4 @@
-import json
-import urllib.request
-import urllib.error
-import urllib.parse
+import requests
 from distutils.version import LooseVersion
 from tools import __version__
 from tools import settings
@@ -12,8 +9,8 @@ def versions():
     data = None
     versions = None
     try:
-        ret = urllib.request.urlopen(urllib.request.Request(url), timeout=1)
-        data = json.load(ret)
+        ret = requests.get(url, timeout=1)
+        data = ret.json()
     except:
         pass
     if data:
@@ -23,6 +20,7 @@ def versions():
 
 
 def show_version_warning():
+    import ipdb; ipdb.set_trace()  # breakpoint 5451ca76 //
     last_version = __version__
     version_data = versions()
     if version_data:
