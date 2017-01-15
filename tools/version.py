@@ -20,7 +20,6 @@ def versions():
 
 
 def show_version_warning():
-    import ipdb; ipdb.set_trace()  # breakpoint 5451ca76 //
     last_version = __version__
     version_data = versions()
     if version_data:
