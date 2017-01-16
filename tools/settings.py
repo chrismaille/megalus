@@ -144,6 +144,7 @@ if USE_AWS:
     CONFIG_DICT['aws_key'] = None
     CONFIG_DICT['aws_secret'] = None
     CONFIG_DICT['aws_region'] = None
+    CONFIG_DICT['aws_account'] = None
 
 if USE_SLACK:
     CONFIG_DICT['slack_url'] = None
