@@ -41,7 +41,7 @@ TEST_PRIORITY = [
 # Ex: develop, master
 APPLICATIONS = [
     ('megdocker', ['master']),
-    ('megpainel', ['develop', 'master']),
+    ('maispainel', ['develop', 'master']),
     ('megtools', ['master'])
 ]
 
