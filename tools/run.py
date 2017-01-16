@@ -12,11 +12,11 @@ Usage:
     meg list     [<libs>...]
     meg rebuild  [-y | --yes]
     meg run      [<app>] [<command> ...]
+    meg service  (redis|memcached) [<key>]
     meg telnet   [<app>] (<port>)
     meg test     [<app>] [--using=(django|nose|pytest)] [--rds]
     meg tunnel   [<subdomain>] [<app>]
     meg update   [-y | --yes] [--production | --staging]
-    meg service  (redis|memcached) [<key>]
     meg watch    <app>
 
 Options:

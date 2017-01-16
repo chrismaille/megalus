@@ -97,7 +97,7 @@ VCS_BASE_URL = "https://bitbucket.org/maisimovel/"
 
 # CONFIGURACAO PARA AMAZON WEB SERVICES
 #######################################
-USE_AWS = False
+USE_AWS = True
 S3_SYNC_CMD = "aws s3 sync static/ "
 "s3://lojaintegrada.cdn/{branch}/static/ --acl public-read"
 
