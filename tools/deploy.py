@@ -147,7 +147,8 @@ def run_deploy():
         ],
         "Volumes": [
             {
-                "/tmp/": "/tmp/"
+                "HostDirectory": "/tmp",
+                "ContainerDirectory": "/tmp"
             }
         ],
         'Logging': "/var/eb_log"}
