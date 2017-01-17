@@ -142,7 +142,14 @@ def run_deploy():
             'Update': 'true'},
         'Ports': [
             {
-                'ContainerPort': '80'}],
+                'ContainerPort': '80'
+            }
+        ],
+        "Volumes": [
+            {
+                "/tmp": "/tmp"
+            }
+        ],
         'Logging': "/var/eb_log"}
 
     with open("./Dockerrun.aws.json", 'w') as file:
