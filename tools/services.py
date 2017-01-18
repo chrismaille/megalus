@@ -101,7 +101,7 @@ def get_all_memcached_keys(data, k):
     key_list = []
     for ky in all_keys:
         try:
-            value = mc.get(ky) or '--'
+            value = mc.get(ky)[:15] or '--'
         except:
             value = "Erro ao tentar recuperar o valor"
         key_list.append((ky, value))
