@@ -37,7 +37,8 @@ install_requires = [
     'redis',
     'requests<=2.9.1',
     'slackweb',
-    'unidecode'
+    'unidecode',
+    'colorama'
 ]
 
 

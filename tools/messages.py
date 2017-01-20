@@ -2,8 +2,9 @@ import datadog
 import platform
 import requests
 import slackweb
+from colorama import Fore, Style
 from tools import settings
-from tools.utils import run_command, unitext
+from tools.utils import run_command, unitext, print_title
 
 
 class Message():
@@ -23,8 +24,7 @@ class Message():
         self.repo = repo
         self.test = test
         self.action = action
-        print("\033[1m\033[93m\n>> Enviando mensagens")
-        print("*********************\033[0m")
+        print_title("Enviando mensagens")
 
     def send(self, alert_type="info"):
         if settings.USE_DATADOG:
@@ -110,10 +110,16 @@ class Message():
                 if ret.status_code == requests.codes.ok:
                     print("Grafana OK")
                 else:
-                    print("Ocorreu um erro ao "
-                          "tentar enviar mensagem ao Grafana")
+                    print(
+                        Fore.RED +
+                        "Ocorreu um erro ao "
+                        "tentar enviar mensagem ao Grafana" +
+                        Style.RESET_ALL)
             except:
-                print("Ocorreu um erro ao tentar enviar mensagem ao Grafana")
+                print(
+                    Fore.RED +
+                    "Ocorreu um erro ao tentar enviar mensagem ao Grafana" +
+                    Style.RESET_ALL)
         else:
             return "Passou pelo Grafana"
 

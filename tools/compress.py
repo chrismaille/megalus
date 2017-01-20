@@ -1,8 +1,8 @@
 import os
 import platform
+from colorama import Fore, Style
 from tools.utils import run_command
 from tools import settings
-
 
 minify_command = "java -jar yuicompressor-2.4.8.jar "
 "{all} -o {min} --charset utf-8"
@@ -44,13 +44,16 @@ def saveFile(sourcePaths, destPath, minPath, baseDir, header=None):
             ]
         )
         if not ret:
-            print("Ocorreu um erro ao gerar o Minify")
+            print(
+                Fore.RED +
+                "Ocorreu um erro ao gerar o Minify" +
+                Style.RESET_ALL)
             return False
         else:
             return True
     except:
         raise
-        print("Ocorreu um erro ao gerar o Minify")
+        print(Fore.RED + "Ocorreu um erro ao gerar o Minify" + Style.RESET_ALL)
         return False
 
 
@@ -83,7 +86,10 @@ def saveAlone(workdir, alone_list):
             ]
         )
         if not ret:
-            print("Ocorreu um erro ao gerar o Minify")
+            print(
+                Fore.RED +
+                "Ocorreu um erro ao gerar o Minify" +
+                Style.RESET_ALL)
             return False
 
     return True

@@ -1,10 +1,11 @@
 import os
 import platform
+from colorama import Fore, Style
 from git import Repo
 from os.path import expanduser
 from tools import settings
 from tools.messages import notify
-from tools.utils import run_command, confirma
+from tools.utils import run_command, confirma, print_title
 
 
 def get_config_data(
@@ -51,8 +52,7 @@ def get_config_data(
         return config
     elif not clone_only:
         path_message = None
-        print("\n\033[93m>> Configuração")
-        print("***************\033[0m")
+        print_title("Configuração")
         config_list = [
             '.bash_profile',
             '.bashrc',
@@ -62,8 +62,8 @@ def get_config_data(
         if start_over:
             resp = confirma("Deseja configurar as chaves")
         else:
-            resp = "S"
-        if resp == "S":
+            resp = True
+        if resp:
             with open(filepath, 'w') as file:
                 for key in config:
                     if key == "docker_compose_path" and not config.get(key):
@@ -168,10 +168,10 @@ def get_config_data(
     # Clona os repositorios
     clone_action = False
     if clone_only:
-        resp = "S"
+        resp = True
     else:
         resp = confirma("\nDeseja clonar os Repositórios")
-    if resp == "S":
+    if resp:
         clone_action = True
         if not os.path.exists(project_path):
             os.makedirs(project_path)
@@ -288,11 +288,10 @@ def run_update(no_confirm, stable, staging):
     if not data:
         return False
 
-    print("\n\033[1m\033[93m>> Atualizar Repositórios")
-    print("****************************\033[0m")
+    print_title("Atualizar Repositórios")
 
     if no_confirm:
-        resp = "S"
+        resp = True
     else:
         resp = confirma(
             "Este comando atualiza todos os Repositórios\n"
@@ -302,7 +301,7 @@ def run_update(no_confirm, stable, staging):
             "não estejam na pasta do projeto.\n"
             "Deseja continuar")
 
-    if resp == "S":
+    if resp:
         # Iterar todos os repositórios
         # Checar em que branch está
         # Se tiver em production ou master, dar o git pull
@@ -329,13 +328,13 @@ def run_update(no_confirm, stable, staging):
                 if origin:
                     if origin.url != remote_url:
                         if no_confirm:
-                            resp = "S"
+                            resp = True
                         else:
                             resp = confirma(
                                 "O repositório '{}' está com o endereço\n"
                                 "remoto: {}.\nDeseja trocar".format(
                                     app_name, origin.url))
-                        if resp == "S":
+                        if resp:
                             origin.set_url(
                                 new_url=remote_url
                             )
@@ -392,8 +391,8 @@ def run_update(no_confirm, stable, staging):
                     'release',
                         'master']:
                     print(
-                        "\n\033[1m\033[94mAtualizando "
-                        "'{}/{}'\033[0m".format(app_name, branch))
+                        Fore.CYAN + "Atualizando "
+                        "'{}/{}'".format(app_name, branch) + Style.RESET_ALL)
                     os.chdir(caminho)
                     run_command(
                         title=None,
@@ -407,9 +406,9 @@ def run_update(no_confirm, stable, staging):
                     )
                 else:
                     print(
-                        "\n\033[1m\033[93mRepositório '{}' "
-                        "ignorado. Branch: {}\033[0m".format(
-                            app_name, branch))
+                        Fore.LIGHTYELLOW_EX + "Repositório '{}' "
+                        "ignorado. Branch: {}".format(
+                            app_name, branch) + Style.RESET_ALL)
         # Baixa os repositorios faltantes
         baixa_repositorios(data)
         notify(msg="Update dos projetos finalizado.")
@@ -419,7 +418,7 @@ def baixa_repositorios(data):
     for app, branch_list in settings.APPLICATIONS:
         if os.path.exists(os.path.join(data['project_path'], app)):
             continue
-        print("\n\033[1m\033[94mBaixando '{}'\033[0m".format(app))
+        print(Fore.YELLOW + "Baixando '{}'".format(app) + Style.RESET_ALL)
         first_branch = True
         for branch in branch_list:
             github_url = "{}{}.git".format(

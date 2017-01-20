@@ -2,6 +2,7 @@ import os
 import subprocess
 import sys
 import yaml
+from colorama import Fore, Style
 from unidecode import unidecode
 
 
@@ -16,6 +17,13 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 
+def print_title(text):
+    line1 = ">> {}".format(text)
+    line2 = "{:*^{num}}".format('', num=len(line1))
+    print(Fore.YELLOW + '\033[1m' + line1)
+    print(line2 + Style.RESET_ALL)
+
+
 def confirma(pergunta):
     """Retorna S ou N"""
     resposta_ok = False
@@ -23,7 +31,7 @@ def confirma(pergunta):
         resposta = input("\n{} (s/n)? ".format(pergunta))
         if resposta and resposta[0].upper() in ["S", "N"]:
             resposta_ok = True
-    return resposta[0].upper()
+    return resposta[0].upper() == "S"
 
 
 def unitext(text):

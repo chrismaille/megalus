@@ -1,4 +1,5 @@
 import os
+from colorama import Fore, Style
 from tools import settings
 from tools.config import get_config_data, run_update
 from tools.messages import notify
@@ -22,22 +23,9 @@ def run_runapp(application, action, opt=None, arg=None):
         if not container_id:
             return False
 
-    if action == 'build' and settings.USE_ECR:
-        run_command(
-            get_stdout=False,
-            command_list=[
-                {
-                    'command': "aws ecr get-login"
-                    " --region {region}".format(
-                        region=data['aws_region']),
-                    'run_stdout': True
-                }
-            ]
-        )
-
     if action == "exec":
-        print(("\n\033[1m\033[94mRodando comando '{}' em '{}'\033[0m".format(
-            " ".join(arg), name)))
+        print(Fore.YELLOW + ("Rodando comando '{}' em '{}'".format(
+            " ".join(arg), name)) + Style.RESET_ALL)
         os.system(
             "docker {cmd} -ti {app}{arg}".format(
                 cmd=action,
@@ -88,8 +76,6 @@ def run_runapp(application, action, opt=None, arg=None):
         os.system(
             "docker rm $(docker ps -a | grep _run_ |  awk '{print $1}')"
         )
-    if action == "build":
-        notify(msg="A operação de Build foi concluída")
 
 
 def run_debug(application):
@@ -281,13 +267,13 @@ def run_test(application, using, rds):
                 }
             ]
         )
-        print("\033[93m\n************************************")
+        print(Fore.LIGHTYELLOW_EX + "************************************")
         print(("Rodando testes com: {}".format(test_app.upper())))
         print(("Usando banco de dados: {}".format(
             database_path.replace("\n", "").split("=")[1])
         ))
         print(("Usando a Porta: {}".format(port)))
-        print("************************************\n\033[0m")
+        print("************************************" + Style.RESET_ALL)
 
         if test_app == "django":
             command = "python /opt/app/manage.py test"
@@ -328,7 +314,7 @@ def rebuild_docker(no_confirm):
         return False
 
     if no_confirm:
-        resp = "S"
+        resp = True
     else:
         resp = confirma(
             "Este comando exclui todas as imagens\n"
@@ -340,7 +326,7 @@ def rebuild_docker(no_confirm):
             " estejam commitadas.\033[0m\n\n"
             "Deseja continuar")
 
-    if resp == "S":
+    if resp:
         # Parar containers
         run_command(
             get_stdout=False,

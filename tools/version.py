@@ -1,4 +1,5 @@
 import requests
+from colorama import Fore, Style
 from distutils.version import LooseVersion
 from tools import __version__
 from tools import settings
@@ -26,5 +27,5 @@ def show_version_warning():
         last_version = version_data[-1]
     if LooseVersion(last_version) > LooseVersion(__version__) and \
             "rc" not in last_version:
-        print("\033[91mSua versão está desatualizada.")
-        print("Última versão: {}\n\033[0m".format(last_version))
+        print(Fore.LIGHTMAGENTA_EX + "Sua versão está desatualizada.")
+        print("Última versão: {}\n".format(last_version) + Style.RESET_ALL)

@@ -33,14 +33,16 @@ Options:
 
 """
 
-import json
+from colorama import Fore, Style
 from docopt import docopt
 from tools import __version__
 from tools import docker
 from tools import settings
+from tools.build import run_build
 from tools.config import get_config_data, run_update
 from tools.deploy import run_deploy
 from tools.help import get_help
+from tools.li_tabulate import tabulate
 from tools.lists import show_list
 from tools.npm import run_watch
 from tools.services import run_service
@@ -76,7 +78,10 @@ def main():
     arguments = docopt(__doc__, version=__version__)
 
     if not arguments['help']:
-        print("Para ajuda digite: meg help")
+        print(
+            Fore.LIGHTBLACK_EX +
+            "Para ajuda digite: meg help" +
+            Style.RESET_ALL)
 
     #
     # CONFIG
@@ -85,13 +90,23 @@ def main():
         clone_only = arguments['--clone-only']
         data = get_config_data()
         if data and not clone_only:
-            print("Configuração Atual:")
-            print(json.dumps(data, indent=2))
-        if clone_only:
-            resposta = "S"
+            print(
+                Fore.LIGHTCYAN_EX +
+                "\nConfiguração Atual:\n" +
+                Style.RESET_ALL)
+            config_list = [
+                (obj, data[obj])
+                for obj in data
+            ]
+            print(tabulate(
+                config_list,
+                headers=["Opção", "Valor"]
+            ))
+        if clone_only or not data:
+            resposta = True
         else:
             resposta = confirma("Deseja rodar a configuração?")
-        if resposta == "S":
+        if resposta:
             data = get_config_data(
                 start_over=True,
                 clone_only=clone_only
@@ -149,13 +164,11 @@ def main():
         )
         return ret
     #
-    # BUILD ADD
+    # BUILD APP
     #
     if arguments['build'] is True:
-        ret = docker.run_runapp(
-            application=arguments['<app>'],
-            action='build',
-            opt="--no-cache" if arguments['--no-cache'] else None
+        ret = run_build(
+            application=arguments['<app>']
         )
         return ret
     #
@@ -217,11 +230,13 @@ def main():
 
 def start():
     print(
-        "\033[94m\033[1m\n\n************************\n\n"
+        Fore.CYAN +
+        "\033[1m\n\n************************\n\n"
         "{cmd}-Tools v{version}\n\n"
-        "************************\n\033[0m".format(
-            cmd=settings.TERMINAL_CMD.upper(), version=__version__)
-    )
+        "************************".format(
+            cmd=settings.TERMINAL_CMD.upper(),
+            version=__version__) +
+        Style.RESET_ALL)
     show_version_warning()
     retorno = main()
     if retorno:

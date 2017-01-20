@@ -1,2 +1,5 @@
+from colorama import init
 
-__version__ = "2.0.10"
+init()
+
+__version__ = "3.0.0rc1"

@@ -2,8 +2,10 @@ import os
 import re
 from .li_tabulate import tabulate
 from git import Repo
+from colorama import Back
 from tools.config import get_config_data
-from tools.utils import run_command, bcolors, progress_bar, get_compose_data
+from tools import utils
+from tools.utils import bcolors
 from tools.settings import LIBRARIES
 
 
@@ -12,10 +14,9 @@ def show_list(libs=[]):
     if not data:
         return False
 
-    dc_data = get_compose_data(data)
+    dc_data = utils.get_compose_data(data)
 
-    print("\n\033[93m>> Lendo Aplicações Docker")
-    print("**************************\033[0m\n")
+    utils.print_title("Lendo Aplicações Docker")
 
     services_list = dc_data['services']
 
@@ -29,9 +30,9 @@ def show_list(libs=[]):
     for service in sorted(services_list):
         # Barra de progresso
         i += 1
-        progress_bar(i, total, suffix=service.ljust(blank))
+        utils.progress_bar(i, total, suffix=service.ljust(blank))
         # 1. Checa se o container está rodando
-        docker_ret = run_command(
+        docker_ret = utils.run_command(
             command_list=[
                 {
                     'command': "docker ps | grep {service}".format(
@@ -69,7 +70,7 @@ def show_list(libs=[]):
         # 3. Checa status do Git
         if branch != "--":
             os.chdir(caminho_path)
-            status_ret = run_command(
+            status_ret = utils.run_command(
                 command_list=[
                     {
                         'command': 'git status -bs --porcelain',
@@ -84,7 +85,7 @@ def show_list(libs=[]):
                 ahead = re.search("ahead (\d+)", status_ret)
                 behind = re.search("behind (\d+)", status_ret)
                 if ahead or behind:
-                    branch = "{} {}[{}{}{}]{}".format(
+                    branch = Back.LIGHTCYAN_EX + "{} {}[{}{}{}]{}".format(
                         branch,
                         bcolors.WARNING,
                         "{}+{}{}".format(
@@ -105,7 +106,7 @@ def show_list(libs=[]):
         if caminho_path:
             for lib in LIBRARIES + libs:
                 if container:
-                    pip_ret = run_command(
+                    pip_ret = utils.run_command(
                         command_list=[
                             {
                                 'command': 'docker exec -ti '
@@ -118,7 +119,7 @@ def show_list(libs=[]):
                         title=None)
                 elif branch != "--":
                     try:
-                        pip_ret = run_command(
+                        pip_ret = utils.run_command(
                             command_list=[
                                 {
                                     'command': 'cd {path} && '
@@ -151,8 +152,7 @@ def show_list(libs=[]):
         "docker rm $(docker ps -a | grep _run_ |  awk '{print $1}')"
     )
     os.system('cls' if os.name == 'nt' else 'clear')
-    print("\n\033[93m>> Listar Aplicações Docker")
-    print("**************************\033[0m\n")
+    utils.print_title("Listar Aplicações Docker")
     print(tabulate(
         table_data,
         headers=["Aplicação", "Branch", "Rodando", "Porta"] + LIBRARIES + libs

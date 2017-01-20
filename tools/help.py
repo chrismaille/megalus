@@ -39,7 +39,14 @@ HELP_COMMANDS = [{'command': 'config',
                   'long_desc': None},
                  {'command': 'build',
                   'options': 'meg build <app> [--no-cache]',
-                  'description': 'Use para fazer a build do container da aplicação selecionada. Se nenhuma aplicação for informada, será feito a build de todos os containers:\n* --no-cache: Durante a build, forçar o download de todas as livrarias/dependencias\nEquivale ao comando "docker-compose stop && docker-compose build _aplicacao_"',
+                  'description': '''
+                  Use para fazer a build do container da aplicação selecionada.
+                  Para atualizar somente a imagem base do Docker, use o comando 'meg build base'.
+                  Se nenhuma aplicação for informada, será feito a build de todos os containers (mais
+                  a imagem base). Opções:
+                  * --no-cache: Durante a build, forçar o download de todas as livrarias/dependencias
+                  Equivale ao comando "docker-compose stop && docker-compose build _aplicacao_"
+                  ''',
                   'examples': 'meg build (faz o build de todos os containers)\nmeg build loja (faz a build do container da Loja)',
                   'long_desc': None},
                  {'command': 'update',

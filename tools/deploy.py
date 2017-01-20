@@ -2,12 +2,13 @@ import json
 import os
 import platform
 import re
+from colorama import Fore, Style
 from git import Repo
 from tools import settings
 from tools.compress import minifyCSS, minifyJS
 from tools.config import get_config_data
 from tools.messages import Message, notify
-from tools.utils import bcolors, run_command, confirma
+from tools.utils import bcolors, run_command, confirma, print_title
 
 
 def run_deploy():
@@ -23,10 +24,10 @@ def run_deploy():
         repo = Repo(current_dir)
         branch = repo.active_branch
     except:
-        print("Repositório GIT não encontrado.")
+        print(Fore.RED + "Repositório GIT não encontrado.")
         print("O comando deve ser executado na pasta raiz")
         print("do repositório a ser enviado.")
-        print("Comando abortado.")
+        print("Comando abortado." + Style.RESET_ALL)
         return False
     app_list = [
         app.lower()
@@ -34,7 +35,7 @@ def run_deploy():
     ]
     folder_name = os.path.split(current_dir)[-1]
     if folder_name.lower() not in app_list:
-        print("Repositório não reconhecido.")
+        print(Fore.RED + "Repositório não reconhecido." + Style.RESET_ALL)
         return False
 
     # Confirma operação
@@ -97,14 +98,13 @@ def run_deploy():
         return False
 
     resposta = confirma("Confirma o Deploy")
-    if resposta == "N":
+    if not resposta:
         return False
 
     # Ações específicas do App
     # 1. Minify estáticos
     if folder_name in settings.MINIFY_BEFORE:
-        print("\n\033[1m\033[94m\n>> Minificando arquivos estáticos")
-        print("*********************************\033[0m")
+        print_title("Minificando arquivos estáticos")
         ret = minifyCSS(current_dir=current_dir)
         if not ret:
             return False
@@ -193,9 +193,13 @@ def run_deploy():
             action="INICIADO")
         message.send(alert_type="warning")
 
-    # Gerar imagem do Docker
+    # Gerar imagem base do Docker
+    dockerbasepath = os.path.join(
+        config['project_path'],
+        settings.DOCKER_BASE_IMAGE_REPO
+    )
     ret = run_command(
-        title="Gera Imagem no Docker - {}".format(folder_name),
+        title="Gera Imagem Base do Docker",
         command_list=[
             {
                 'command': "aws ecr get-login "
@@ -203,8 +207,43 @@ def run_deploy():
                 'run_stdout': True
             },
             {
+                'command': "cd {path} && docker build -t {app}:dev .".format(
+                    path=dockerbasepath,
+                    app=settings.DOCKER_BASE_IMAGE_REPO
+                ),
+                'run_stdout': False
+            },
+            {
+                'command': "docker tag {base}:dev "
+                "{account}.dkr.ecr.{region}.amazonaws.com"
+                "/{base}:latest".format(
+                    base=settings.DOCKER_BASE_IMAGE_REPO,
+                    account=config['aws_account'],
+                    region=config['aws_region'],
+                ),
+                'run_stdout': False
+            },
+            {
+                'command': "docker push {account}."
+                "dkr.ecr.{region}.amazonaws.com/{base}:latest".format(
+                    account=config['aws_account'],
+                    region=config['aws_region'],
+                    base=settings.DOCKER_BASE_IMAGE_REPO
+                ),
+                'run_stdout': False
+            },
+        ]
+    )
+    if not ret:
+        return False
+
+    # Gerar imagem do Docker
+    ret = run_command(
+        title="Gera Imagem no Docker - {}".format(folder_name),
+        command_list=[
+            {
                 'command': "docker build -f {name} -t {app}:{branch} .".format(
-                    name=settings.DOCKERFILE_NAME,
+                    name=settings.DOCKERFILE_DEPLOY,
                     app=app_name,
                     branch=branch_name
                 ),

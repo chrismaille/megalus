@@ -3,17 +3,12 @@ import redis
 import telnetlib
 from .li_tabulate import tabulate
 from tools.config import get_config_data
-from tools.utils import bcolors
+from tools.utils import print_title
 
 
 def run_service(service, key):
 
-    print((
-        "\n{}{}>> Chaves do {}".format(
-            bcolors.BOLD,
-            bcolors.WARNING,
-            service.upper())))
-    print(("********************{}\n".format(bcolors.ENDC)))
+    print_title("Chaves do {}".format(service.upper()))
 
     data = get_config_data()
     if not data:
@@ -101,7 +96,7 @@ def get_all_memcached_keys(data, k):
     key_list = []
     for ky in all_keys:
         try:
-            value = mc.get(ky)[:15] or '--'
+            value = str(mc.get(ky))[:20] or '--'
         except:
             value = "Erro ao tentar recuperar o valor"
         key_list.append((ky, value))

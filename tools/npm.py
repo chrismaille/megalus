@@ -1,4 +1,5 @@
 import os
+from colorama import Fore, Style
 from tools.config import get_config_data
 from tools.utils import get_app, get_compose_data
 
@@ -24,7 +25,7 @@ def run_watch(application):
         app_folder = dc_data['services'][name][
             'build']['context'].split('/')[-1]
     except:
-        print('Pasta não encontrada.')
+        print(Fore.RED + 'Pasta não encontrada.' + Style.RESET_ALL)
         return False
 
     watch_path = os.path.join(

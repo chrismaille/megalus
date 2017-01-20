@@ -1,7 +1,7 @@
 """
 Settings para o MEG-Tools
 """
-
+from collections import OrderedDict
 
 # Linha de comando para o prompt
 ################################
@@ -12,7 +12,7 @@ TERMINAL_CMD = "meg"
 CONFIG_FILE = "meg-config"
 ENV_NAME = "MEGALUS_PATH"
 
-STAGE_DB = ""  # ex.: li-db-staging.ciksobkqlidb.us-east-1.rds.amazonaws.com
+STAGE_DB = ""  # ex.: nome.ciksobkqlidb.us-east-1.rds.amazonaws.com
 STAGE_PORT = 5432
 
 LOCAL_DB = "meg_postgres_host"
@@ -42,7 +42,8 @@ TEST_PRIORITY = [
 APPLICATIONS = [
     ('megdocker', ['master']),
     ('maispainel', ['develop', 'master']),
-    ('megtools', ['master'])
+    ('megtools', ['master']),
+    ('megbase', ['master'])
 ]
 
 # Lista as Livrarias padrões do Projeto
@@ -86,8 +87,10 @@ cssAlone = [
 
 # CONFIGURACAO PARA DOCKER
 ##########################
-DOCKER_REPO_NAME = "megtools"
-DOCKERFILE_NAME = "Dockerfile_local"
+DOCKER_REPO_NAME = "megdocker"
+DOCKER_BASE_IMAGE_REPO = "megbase"
+DOCKERFILE_DEPLOY = "Dockerfile_deploy"
+DOCKERFILE_DEVELOPMENT = "Dockerfile_dev"
 
 # CONFIGURAÇÃO PARA VCS
 #######################
@@ -98,8 +101,11 @@ VCS_BASE_URL = "https://bitbucket.org/maisimovel/"
 # CONFIGURACAO PARA AMAZON WEB SERVICES
 #######################################
 USE_AWS = True
-S3_SYNC_CMD = "aws s3 sync static/ "
-"s3://lojaintegrada.cdn/{branch}/static/ --acl public-read"
+
+# Exemplo para sync:
+# "aws s3 sync static/ s3://dominio.cdn/{branch}/static/
+# --acl public-read
+S3_SYNC_CMD = ""
 
 # AWS EC2 CONTAINER SERVICE
 ###########################
@@ -129,16 +135,18 @@ USE_DATADOG = False
 # CONFIGURACAO PARA GRAFANA
 ###########################
 USE_GRAFANA = False
-GRAFANA_MSG_URL = "http://services-int.awsli.com.br:8086/write?db=msgs"
-GRAFANA_APP = 'li_aws_deploy'
+GRAFANA_MSG_URL = ""  # exemplo: "http://dominio:porta/write?db=msgs"
+GRAFANA_APP = 'megtools'
 
 # DICIONARIO DE DADOS
 #####################
 
-CONFIG_DICT = {
-    "project_path": None,
-    "docker_compose_path": None
-}
+CONFIG_DICT = OrderedDict.fromkeys(
+    [
+        "project_path",
+        "docker_compose_path"
+    ]
+)
 
 if USE_AWS:
     CONFIG_DICT['aws_key'] = None
