@@ -19,7 +19,6 @@ Usage:
     meg update      [-y | --yes] [--production | --staging]
     meg watch       <app>
     meg npm list    <app>
-    meg npm update  <app>
 
 Options:
     --help          Mostra esta tela
