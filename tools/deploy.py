@@ -101,8 +101,25 @@ def run_deploy():
     if not resposta:
         return False
 
+    # Se existir a pasta frontend
+    # rodar o build do webpack
+    wbpath = os.path.join(current_dir, 'frontend')
+    if os.path.exists(wbpath):
+        ret = run_command(
+            get_stdout=False,
+            title="Gerando Build do Webpack",
+            command_list=[
+                {
+                    'command': 'cd {} && ./node_modules/.bin/webpack'
+                    ' --config webpack.config.deploy.js'.format(wbpath)
+                }
+            ]
+        )
+        if not ret:
+            return False
+
     # Ações específicas do App
-    # 1. Minify estáticos
+    # 1. Minify manual
     if folder_name in settings.MINIFY_BEFORE:
         print_title("Minificando arquivos estáticos")
         ret = minifyCSS(current_dir=current_dir)
