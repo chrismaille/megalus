@@ -1,3 +1,4 @@
+from textwrap import dedent
 from tools.utils import bcolors
 
 INICIAL = """
@@ -9,7 +10,10 @@ Para ver a Ajuda de um comando específico digite 'meg help <comando>'.
 
 HELP_COMMANDS = [{'command': 'config',
                   'options': 'meg config [--clone-only]',
-                  'description': 'Use para configurar o ambiente de desenvolvimento local.\nUse a opção `--clone-only` para clonar/baixar os repositórios apenas',
+                  'description': '''
+                  Use para configurar o ambiente de desenvolvimento local.
+                  Use a opção `--clone-only` para clonar/baixar os repositórios apenas
+                  ''',
                   'examples': None,
                   'long_desc': None},
                  {'command': 'deploy',
@@ -95,7 +99,7 @@ def get_help(app=None):
 
 def show_help(help_list, show_long_desc=False):
     if not show_long_desc:
-        print(INICIAL)
+        print(dedent(INICIAL))
     for command in help_list:
         print("\n{}{}Commando: {}{}".format(
             bcolors.BOLD,
@@ -108,9 +112,9 @@ def show_help(help_list, show_long_desc=False):
             print("{}Opções:{}".format(bcolors.BOLD, bcolors.ENDC))
             print(command['options'])
         print("\n{}Resumo:{}".format(bcolors.BOLD, bcolors.ENDC))
-        print(command['description'])
+        print(dedent(command['description']))
         if show_long_desc and command['long_desc']:
-            print('\n{}'.format(command['long_desc']))
+            print('\n{}'.format(dedent(command['long_desc'])))
         if command['examples']:
             print("\n{}Exemplos:{}".format(bcolors.BOLD, bcolors.ENDC))
-            print(command['examples'])
+            print(dedent(command['examples']))

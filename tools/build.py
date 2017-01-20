@@ -95,7 +95,17 @@ def run_build(application):
     )
     # Exclui container extra
     # docker rm $(docker ps -a | grep host_run |  awk '{print $1}')
-    os.system(
-        "docker rm $(docker ps -a | grep _run_ |  awk '{print $1}')"
+    retdocker = run_command(
+        get_stdout=True,
+        command_list=[
+            {
+                'command': 'docker ps -a | grep _run_',
+                'run_stdout': False
+            }
+        ]
     )
+    if retdocker:
+        os.system(
+            "docker rm $(docker ps -a | grep _run_ |  awk '{print $1}')"
+        )
     notify(msg="A operação de Build foi concluída")

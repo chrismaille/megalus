@@ -18,8 +18,8 @@ class bcolors:
 
 
 def print_title(text):
-    line1 = ">> {}".format(text)
-    line2 = "{:*^{num}}".format('', num=len(line1))
+    line1 = "\n>> {}".format(text)
+    line2 = "{:*^{num}}\n".format('', num=len(line1)-1)
     print(Fore.YELLOW + '\033[1m' + line1)
     print(line2 + Style.RESET_ALL)
 

@@ -3,21 +3,23 @@
 Para mais detalhes digite 'meg help'
 
 Usage:
-    meg bash     [<app>]
-    meg build    [<app>] [--no-cache]
-    meg config   [--clone-only]
-    meg debug    [<app>]
+    meg bash        [<app>]
+    meg build       [<app>] [--no-cache]
+    meg config      [--clone-only]
+    meg debug       [<app>]
     meg deploy
-    meg help     [<option>]
-    meg list     [<libs>...]
-    meg rebuild  [-y | --yes]
-    meg run      [<app>] [<command> ...]
-    meg service  (redis|memcached) [<key>]
-    meg telnet   [<app>] (<port>)
-    meg test     [<app>] [--using=(django|nose|pytest)] [--rds]
-    meg tunnel   [<subdomain>] [<app>]
-    meg update   [-y | --yes] [--production | --staging]
-    meg watch    <app>
+    meg help        [<option>]
+    meg list        [<libs>...]
+    meg rebuild     [-y | --yes]
+    meg run         [<app>] [<command> ...]
+    meg service     (redis|memcached) [<key>]
+    meg telnet      [<app>] (<port>)
+    meg test        [<app>] [--using=(django|nose|pytest)] [--rds]
+    meg tunnel      [<subdomain>] [<app>]
+    meg update      [-y | --yes] [--production | --staging]
+    meg watch       <app>
+    meg npm list    <app>
+    meg npm update  <app>
 
 Options:
     --help          Mostra esta tela
@@ -30,6 +32,7 @@ Options:
     --production    Muda para a branch mais estável (ex. 'production')
     --staging       Altera as branchs para staging/beta durante o update
     <subdomain>     O subdominio para o tunel reverso, via ngrok
+    <app>           Aplicacao que sera alvo do comando
 
 """
 
@@ -44,7 +47,7 @@ from tools.deploy import run_deploy
 from tools.help import get_help
 from tools.li_tabulate import tabulate
 from tools.lists import show_list
-from tools.npm import run_watch
+from tools.npm import run_watch, run_list
 from tools.services import run_service
 from tools.tunnel import run_ngrok
 from tools.utils import bcolors, confirma, run_command
@@ -195,7 +198,7 @@ def main():
     #
     # LIST
     #
-    if arguments['list'] is True:
+    if arguments['list'] and not arguments['npm']:
         ret = show_list(libs=arguments['<libs>'])
         return ret
     #
@@ -225,6 +228,12 @@ def main():
     #
     if arguments['watch'] is True:
         ret = run_watch(application=arguments['<app>'])
+        return ret
+    #
+    # NPM LIST
+    #
+    if arguments['npm'] and arguments['list']:
+        ret = run_list(application=arguments['<app>'])
         return ret
 
 
