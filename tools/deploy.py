@@ -111,7 +111,8 @@ def run_deploy():
             command_list=[
                 {
                     'command': 'cd {} && ./node_modules/.bin/webpack'
-                    ' --config webpack.config.deploy.js'.format(wbpath)
+                    ' --config webpack.config.deploy.js'.format(wbpath),
+                    'run_stdout': False
                 }
             ]
         )

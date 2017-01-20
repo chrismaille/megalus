@@ -83,7 +83,7 @@ def main():
     if not arguments['help']:
         print(
             Fore.LIGHTBLACK_EX +
-            "Para ajuda digite: meg help" +
+            "\nPara ajuda digite: meg help\n" +
             Style.RESET_ALL)
 
     #

@@ -19,7 +19,7 @@ class bcolors:
 
 def print_title(text):
     line1 = "\n>> {}".format(text)
-    line2 = "{:*^{num}}\n".format('', num=len(line1)-1)
+    line2 = "{:*^{num}}\n".format('', num=len(line1) - 1)
     print(Fore.YELLOW + '\033[1m' + line1)
     print(line2 + Style.RESET_ALL)
 
@@ -48,7 +48,7 @@ def run_command(command_list, title=None, get_stdout=False):
         )
     try:
         for task in command_list:
-            if task['run_stdout']:
+            if task.get('run_stdout', None):
                 command = subprocess.check_output(
                     task['command'],
                     shell=True
