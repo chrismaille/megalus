@@ -214,7 +214,8 @@ def run_deploy():
     # Gerar imagem base do Docker
     dockerbasepath = os.path.join(
         config['project_path'],
-        settings.DOCKER_BASE_IMAGE_REPO
+        settings.DOCKER_BASE_IMAGE_REPO,
+        'baseimage'
     )
     ret = run_command(
         title="Gera Imagem Base do Docker",

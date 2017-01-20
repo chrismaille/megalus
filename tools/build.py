@@ -13,7 +13,8 @@ def run_build(application):
     if application == "base" or not application:
         path = os.path.join(
             data['project_path'],
-            settings.DOCKER_BASE_IMAGE_REPO
+            settings.DOCKER_BASE_IMAGE_REPO,
+            'baseimage'
         )
         ret = run_command(
             title="Gera Imagem Base do Docker",
