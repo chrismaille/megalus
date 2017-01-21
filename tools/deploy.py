@@ -205,7 +205,7 @@ def run_deploy():
     if branch.name in ['production', 'master']:
         message = Message(
             config,
-            branch,
+            branch.name,
             last_commit,
             folder_name,
             action="INICIADO")
@@ -311,7 +311,7 @@ def run_deploy():
     if branch.name in ['production', 'master']:
         message = Message(
             config,
-            branch,
+            branch.name,
             last_commit,
             folder_name,
             action="FINALIZADO",

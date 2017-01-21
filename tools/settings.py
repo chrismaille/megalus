@@ -144,9 +144,11 @@ GRAFANA_APP = 'megtools'
 CONFIG_DICT = OrderedDict.fromkeys(
     [
         "project_path",
-        "docker_compose_path"
+        "docker_compose_path",
+        "use_for_tests"
     ]
 )
+CONFIG_DICT['use_for_tests'] = 'unittest'
 
 if USE_AWS:
     CONFIG_DICT['aws_key'] = None

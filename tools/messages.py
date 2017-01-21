@@ -42,7 +42,7 @@ class Message():
         }
 
         title = "DEPLOY {}: {}/{}".format(
-            self.action, self.repo, self.branch.name)
+            self.action, self.repo, self.branch)
         text = self.commit
         tags = ["deploy"]
 
@@ -63,7 +63,7 @@ class Message():
         text = "DEPLOY {}: {}/{}\n{}".format(
             self.action,
             self.repo,
-            self.branch.name,
+            self.branch,
             self.commit
         )
 

@@ -18,18 +18,45 @@ HELP_COMMANDS = [{'command': 'config',
                   'long_desc': None},
                  {'command': 'deploy',
                   'options': 'meg deploy',
-                  'description': 'Use para fazer o deploy de um ambiente local na Amazon.\nÉ preciso rodar este comando na pasta-raiz de um dos repositorios clonados pelo comando `meg config`',
+                  'description': '''
+                  Use para fazer o deploy de um ambiente local na Amazon.
+                  É preciso rodar este comando na pasta-raiz de um dos repositorios
+                  clonados pelo comando `meg config`
+                  ''',
                   'examples': None,
                   'long_desc': None},
                  {'command': 'telnet',
                   'options': 'meg telnet <app> <port>',
-                  'description': 'Use para abrir a aplicação informada num TTY que faz um telnet dentro do Docker para o endereco 127.0.0.1 e a porta especificada.\nSe não informar a aplicação a ferramenta irá perguntar qual aplicação abrir, a partir dos containers em atividade.\nEquivale ao comando "docker exec -ti _container_ telnet 127.0.0.1 _porta_"',
+                  'description': '''
+                  Use para abrir a aplicação informada num TTY
+                  que faz um telnet dentro do Docker no endereco 127.0.0.1
+                  e a porta especificada.
+                  Se não informar a aplicação a ferramenta irá perguntar
+                  qual aplicação abrir, a partir dos containers em atividade.
+                  Equivale ao comando "docker exec -ti _container_ telnet 127.0.0.1 _porta_"
+                  ''',
                   'examples': 'meg telnet worker 6908',
                   'long_desc': None},
                  {'command': 'test',
                   'options': 'meg test [<app>] [--using=(django|nose|pytest)] [--rds]',
-                  'description': 'Use para rodar os testes unitários da aplicação.\nA ferramenta permite o uso das livrarias: nose (com coverage) e pytest. Para isto basta informar qual utilizar com a opção "--using".\nSe nenhuma livraria estiver instalada ou nenhuma for selecionada, será usado o Unittest padrão do Python.\nUtilize as opções abaixo para configurar os testes:\n* --using: Use uma das opções a seguir: nose, pytest, django\n* --rds: Use o banco de dados na Amazon (utilizado pelo ambiente de Staging) ao invés do banco de dados local, para rodar os testes',
-                  'examples': 'meg test painel (abre o Painel rodando unittest e banco de dados local)\nmeg test loja --using=django (abre o Site rodando django e banco de dados local)',
+                  'description': '''
+                  Use para rodar os testes unitários da aplicação.
+                  A ferramenta permite o uso das livrarias de teste:
+                  - Django (pelo comando manage.py teste)
+                  - Nose
+                  - Pytest
+                  Para isto basta informar qual utilizar com a opção "--using", em minúsculas.
+                  Se nenhuma livraria estiver instalada no container ou nenhuma for selecionada,
+                  será usado o Unittest padrão do Python.
+                  Utilize as opções abaixo para configurar os testes:
+                  * --using: Use uma das opções a seguir: nose, pytest, django
+                  * --rds: Use o banco de dados na Amazon (utilizado pelo ambiente de Staging)
+                           ao invés do banco de dados local, para rodar os testes
+                  ''',
+                  'examples': '''
+                  meg test painel (abre o Painel rodando unittest e banco de dados local)
+                  meg test loja --using=django (abre o Site rodando django e banco de dados local)
+                  ''',
                   'long_desc': None},
                  {'command': 'bash',
                   'options': 'meg bash <app>',

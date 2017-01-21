@@ -221,8 +221,9 @@ def run_test(application, using, rds):
         port = settings.LOCAL_PORT
 
     # Encontrar o programa
-    test_app = using if using else "unittest"
+    test_app = using if using else data['use_for_tests']
     if not using:
+        check_list = [test_app] + settings.TEST_PRIORITY
         ret_pip = run_command(
             get_stdout=True,
             command_list=[
@@ -232,7 +233,7 @@ def run_test(application, using, rds):
                         data['docker_compose_path'],
                         name),
                     'run_stdout': False}])
-        for test in settings.TEST_PRIORITY:
+        for test in check_list:
             if "{}==".format(test) in ret_pip:
                 test_app = test
                 break
