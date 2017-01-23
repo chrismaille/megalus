@@ -175,9 +175,9 @@ def make_stable_pr(release):
         message.send(alert_type="info", tags=tags)
         print(
             Fore.GREEN +
-            "Pull Request efetuado com sucesso." +
+            "\nPull Request efetuado com sucesso." +
             Style.RESET_ALL)
-        notify(msg=title)
+        notify(msg='Pull Request efetuado com sucesso.')
         return True
     else:
         msg = 'Ocorreu um erro ao tentar enviar o Pull Request'
