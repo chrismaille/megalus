@@ -15,6 +15,7 @@ class Message():
             text,
             repo,
             branch,
+            test=False,
             *args,
             **kwargs):
         self.config = config
