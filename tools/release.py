@@ -160,8 +160,7 @@ def make_pull_request(release):
 
     if resp.status_code == requests.codes.created:
         title = "Pull Request gerado para {}".format(folder_name)
-        text = "O usuário {} criou Pull "
-        "Request do {} para a release {}".format(
+        text = "O usuário {} criou Pull Request do {} para a release {}".format(
             data['vcs_username'], folder_name, new_version)
         tags = ['Pull Request']
 

@@ -113,10 +113,10 @@ class AWSManager():
     def check_deployment(self):
         finished = False
         result = 'pending'
-        total_minutes = 0
+        checks = 0
         first = True
         date_start = datetime.datetime.now()
-        while not finished and total_minutes < 11:
+        while not finished and checks < 10:
             check_api = False
             if first:
                 check_api = True
@@ -124,10 +124,10 @@ class AWSManager():
             else:
                 date_now = datetime.datetime.now()
                 elapsed_time = date_now - date_start
-                minutes = int(elapsed_time.total_seconds())
-                if minutes > total_minutes:
+                period = int(elapsed_time.total_seconds() / 60)
+                if period > checks:
                     check_api = True
-                    total_minutes = minutes
+                    checks = period
             if check_api:
                 try:
                     client = boto3.client('elasticbeanstalk')
