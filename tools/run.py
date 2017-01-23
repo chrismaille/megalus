@@ -13,7 +13,7 @@ Usage:
     meg npm list    <app>
     meg rebuild     [-y | --yes]
     meg release     [(major|minor|patch)]
-    meg release eb     
+    meg release eb
     meg run         [<app>] [<command> ...]
     meg service     (redis|memcached) [<key>]
     meg telnet      [<app>] (<port>)
@@ -36,7 +36,7 @@ Options:
     <app>           Aplicacao que sera alvo do comando
 
 """
-
+import sys
 from colorama import Fore, Style
 from docopt import docopt
 from tools import __version__
@@ -53,7 +53,7 @@ from tools.services import run_service
 from tools.tunnel import run_ngrok
 from tools.utils import bcolors, confirma, run_command
 from tools.version import show_version_warning
-from tools.release import make_pull_request
+from tools.release import make_pull_request, start_deploy
 
 
 def check_vpn():
@@ -239,7 +239,7 @@ def main():
         return ret
     #
     # RELEASE
-    # 
+    #
     if arguments['release'] and not arguments['eb']:
         if arguments['major']:
             release = 'major'
@@ -255,7 +255,9 @@ def main():
     # RELEASE EB
     #
     if arguments['release'] and arguments['eb']:
-        pass
+        ret = start_deploy()
+        return ret
+
 
 def start():
     print(
@@ -270,8 +272,10 @@ def start():
     retorno = main()
     if retorno:
         print('\n')
+        sys.exit(0)
     else:
         print("\nOperação finalizada.\n")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

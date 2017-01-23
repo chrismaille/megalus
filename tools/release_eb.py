@@ -1,11 +1,13 @@
-import os
-from time import strftime, sleep
 import boto3
+import os
 from botocore.exceptions import ClientError
+from time import strftime, sleep
 
 VERSION_LABEL = strftime("%Y%m%d%H%M%S")
-BUCKET_KEY = os.getenv('APPLICATION_NAME') + '/' + VERSION_LABEL + \
-    '-bitbucket_builds.zip'
+BUCKET_KEY = '{}/{}-bitbucket_builds.zip'.format(
+    os.getenv('APPLICATION_NAME', ''),
+    VERSION_LABEL
+)
 
 
 def upload_to_s3(artifact):
@@ -106,4 +108,3 @@ def main():
         return False
 
     return True
-
