@@ -109,7 +109,8 @@ def make_stable_pr(release):
 
     new_version = "{}.{}.{}".format(major, minor, patch)
     print(
-        "Versão para o PR: {}{}{}".format(
+        "Versão para o PR: {} -> {}{}{}".format(
+            last_version,
             Fore.YELLOW,
             new_version,
             Style.RESET_ALL))
@@ -164,15 +165,14 @@ def make_stable_pr(release):
         tags = ['Pull Request']
 
         # Envia Mensagem Datadog/Slack
-        if branch.name in ['production', 'master']:
-            message = Message(
-                config=data,
-                branch=branch.name,
-                title=title,
-                text=text,
-                repo=folder_name
-            )
-            message.send(alert_type="warning", tags=tags)
+        message = Message(
+            config=data,
+            branch=branch.name,
+            title=title,
+            text=text,
+            repo=folder_name
+        )
+        message.send(alert_type="info", tags=tags)
 
         return True
     else:
