@@ -7,7 +7,7 @@ from requests.auth import HTTPBasicAuth
 from tools import settings
 from tools.config import get_config_data
 from tools.deploy import run_deploy
-from tools.messages import Message
+from tools.messages import Message, notify
 from tools.utils import run_command, confirma, print_title
 
 
@@ -173,8 +173,14 @@ def make_stable_pr(release):
             repo=folder_name
         )
         message.send(alert_type="info", tags=tags)
-
+        print(
+            Fore.GREEN +
+            "Pull Request efetuado com sucesso." +
+            Style.RESET_ALL)
+        notify(msg=title)
         return True
     else:
-        print('Ocorreu um erro ao tentar enviar o Pull Request')
+        msg = 'Ocorreu um erro ao tentar enviar o Pull Request'
+        print(Fore.RED + msg + Style.RESET_ALL)
+        notify(msg=msg)
         return False
