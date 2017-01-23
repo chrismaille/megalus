@@ -9,7 +9,7 @@ from tools.config import get_config_data
 from tools.deploy import run_deploy
 from tools.messages import Message, notify
 from tools.utils import run_command, confirma, print_title
-from tools.release_eb import main
+from tools.release_eb import AWSManager
 
 
 def make_pull_request(release):
@@ -221,19 +221,28 @@ def start_deploy():
     )
     message.send(alert_type="warning", tags=tags)
 
-    ret = main()
+    status = AWSManager().deploy()
 
-    if ret:
+    if status == 'finished':
         title = "SUCESSO: Deploy finalizado para".format(app_name)
         text = "Deploy finalizado com SUCESSO para {}".format(
             app_name)
         tags = ['Deploy']
         alert_type = 'info'
-    else:
+    elif status == 'failure':
         title = "ERRO: Deploy para".format(app_name)
         text = "Deploy com ERRO para {}".format(
             app_name)
         tags = ['Deploy']
         alert_type = 'warning'
+    else:
+        title = "EM ANDAMENTO: Deploy para".format(app_name)
+        text = "Deploy em andamento para {}. "
+        "Por favor acompanhe pelo console do AWS.".format(
+            app_name)
+        tags = ['Deploy']
+        alert_type = 'warning'
 
     message.send(alert_type=alert_type, tags=tags)
+
+    return True if status != "failure" else False

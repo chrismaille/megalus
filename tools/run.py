@@ -274,7 +274,7 @@ def start():
         print('\n')
         sys.exit(0)
     else:
-        print("\nOperação finalizada.\n")
+        print("\nOperacao finalizada.\n")
         sys.exit(1)
 
 
