@@ -9,9 +9,10 @@ from tools.config import get_config_data
 from tools.deploy import run_deploy
 from tools.messages import Message, notify
 from tools.utils import run_command, confirma, print_title
+from tools.release_eb import main
 
 
-def make_stable_pr(release):
+def make_pull_request(release):
 
     data = get_config_data()
     if not data:
@@ -19,7 +20,7 @@ def make_stable_pr(release):
 
     # Para criar o pull request para stable
     # é preciso verificar antes:
-    print_title("CI: Gerar Pull Request")
+    print_title("Release: Gerar/Atualizar Pull Request")
     # 1. A branch atual é production
     current_dir = os.getcwd()
     folder_name = os.path.split(current_dir)[-1]
@@ -184,3 +185,55 @@ def make_stable_pr(release):
         print(Fore.RED + msg + Style.RESET_ALL)
         notify(msg=msg)
         return False
+
+
+def start_deploy():
+    if not os.environ.get('BITBUCKET_BRANCH'):
+        print(
+            Fore.RED +
+            "ERRO: Este comando não pode ser executado localmente." +
+            Style.RESET_ALL)
+        return False
+
+    print_title("Release: Iniciar Deploy")
+    app_name = os.environ.get('APPLICATION_NAME')
+    title = "Deploy Iniciado para".format(app_name)
+    text = "Deploy Iniciado para {}".format(
+        app_name)
+    tags = ['Deploy']
+
+    data = {
+        'slack_url': os.environ.get('SLACK_URL'),
+        'slack_channel': 'deploy',
+        'slack_icon': 'ghost',
+        'slack_user': 'bitbucket',
+        'datadog_api_key': os.environ.get('DATADOG_API_KEY'),
+        'datadog_app_key': os.environ.get('DATADOG_APP_KEY')
+    }
+
+    # Envia Mensagem Datadog/Slack
+    message = Message(
+        config=data,
+        branch="master",
+        title=title,
+        text=text,
+        repo=os.environ.get('APP_NAME')
+    )
+    message.send(alert_type="warning", tags=tags)
+
+    ret = main()
+
+    if ret:
+        title = "SUCESSO: Deploy finalizado para".format(app_name)
+        text = "Deploy finalizado com SUCESSO para {}".format(
+            app_name)
+        tags = ['Deploy']
+        alert_type = 'info'
+    else:
+        title = "ERRO: Deploy para".format(app_name)
+        text = "Deploy com ERRO para {}".format(
+            app_name)
+        tags = ['Deploy']
+        alert_type = 'warning'
+
+    message.send(alert_type=alert_type, tags=tags)
