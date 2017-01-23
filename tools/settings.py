@@ -96,7 +96,9 @@ DOCKERFILE_DEVELOPMENT = "Dockerfile_dev"
 #######################
 VCS_NAME = "Bitbucket"
 VCS_BASE_URL = "https://bitbucket.org/maisimovel/"
-
+VCS_BASE_API_URL = 'https://api.bitbucket.org/'
+REPOSITORY_API_URL = '2.0/repositories/maisimovel/{repo}/commit/{commit}/statuses'
+PULL_REQUEST_API_URL = '2.0/repositories/maisimovel/{repo}/pullrequests/'
 
 # CONFIGURACAO PARA AMAZON WEB SERVICES
 #######################################
@@ -125,12 +127,12 @@ USE_MEMCACHED = True
 
 # CONFIGURACAO PARA SLACK
 #########################
-USE_SLACK = False
+USE_SLACK = True
 TEST_CHANNEL = "#teste_automacao"
 
 # CONFIGURACAO PARA DATADOG
 ###########################
-USE_DATADOG = False
+USE_DATADOG = True
 
 # CONFIGURACAO PARA GRAFANA
 ###########################
@@ -145,7 +147,9 @@ CONFIG_DICT = OrderedDict.fromkeys(
     [
         "project_path",
         "docker_compose_path",
-        "use_for_tests"
+        "use_for_tests",
+        "vcs_username",
+        'vcs_password'
     ]
 )
 CONFIG_DICT['use_for_tests'] = 'unittest'

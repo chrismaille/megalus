@@ -104,7 +104,26 @@ HELP_COMMANDS = [{'command': 'config',
                   'options': 'meg watch <aplicacao>',
                   'description': 'Este comando indica ao Webpack para entrar em modo "watch".\nO webopack irá gerar os arquivos estáticos (html, css, png, etc...) para serem lidos pelo Django.\nCaso os arquivos sejam alterados o webpack atualizará automaticamente o arquivo comprimido.',
                   'examples': 'meg watch painel (comprime os arquivos estáticos do Painel)',
-                  'long_desc': None}]
+                  'long_desc': None},
+                  {'command': 'ci',
+                  'options': 'meg ci (major|minor|patch)',
+                  'description': '''
+                  Este comando inicia o Continuous Integration (CI).
+                  O comando irá gerar um Pull Request para a branch 'master'
+                  da aplicação onde o comando foi chamado.
+                  É preciso estar na pasta raiz da aplicação.
+                  A branch da aplicação deve ser a branch 'release'
+                  O comando irá falhar se existirem modificações no git não commitadas.
+                  O comando irá falhar se o último teste no Pipeline for falho.
+                  O número da versão irá aumentar de acordo com a opção selecionada:
+                  - major: x+1.0.0
+                  - minor: 0.x+1.0
+                  - patch: 0.0.x+1
+                  Se nenhuma opção for selecionada, será usado a última tag criada.
+                  ''',
+                  'examples': 'meg ci patch (cria Pull Request e aumenta a versão x.x.Y+1)',
+                  'long_desc': None}
+]
 
 
 def get_help(app=None):

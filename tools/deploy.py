@@ -11,15 +11,14 @@ from tools.messages import Message, notify
 from tools.utils import bcolors, run_command, confirma, print_title
 
 
-def run_deploy():
+def run_deploy(only_pr=False):
     config = get_config_data()
 
     if not config:
         return False
 
-    # Pega a pasta atual e verifica
-    # se é uma pasta valida para deploy
     current_dir = os.getcwd()
+    folder_name = os.path.split(current_dir)[-1]
     try:
         repo = Repo(current_dir)
         branch = repo.active_branch
@@ -29,77 +28,91 @@ def run_deploy():
         print("do repositório a ser enviado.")
         print("Comando abortado." + Style.RESET_ALL)
         return False
-    app_list = [
-        app.lower()
-        for app, br in settings.APPLICATIONS
-    ]
-    folder_name = os.path.split(current_dir)[-1]
-    if folder_name.lower() not in app_list:
-        print(Fore.RED + "Repositório não reconhecido." + Style.RESET_ALL)
-        return False
-
-    # Confirma operação
     branch_name = branch.name
-    last_commit = repo.head.commit.message
-    text_repo = "{}{}{}{}".format(
-        bcolors.BOLD,
-        bcolors.OKBLUE,
-        folder_name,
-        bcolors.ENDC
-    )
-    print("Repositório: {}".format(
-        text_repo if platform.system() != "Windows" else folder_name.upper()
-    ))
-    text_branch = "{}{}{}{}".format(
-        bcolors.BOLD,
-        bcolors.FAIL if branch_name in [
-            'production',
-            'master'] else bcolors.WARNING,
-        branch_name.upper(),
-        bcolors.ENDC)
-    print("Branch Atual: {}".format(
-        text_branch if platform.system() != "Windows" else branch_name.upper()
-    ))
-    print("Último Commit:\n{}".format("{}{}{}".format(
-        bcolors.WARNING,
-        last_commit,
-        bcolors.ENDC
-    )))
 
-    # Roda EB Status
-    eb_status = False
-    ret = run_command(
-        get_stdout=True,
-        command_list=[
-            {
-                'command': "eb status",
-                'run_stdout': False
-            }
+    if not only_pr:
+        if branch.name == 'master':
+            print("ERRO: A branch 'master' não "
+                  "pode ser atualizada diretamente")
+            print("Utilize o comando 'meg ci'. "
+                  "Consulte a ajuda, para mais detalhes.")
+            return False
+
+        # Pega a pasta atual e verifica
+        # se é uma pasta valida para deploy
+        app_list = [
+            app.lower()
+            for app, br in settings.APPLICATIONS
         ]
-    )
-    if ret:
-        m = re.search("Status: (\w+)", ret)
-        if m:
-            eb_status_name = m.group(1)
-            if eb_status_name == "Ready":
-                eb_status = True
-            print ("\nO Status do ElasticBeanstalk é: {}".format(
-                "{}{}{}{}".format(
-                    bcolors.BOLD,
-                    bcolors.OKGREEN if eb_status else bcolors.FAIL,
-                    eb_status_name.upper(),
-                    bcolors.ENDC
-                )
-            ))
-        else:
-            print (ret)
 
-    if not eb_status:
-        return False
+        if folder_name.lower() not in app_list:
+            print(Fore.RED + "Repositório não reconhecido." + Style.RESET_ALL)
+            return False
 
-    resposta = confirma("Confirma o Deploy")
-    if not resposta:
-        return False
+        # Confirma operação
+        branch_name = branch.name
+        last_commit = repo.head.commit.message
+        text_repo = "{}{}{}{}".format(
+            bcolors.BOLD,
+            bcolors.OKBLUE,
+            folder_name,
+            bcolors.ENDC
+        )
+        print(
+            "Repositório: {}".format(
+                text_repo if platform.system() != "Windows"
+                else folder_name.upper()))
+        text_branch = "{}{}{}{}".format(
+            bcolors.BOLD,
+            bcolors.FAIL if branch_name in [
+                'production',
+                'master'] else bcolors.WARNING,
+            branch_name.upper(),
+            bcolors.ENDC)
+        print(
+            "Branch Atual: {}".format(
+                text_branch if platform.system() != "Windows"
+                else branch_name.upper()))
+        print("Último Commit:\n{}".format("{}{}{}".format(
+            bcolors.WARNING,
+            last_commit,
+            bcolors.ENDC
+        )))
+
+        # Roda EB Status
+        eb_status = False
+        ret = run_command(
+            get_stdout=True,
+            command_list=[
+                {
+                    'command': "eb status",
+                    'run_stdout': False
+                }
+            ]
+        )
+        if ret:
+            m = re.search("Status: (\w+)", ret)
+            if m:
+                eb_status_name = m.group(1)
+                if eb_status_name == "Ready":
+                    eb_status = True
+                print ("\nO Status do ElasticBeanstalk é: {}".format(
+                    "{}{}{}{}".format(
+                        bcolors.BOLD,
+                        bcolors.OKGREEN if eb_status else bcolors.FAIL,
+                        eb_status_name.upper(),
+                        bcolors.ENDC
+                    )
+                ))
+            else:
+                print (ret)
+
+        if not eb_status:
+            return False
+
+        resposta = confirma("Confirma o Deploy")
+        if not resposta:
+            return False
 
     # Se existir a pasta frontend
     # rodar o build do webpack
@@ -155,7 +168,7 @@ def run_deploy():
             '.amazonaws.com/{app}:{branch}'.format(
                 account=config['aws_account'],
                 app=app_name,
-                branch=branch_name,
+                branch=branch_name if not only_pr else "master",
                 region=config['aws_region']),
             'Update': 'true'},
         'Ports': [
@@ -173,6 +186,10 @@ def run_deploy():
 
     with open("./Dockerrun.aws.json", 'w') as file:
         file.write(json.dumps(json_model, indent=2))
+
+    if only_pr:
+        last_commit = "Pull Request para versão {}".format(
+            repo.tags[-1].name)
 
     ret = run_command(
         title="Adiciona Dockerrun",
@@ -201,15 +218,22 @@ def run_deploy():
     if not ret:
         return False
 
-    # Envia Mensagem Datadog/Slack
-    if branch.name in ['production', 'master']:
-        message = Message(
-            config,
-            branch.name,
-            last_commit,
-            folder_name,
-            action="INICIADO")
-        message.send(alert_type="warning")
+    if not only_pr:
+        title = "Deploy Iniciado para ".format(folder_name)
+        text = "O usuário {} iniciou Deploy do {} para o commit {}".format(
+            config['vcs_username'], folder_name, last_commit)
+        tags = ['Deploy']
+
+        # Envia Mensagem Datadog/Slack
+        if branch.name in ['production', 'master']:
+            message = Message(
+                config=config,
+                branch=branch.name,
+                title=title,
+                text=text,
+                repo=folder_name
+            )
+            message.send(alert_type="warning", tags=tags)
 
     # Gerar imagem base do Docker
     dockerbasepath = os.path.join(
@@ -264,7 +288,7 @@ def run_deploy():
                 'command': "docker build -f {name} -t {app}:{branch} .".format(
                     name=settings.DOCKERFILE_DEPLOY,
                     app=app_name,
-                    branch=branch_name
+                    branch=branch_name if not only_pr else "master"
                 ),
                 'run_stdout': False
             },
@@ -275,7 +299,7 @@ def run_deploy():
                     account=config['aws_account'],
                     region=config['aws_region'],
                     app=app_name,
-                    branch=branch_name
+                    branch=branch_name if not only_pr else "master"
                 ),
                 'run_stdout': False
             },
@@ -285,7 +309,7 @@ def run_deploy():
                     account=config['aws_account'],
                     region=config['aws_region'],
                     app=app_name,
-                    branch=branch_name
+                    branch=branch_name if not only_pr else "master"
                 ),
                 'run_stdout': False
             },
@@ -293,6 +317,9 @@ def run_deploy():
     )
     if not ret:
         return False
+
+    if only_pr:
+        return True
 
     # Rodar EB Deploy
     ret = run_command(
@@ -307,16 +334,20 @@ def run_deploy():
     if not ret:
         return False
 
-    # Mensagem final
+    title = "Deploy Finalizado para ".format(folder_name)
+    text = "O Deploy para {} foi finalizado.".format(folder_name)
+    tags = ['Deploy']
+
+    # Envia Mensagem Datadog/Slack
     if branch.name in ['production', 'master']:
         message = Message(
-            config,
-            branch.name,
-            last_commit,
-            folder_name,
-            action="FINALIZADO",
-            alert_type="success")
-        message.send(alert_type="success")
+            config=config,
+            branch=branch.name,
+            title=title,
+            text=text,
+            repo=folder_name
+        )
+        message.send(alert_type="success", tags=tags)
 
     notify(msg="O Deploy do {} foi finalizado".format(folder_name))
     return True

@@ -5,11 +5,13 @@ Para mais detalhes digite 'meg help'
 Usage:
     meg bash        [<app>]
     meg build       [<app>] [--no-cache]
+    meg ci          [(major|minor|patch)]  
     meg config      [--clone-only]
     meg debug       [<app>]
     meg deploy
     meg help        [<option>]
     meg list        [<libs>...]
+    meg npm list    <app>
     meg rebuild     [-y | --yes]
     meg run         [<app>] [<command> ...]
     meg service     (redis|memcached) [<key>]
@@ -18,7 +20,6 @@ Usage:
     meg tunnel      [<subdomain>] [<app>]
     meg update      [-y | --yes] [--production | --staging]
     meg watch       <app>
-    meg npm list    <app>
 
 Options:
     --help          Mostra esta tela
@@ -51,6 +52,7 @@ from tools.services import run_service
 from tools.tunnel import run_ngrok
 from tools.utils import bcolors, confirma, run_command
 from tools.version import show_version_warning
+from tools.stable import make_stable_pr
 
 
 def check_vpn():
@@ -233,6 +235,20 @@ def main():
     #
     if arguments['npm'] and arguments['list']:
         ret = run_list(application=arguments['<app>'])
+        return ret
+    #
+    # NPM PR
+    # 
+    if arguments['ci']:
+        if arguments['major']:
+            release = 'major'
+        elif arguments['minor']:
+            release = 'minor'
+        elif arguments['patch']:
+            release = 'patch'
+        else:
+            release = "same"
+        ret = make_stable_pr(release=release)
         return ret
 
 

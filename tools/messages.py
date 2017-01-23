@@ -11,22 +11,21 @@ class Message():
     def __init__(
             self,
             config,
-            branch,
-            commit,
+            title,
+            text,
             repo,
-            action,
-            test=False,
+            branch,
             *args,
             **kwargs):
         self.config = config
-        self.branch = branch
-        self.commit = commit
-        self.repo = repo
+        self.title = title
+        self.text = text
         self.test = test
-        self.action = action
+        self.repo = repo
+        self.branch = branch
         print_title("Enviando mensagens")
 
-    def send(self, alert_type="info"):
+    def send(self, alert_type="info", tags=['deploy']):
         if settings.USE_DATADOG:
             self.send_datadog(alert_type)
         if settings.USE_SLACK:
@@ -34,23 +33,18 @@ class Message():
         if settings.USE_GRAFANA:
             self.send_grafana()
 
-    def send_datadog(self, alert_type):
+    def send_datadog(self, alert_type, tags):
 
         options = {
             'api_key': self.config['datadog_api_key'],
             'app_key': self.config['datadog_app_key']
         }
 
-        title = "DEPLOY {}: {}/{}".format(
-            self.action, self.repo, self.branch)
-        text = self.commit
-        tags = ["deploy"]
-
         if not self.test:
             datadog.initialize(**options)
             datadog.api.Event.create(
-                title=title,
-                text=text,
+                title=self.title,
+                text=self.text,
                 tags=tags,
                 alert_type=alert_type if not self.test else "info"
             )
@@ -60,20 +54,13 @@ class Message():
 
     def send_slack(self):
 
-        text = "DEPLOY {}: {}/{}\n{}".format(
-            self.action,
-            self.repo,
-            self.branch,
-            self.commit
-        )
-
         if not self.test:
             slack = slackweb.Slack(
                 url=self.config['slack_url']
             )
 
             slack.notify(
-                text=text,
+                text=self.text,
                 channel="#{}".format(
                     self.config['slack_channel'])
                 if not self.test else settings.TEST_CHANNEL,

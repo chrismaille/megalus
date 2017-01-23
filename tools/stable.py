@@ -1,17 +1,17 @@
 import json
 import os
-import platform
-import re
+import requests
 from colorama import Fore, Style
 from git import Repo
+from requests.auth import HTTPBasicAuth
 from tools import settings
-from tools.compress import minifyCSS, minifyJS
 from tools.config import get_config_data
-from tools.messages import Message, notify
-from tools.utils import bcolors, run_command, confirma, print_title
+from tools.deploy import run_deploy
+from tools.messages import Message
+from tools.utils import run_command, confirma, print_title
 
 
-def make_stable_pr():
+def make_stable_pr(release):
 
     data = get_config_data()
     if not data:
@@ -19,9 +19,10 @@ def make_stable_pr():
 
     # Para criar o pull request para stable
     # é preciso verificar antes:
-
+    print_title("CI: Gerar Pull Request")
     # 1. A branch atual é production
     current_dir = os.getcwd()
+    folder_name = os.path.split(current_dir)[-1]
     try:
         repo = Repo(current_dir)
         branch = repo.active_branch
@@ -31,10 +32,10 @@ def make_stable_pr():
         print("do repositório a ser enviado.")
         print("Comando abortado." + Style.RESET_ALL)
         return False
-    if branch.name != "production":
+    if "release" not in branch.name:
         print(
             Fore.RED +
-            "Erro: a branch deve ser 'production'" +
+            "Erro: a branch deve ser 'release'" +
             Style.RESET_ALL)
         return False
 
@@ -54,15 +55,126 @@ def make_stable_pr():
         print(Fore.RED + "Erro - a branch está modificada:" + Style.RESET_ALL)
         print(status_ret)
         return False
-    
-    # 3. A ultima build da branch atual está OK
-    # Usar endpoint: https://api.bitbucket.org/2.0/repositories/maisimovel/maispainel/commit/3b5ceda588c9e910e04f898a1991357720f5fda9/statuses
-    # Buscar Chave: data['values'][0]['state'] == 'SUCCESSFUL'
-    
-    # 4. Confirma a operação
 
-    # 1. Alterar o arquivo Dockerrun.aws.json
-    # 2. Criar a imagem stable da branch
-    # 3. Minificar/Sincronizar arquivos
-    # 3. Commitar e subir o git
-    # 4. Gerar o pull-request
+    # 3. A ultima build da branch atual está OK
+    api_repo_url = settings.VCS_BASE_API_URL + \
+        settings.REPOSITORY_API_URL.format(
+            repo=os.path.split(current_dir)[-1],
+            commit=repo.commit().hexsha
+        )
+    try:
+        ret_vcs = requests.get(
+            url=api_repo_url,
+            auth=HTTPBasicAuth(data['vcs_username'], data['vcs_password']),
+            timeout=1
+        )
+        if ret_vcs.status_code == requests.codes.ok:
+            commit_data = ret_vcs.json()
+            build_status = commit_data['values'][0]['state']
+            if build_status != 'SUCCESSFUL':
+                print(Fore.RED + 'Erro: O status da última build é {}'.format(
+                    build_status) + Style.RESET_ALL)
+                return False
+            else:
+                print('Última build {}OK{}'.format(
+                    Fore.GREEN, Style.RESET_ALL))
+        else:
+            raise ValueError()
+    except:
+        print(
+            Fore.RED +
+            "Não é possível determinar o status da última build." +
+            Style.RESET_ALL)
+        return False
+
+    # 4. Gera a tag:
+    try:
+        last_version = repo.tags[-1].name.split(".")
+    except:
+        last_version = '0.0.0'
+
+    major = int(last_version[0])
+    minor = int(last_version[1])
+    patch = int(last_version[2])
+
+    if release == "major":
+        major += 1
+        minor = 0
+        patch = 0
+    elif release == "minor":
+        minor += 1
+        patch = 0
+    elif release == "patch":
+        patch += 1
+
+    new_version = "{}.{}.{}".format(major, minor, patch)
+    print(
+        "Versão para o PR: {}{}{}".format(
+            Fore.YELLOW,
+            new_version,
+            Style.RESET_ALL))
+
+    # 4. Confirma a operação
+    resp = confirma('Deseja continuar')
+
+    if release != "same":
+        run_command(
+            command_list=[
+                {
+                    'command': 'git tag {}'.format(new_version),
+                    'run_stdout': False
+                }
+            ]
+        )
+
+    ret = run_deploy(only_pr=True)
+
+    # 5. Gerar o pull-request
+    if ret:
+        pr_url = settings.VCS_BASE_API_URL + \
+            settings.PULL_REQUEST_API_URL.format(
+                repo=os.path.split(current_dir)[-1]
+            )
+        post_data = {
+            "destination": {
+                "branch": {
+                    "name": "master"
+                }
+            },
+            "source": {
+                "branch": {
+                    "name": branch.name
+                }
+            },
+            "title": "Pull Request para a versão {}".format(new_version)
+        }
+
+        resp = requests.post(
+            url=pr_url,
+            headers={"Content-Type": "application/json"},
+            auth=HTTPBasicAuth(data['vcs_username'], data['vcs_password']),
+            data=json.dumps(post_data)
+        )
+
+    if resp.status_code == requests.codes.created:
+        title = "Pull Request gerado para".format(folder_name)
+        text = "O usuário {} criou Pull "
+        "Request {} do {} para a release {}".format(
+            data['vcs_username'], folder_name, new_version)
+        tags = ['Pull Request']
+
+        # Envia Mensagem Datadog/Slack
+        if branch.name in ['production', 'master']:
+            message = Message(
+                config=data,
+                branch=branch.name,
+                title=title,
+                text=text,
+                repo=folder_name
+            )
+            message.send(alert_type="warning", tags=tags)
+
+        return True
+    else:
+        print('Ocorreu um erro ao tentar enviar o Pull Request')
+        return False
