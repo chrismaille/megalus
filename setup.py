@@ -38,7 +38,8 @@ install_requires = [
     'requests<=2.9.1',
     'slackweb',
     'unidecode',
-    'colorama'
+    'colorama',
+    'boto3'
 ]
 
 
