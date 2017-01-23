@@ -28,7 +28,7 @@ class Message():
 
     def send(self, alert_type="info", tags=['deploy']):
         if settings.USE_DATADOG:
-            self.send_datadog(alert_type)
+            self.send_datadog(alert_type, tags=tags)
         if settings.USE_SLACK:
             self.send_slack()
         if settings.USE_GRAFANA:

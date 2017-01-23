@@ -2,4 +2,4 @@ from colorama import init
 
 init()
 
-__version__ = "3.1.3"
+__version__ = "3.1.4"
