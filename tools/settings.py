@@ -15,7 +15,7 @@ ENV_NAME = "MEGALUS_PATH"
 STAGE_DB = ""  # ex.: nome.ciksobkqlidb.us-east-1.rds.amazonaws.com
 STAGE_PORT = 5432
 
-LOCAL_DB = "meg_postgres_host"
+LOCAL_DB = "services.postgres.local"
 LOCAL_PORT = 5432
 
 PYPI_NAME = "meg-tools"
