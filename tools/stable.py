@@ -91,7 +91,7 @@ def make_stable_pr(release):
     try:
         last_version = repo.tags[-1].name.split(".")
     except:
-        last_version = '0.0.0'
+        last_version = [0, 0, 0]
 
     major = int(last_version[0])
     minor = int(last_version[1])
@@ -110,7 +110,7 @@ def make_stable_pr(release):
     new_version = "{}.{}.{}".format(major, minor, patch)
     print(
         "Versão para o PR: {} -> {}{}{}".format(
-            last_version,
+            '.'.join(str(e) for e in last_version),
             Fore.YELLOW,
             new_version,
             Style.RESET_ALL))
