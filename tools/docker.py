@@ -3,7 +3,7 @@ from colorama import Fore, Style
 from tools import settings
 from tools.config import get_config_data, run_update
 from tools.messages import notify
-from tools.utils import run_command, get_app, confirma
+from tools.utils import run_command, get_app, confirma, print_title
 
 
 def run_runapp(application, action, opt=None, arg=None):
@@ -195,7 +195,6 @@ def run_test(application, using, rds):
         return False
 
     os.chdir(data['project_path'])
-    os.system('cls' if os.name == 'nt' else 'clear')
     # Parar o container
     print(("Rodar Testes - {}".format(name)))
     print("Reiniciando container...")
@@ -238,6 +237,11 @@ def run_test(application, using, rds):
                 test_app = test
                 break
 
+    # Checa se o coverage está instalado
+    coverage_found = True
+    if 'coverage' not in ret_pip:
+        coverage_found = False
+
     # Rodar novo container
     # Para Unittest, Django, Pytest e Nose rodar via Docker-Compose
     new_container_id = run_command(
@@ -253,7 +257,7 @@ def run_test(application, using, rds):
                 'run_stdout': False},
         ])
 
-    if new_container_id:
+    if new_container_id and coverage_found:
 
         new_container_id = new_container_id.replace("\n", "")
 
@@ -268,32 +272,48 @@ def run_test(application, using, rds):
                 }
             ]
         )
-        print(Fore.LIGHTYELLOW_EX + "************************************")
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print(Fore.LIGHTYELLOW_EX + "*****************************************")
         print(("Rodando testes com: {}".format(test_app.upper())))
         print(("Usando banco de dados: {}".format(
             database_path.replace("\n", "").split("=")[1])
         ))
         print(("Usando a Porta: {}".format(port)))
-        print("************************************" + Style.RESET_ALL)
+        print("*****************************************\n" + Style.RESET_ALL)
 
         if test_app == "django":
-            command = "python /opt/app/manage.py test"
+            command = "coverage run --source='.' manage.py test"
         elif test_app == "nose":
             command = "nosetests --with-coverage --cover-package=app"
         elif test_app == "pytest":
-            command = "pytest"
+            command = "coverage run pytest"
         else:
-            command = "python -m unittest discover -v -s /opt/app"
+            command = "coverage run -m unittest discover -v -s /opt/app"
 
         os.system(
             'docker exec -ti {} {}'.format(
                 new_container_id, command
             )
         )
+        # Coverage
+        print_title("Coverage Reports")
+        os.system(
+            "docker exec -ti {} coverage report --skip-covered".format(new_container_id)
+        )
+        print_title("Coverage Result")
+        os.system(
+            "docker exec -ti {} ./config/check_cover.sh".format(new_container_id)
+        )
+    elif not coverage_found:
+        print(
+            Fore.RED +
+            "Erro: O coverage deve estar instalado" +
+            Style.RESET_ALL)
     else:
-        print("ERRO: Nenhum container encontrado")
+        print(Fore.RED + "ERRO: Nenhum container encontrado" +
+              Style.RESET_ALL)
 
-    print("Reiniciando container...")
+    print("\n------------\nReiniciando container...")
     os.system("docker stop {}".format(new_container_id))
     os.system(
         "cd {} && docker-compose "
