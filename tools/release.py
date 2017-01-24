@@ -245,6 +245,13 @@ def start_deploy():
         tags = ['Deploy']
         alert_type = 'warning'
 
+    message = Message(
+        config=data,
+        branch="master",
+        title=title,
+        text=text,
+        repo=os.environ.get('APP_NAME')
+    )
     message.send(alert_type=alert_type, tags=tags)
 
     return True if status != "failure" else False

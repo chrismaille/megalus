@@ -4,6 +4,7 @@ import datetime
 from botocore.exceptions import ClientError
 from git import Repo
 from time import strftime, sleep
+from tools.utils import print_title
 
 
 class AWSManager():
@@ -116,6 +117,7 @@ class AWSManager():
         checks = 0
         first = True
         date_start = datetime.datetime.now()
+        print_title("Checking Deployment")
         while not finished and checks < 10:
             check_api = False
             if first:
@@ -135,12 +137,16 @@ class AWSManager():
                         EnvironmentName=os.getenv('APPLICATION_ENVIRONMENT'),
                         AttributeNames=['Status', 'Causes']
                     )
-                    print(response)
+                    print("Check n. {}: Status: {} Reason: {}".format(
+                        period + 1, response['Status'], response["Causes"][0]
+                    ))
                     if response['Status'] == "Ready":
                         finished = True
                         result = 'finished'
                 except ClientError as err:
-                    print("Failed to check environment deployment.\n" + str(err))
+                    print(
+                        "Failed to check environment deployment.\n" +
+                        str(err))
                     return 'pending'
 
         return result
