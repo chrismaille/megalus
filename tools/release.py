@@ -119,6 +119,9 @@ def make_pull_request(release):
     # 4. Confirma a operação
     resp = confirma('Deseja continuar')
 
+    if not resp:
+        return False
+
     if release != "same":
         run_command(
             command_list=[
