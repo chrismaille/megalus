@@ -20,7 +20,7 @@ Usage:
     meg test        [<app>] [--using=(django|nose|pytest)] [--rds]
     meg tunnel      [<subdomain>] [<app>]
     meg update      [-y | --yes] [--production | --staging]
-    meg watch       <app>
+    meg watch       [<app>] [--dev]
 
 Options:
     --help          Mostra esta tela
@@ -229,7 +229,7 @@ def main():
     # WATCH
     #
     if arguments['watch'] is True:
-        ret = run_watch(application=arguments['<app>'])
+        ret = run_watch(application=arguments['<app>'], dev=arguments['--dev'])
         return ret
     #
     # NPM LIST

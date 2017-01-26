@@ -6,7 +6,7 @@ from tools.config import get_config_data
 from tools.utils import get_app, get_compose_data, run_command
 
 
-def run_watch(application):
+def run_watch(application, dev):
     data = get_config_data()
     if not data:
         return False
@@ -34,6 +34,12 @@ def run_watch(application):
         data['project_path'],
         app_folder,
         'frontend'
+    )
+    if dev:
+        os.system(
+        'cd {}/ && ./node_modules/.bin/webpack --config '
+        'webpack.config.js\n'.format(
+            watch_path)
     )
 
     os.system(
