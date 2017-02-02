@@ -17,7 +17,7 @@ Usage:
     meg run         [<app>] [<command> ...]
     meg service     (redis|memcached) [<key>]
     meg telnet      [<app>] (<port>)
-    meg test        [<app>] [--using=(django|nose|pytest)] [--rds]
+    meg test        [<app>] [--using=(django|nose|pytest)] [--rds] [-v]
     meg tunnel      [<subdomain>] [<app>]
     meg update      [-y | --yes] [--production | --staging]
     meg watch       [<app>] [--dev]
@@ -34,6 +34,7 @@ Options:
     --staging       Altera as branchs para staging/beta durante o update
     <subdomain>     O subdominio para o tunel reverso, via ngrok
     <app>           Aplicacao que sera alvo do comando
+    -v              Verbose
 
 """
 import sys
@@ -155,7 +156,8 @@ def main():
         ret = docker.run_test(
             application=arguments['<app>'],
             using=arguments['--using'],
-            rds=arguments['--rds']
+            rds=arguments['--rds'],
+            verbose=arguments['-v']
         )
         return ret
     #

@@ -39,7 +39,9 @@ install_requires = [
     'slackweb',
     'unidecode',
     'colorama',
-    'boto3'
+    'boto3',
+    'pydocstyle',
+    'pycodestyle'
 ]
 
 

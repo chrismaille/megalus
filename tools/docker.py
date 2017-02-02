@@ -180,7 +180,7 @@ def run_bash(application):
     return False
 
 
-def run_test(application, using, rds):
+def run_test(application, using, rds, verbose):
     data = get_config_data()
     if not data:
         return False
@@ -238,9 +238,14 @@ def run_test(application, using, rds):
                 break
 
     # Checa se o coverage está instalado
-    coverage_found = True
+    dependencies_found = True
     if 'coverage' not in ret_pip:
-        coverage_found = False
+        dependencies_found = False
+    if 'pydocstyle' not in ret_pip:
+        dependencies_found = False
+    if 'pycodestyle' not in ret_pip:
+        dependencies_found = False
+
 
     # Rodar novo container
     # Para Unittest, Django, Pytest e Nose rodar via Docker-Compose
@@ -257,7 +262,7 @@ def run_test(application, using, rds):
                 'run_stdout': False},
         ])
 
-    if new_container_id and coverage_found:
+    if new_container_id and dependencies_found:
 
         new_container_id = new_container_id.replace("\n", "")
 
@@ -273,16 +278,19 @@ def run_test(application, using, rds):
             ]
         )
         os.system('cls' if os.name == 'nt' else 'clear')
-        print(Fore.LIGHTYELLOW_EX + "*****************************************")
-        print(("Rodando testes com: {}".format(test_app.upper())))
-        print(("Usando banco de dados: {}".format(
-            database_path.replace("\n", "").split("=")[1])
-        ))
-        print(("Usando a Porta: {}".format(port)))
-        print("*****************************************\n" + Style.RESET_ALL)
+        print(Fore.LIGHTYELLOW_EX + "**********************************************")
+        print("Rodando testes com: {}".format(test_app.upper()))
+        print("Usando banco de dados: {}:{}".format(
+            database_path.replace("\n", "").split("=")[1],
+            port
+            )
+        )
+        print("**********************************************\n" + Style.RESET_ALL)
 
         if test_app == "django":
-            command = "coverage run --source='.' manage.py test"
+            command = "coverage run --source='.' manage.py test{}".format(
+                ' -v2' if verbose else ""
+            )
         elif test_app == "nose":
             command = "nosetests --with-coverage --cover-package=app"
         elif test_app == "pytest":
@@ -304,10 +312,46 @@ def run_test(application, using, rds):
         os.system(
             "docker exec -ti {} ./config/check_cover.sh".format(new_container_id)
         )
-    elif not coverage_found:
+        # PEP8
+        pep_result = run_command(
+            title="PEP8 Check",
+            get_stdout=False,
+            command_list=[
+                {
+                    "command": "docker exec -ti {} pycodestyle {}--exclude=manage.py,settings.py,venv,migrations,frontend .".format(
+                        new_container_id,
+                        "--show-source " if verbose else ""
+                    ),
+                    "run_stdout": False
+                }
+            ]
+        )
+        print("\nResult: {}".format(
+                Fore.GREEN + "OK" + Style.RESET_ALL if pep_result else Fore.RED + "FAIL" + Style.RESET_ALL
+            )
+        )
+        # PEP257
+        pep_result = run_command(
+            title="PEP257 Check",
+            get_stdout=False,
+            command_list=[
+                {
+                    "command": "docker exec -ti {} pydocstyle --match-dir='[^venv|^migrations|^frontend].*' --match='(?!__|manage).*\.py'".format(
+                        new_container_id
+                    ),
+                    "run_stdout": False
+                }
+            ]
+        )
+        print("\nResult: {}".format(
+                Fore.GREEN + "OK" + Style.RESET_ALL if pep_result else Fore.RED + "FAIL" + Style.RESET_ALL
+            )
+        )
+        
+    elif not dependencies_found:
         print(
             Fore.RED +
-            "Erro: O coverage deve estar instalado" +
+            "Erro: Devem estar instalados no container: coverage, pydocstyle e pycodestyle" +
             Style.RESET_ALL)
     else:
         print(Fore.RED + "ERRO: Nenhum container encontrado" +

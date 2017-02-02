@@ -38,24 +38,29 @@ HELP_COMMANDS = [{'command': 'config',
                   'examples': 'meg telnet worker 6908',
                   'long_desc': None},
                  {'command': 'test',
-                  'options': 'meg test [<app>] [--using=(django|nose|pytest)] [--rds]',
+                  'options': 'meg test [<app>] [--using=(django|nose|pytest)] [--rds] [-v]',
                   'description': '''
                   Use para rodar os testes unitários da aplicação.
+                  Para usar este comandos as livrarias coverage, pydocstyle e pycodestyle devem
+                  estar instaladas no container.
                   A ferramenta permite o uso das livrarias de teste:
                   - Django (pelo comando manage.py teste)
                   - Nose
                   - Pytest
-                  Para isto basta informar qual utilizar com a opção "--using", em minúsculas.
+                  Para isto basta informar qual utilizar com a opção "--using", em minúsculas. Estas
+                  devem ser instaladas no container ou a ferramenta vai escolher a livraria
+                  que estiver disponível.
                   Se nenhuma livraria estiver instalada no container ou nenhuma for selecionada,
                   será usado o Unittest padrão do Python.
                   Utilize as opções abaixo para configurar os testes:
                   * --using: Use uma das opções a seguir: nose, pytest, django
                   * --rds: Use o banco de dados na Amazon (utilizado pelo ambiente de Staging)
-                           ao invés do banco de dados local, para rodar os testes
+                    ao invés do banco de dados local, para rodar os testes
+                  * -v use a opcao "verbose" para mostrar mais detalhes dos testes  
                   ''',
                   'examples': '''
-                  meg test painel (abre o Painel rodando unittest e banco de dados local)
-                  meg test loja --using=django (abre o Site rodando django e banco de dados local)
+                  meg test painel (abre o Painel rodando a lib padrao e banco de dados local)
+                  meg test site --using=django (abre o Site rodando django e banco de dados local)
                   ''',
                   'long_desc': None},
                  {'command': 'bash',

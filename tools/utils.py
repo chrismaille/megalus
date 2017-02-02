@@ -75,7 +75,7 @@ def run_command(command_list, title=None, get_stdout=False):
                 )
 
             if ret != 0 and not get_stdout:
-                print('Ocorreu um erro. Processo abortado')
+                # print('Ocorreu um erro. Processo abortado')
                 return False
     except:
         return False
