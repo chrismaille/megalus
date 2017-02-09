@@ -280,10 +280,8 @@ def run_test(application, using, rds, verbose):
         os.system('cls' if os.name == 'nt' else 'clear')
         print(Fore.LIGHTYELLOW_EX + "**********************************************")
         print("Rodando testes com: {}".format(test_app.upper()))
-        print("Usando banco de dados: {}:{}".format(
-            database_path.replace("\n", "").split("=")[1],
-            port
-            )
+        print("Usando banco de dados: {}".format(
+            database_path.replace("\n", "").split("=")[1])
         )
         print("**********************************************\n" + Style.RESET_ALL)
 
@@ -306,7 +304,7 @@ def run_test(application, using, rds, verbose):
         # Coverage
         print_title("Coverage Reports")
         os.system(
-            "docker exec -ti {} coverage report --skip-covered".format(new_container_id)
+            "docker exec -ti {} coverage report -m --skip-covered".format(new_container_id)
         )
         print_title("Coverage Result")
         os.system(
