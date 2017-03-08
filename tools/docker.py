@@ -6,6 +6,36 @@ from tools.messages import notify
 from tools.utils import run_command, get_app, confirma, print_title
 
 
+def _stop_all(data):
+    run_command(
+        get_stdout=False,
+        title=None,
+        command_list=[
+            {
+                'command': "cd {} && docker-compose stop".format(
+                    data['docker_compose_path']),
+                'run_stdout': False}])
+    ret_docker = run_command(
+        get_stdout=True,
+        command_list=[
+            {
+                'command': 'docker ps -q',
+                'run_stdout': False
+            }
+        ]
+    )
+    if ret_docker:
+        run_command(
+            get_stdout=False,
+            command_list=[
+                {
+                    'command': 'docker stop $(docker ps -q)',
+                    'run_stdout': False
+                }
+            ]
+        )
+
+
 def run_runapp(application, action, opt=None, arg=None):
     data = get_config_data()
     if not data:
@@ -33,36 +63,10 @@ def run_runapp(application, action, opt=None, arg=None):
                 arg=" {}".format(" ".join(arg)) if arg else "")
         )
     else:
-        run_command(
-            get_stdout=False,
-            title="Rodar Comando Docker: {}".format(action.upper()),
-            command_list=[
-                {
-                    'command': "cd {} && docker-compose stop".format(
-                        data['docker_compose_path']),
-                    'run_stdout': False
-                }
-            ]
-        )
-        ret_docker = run_command(
-            get_stdout=True,
-            command_list=[
-                {
-                    'command': 'docker ps -q',
-                    'run_stdout': False
-                }
-            ]
-        )
-        if ret_docker:
-            run_command(
-                get_stdout=False,
-                command_list=[
-                    {
-                        'command': 'docker stop $(docker ps -q)',
-                        'run_stdout': False
-                    }
-                ]
-            )
+        # Parar os containers
+        _stop_all(data)
+
+        # Rodar o comando
         os.system(
             "cd {folder} && docker-compose {cmd} {opt} {app}".format(
                 folder=data['docker_compose_path'],
@@ -194,6 +198,27 @@ def run_test(application, using, rds, verbose):
     if not container_id:
         return False
 
+    # Rodar o container com o endereco do
+    # Banco de dados selecionado
+    dbdata = [
+        obj
+        for obj in settings.LOCAL_DBS
+        if obj.get('admin') == name
+    ]
+    if rds:
+        host = dbdata[0].get('stage_name', None)
+        port = dbdata[0].get('stage_port', None)
+    else:
+        host = dbdata[0].get('local_name', None)
+        port = dbdata[0].get('local_port', None)
+
+    if not host or not port:
+        print(
+            Fore.RED +
+            "ERRO: Nome ou Porta do Banco não encontrado." +
+            Style.RESET_ALL)
+        return False
+
     os.chdir(data['project_path'])
     # Parar o container
     print(("Rodar Testes - {}".format(name)))
@@ -209,15 +234,6 @@ def run_test(application, using, rds, verbose):
             },
         ]
     )
-
-    # Rodar o container com o endereco do
-    # Banco de dados selecionado
-    if rds:
-        host = settings.STAGE_DB
-        port = settings.STAGE_PORT
-    else:
-        host = settings.LOCAL_DB
-        port = settings.LOCAL_PORT
 
     # Encontrar o programa
     test_app = using if using else data['use_for_tests']
@@ -245,7 +261,6 @@ def run_test(application, using, rds, verbose):
         dependencies_found = False
     if 'pycodestyle' not in ret_pip:
         dependencies_found = False
-
 
     # Rodar novo container
     # Para Unittest, Django, Pytest e Nose rodar via Docker-Compose
@@ -278,12 +293,16 @@ def run_test(application, using, rds, verbose):
             ]
         )
         os.system('cls' if os.name == 'nt' else 'clear')
-        print(Fore.LIGHTYELLOW_EX + "**********************************************")
+        print(
+            Fore.LIGHTYELLOW_EX +
+            "**********************************************")
         print("Rodando testes com: {}".format(test_app.upper()))
         print("Usando banco de dados: {}".format(
             database_path.replace("\n", "").split("=")[1])
         )
-        print("**********************************************\n" + Style.RESET_ALL)
+        print(
+            "**********************************************\n" +
+            Style.RESET_ALL)
 
         if test_app == "django":
             command = "coverage run --source='.' manage.py test{}".format(
@@ -308,8 +327,7 @@ def run_test(application, using, rds, verbose):
         )
         print_title("Coverage Result")
         os.system(
-            "docker exec -ti {} ./config/check_cover.sh".format(new_container_id)
-        )
+            "docker exec -ti {} ./config/check_cover.sh".format(new_container_id))
         # PEP8
         pep_result = run_command(
             title="PEP8 Check",
@@ -318,16 +336,15 @@ def run_test(application, using, rds, verbose):
                 {
                     "command": "docker exec -ti {} pycodestyle {}--exclude=manage.py,settings.py,venv,migrations,frontend .".format(
                         new_container_id,
-                        "--show-source " if verbose else ""
-                    ),
-                    "run_stdout": False
-                }
-            ]
-        )
-        print("\nResult: {}".format(
-                Fore.GREEN + "OK" + Style.RESET_ALL if pep_result else Fore.RED + "FAIL" + Style.RESET_ALL
-            )
-        )
+                        "--show-source " if verbose else ""),
+                    "run_stdout": False}])
+        print(
+            "\nResult: {}".format(
+                Fore.GREEN +
+                "OK" +
+                Style.RESET_ALL if pep_result else Fore.RED +
+                "FAIL" +
+                Style.RESET_ALL))
         # PEP257
         pep_result = run_command(
             title="PEP257 Check",
@@ -341,11 +358,14 @@ def run_test(application, using, rds, verbose):
                 }
             ]
         )
-        print("\nResult: {}".format(
-                Fore.GREEN + "OK" + Style.RESET_ALL if pep_result else Fore.RED + "FAIL" + Style.RESET_ALL
-            )
-        )
-        
+        print(
+            "\nResult: {}".format(
+                Fore.GREEN +
+                "OK" +
+                Style.RESET_ALL if pep_result else Fore.RED +
+                "FAIL" +
+                Style.RESET_ALL))
+
     elif not dependencies_found:
         print(
             Fore.RED +
@@ -391,33 +411,9 @@ def rebuild_docker(no_confirm):
 
     if resp:
         # Parar containers
-        run_command(
-            get_stdout=False,
-            title=None,
-            command_list=[
-                {
-                    'command': "cd {} && docker-compose stop".format(
-                        data['docker_compose_path']),
-                    'run_stdout': False}])
-        ret_docker = run_command(
-            get_stdout=True,
-            command_list=[
-                {
-                    'command': 'docker ps -q',
-                    'run_stdout': False
-                }
-            ]
-        )
-        if ret_docker:
-            run_command(
-                get_stdout=False,
-                command_list=[
-                    {
-                        'command': 'docker stop $(docker ps -q)',
-                        'run_stdout': False
-                    }
-                ]
-            )
+        _stop_all(data)
+
+        # Excluir containers e imagens
         run_command(
             title="Excluir Containers do Docker",
             command_list=[
@@ -454,4 +450,166 @@ def rebuild_docker(no_confirm):
                 data['docker_compose_path'])))
         print("para iniciar o Banco de dados pela primeira vez.")
         print("Em seguida use o comando 'meg run'.")
+        return True
+
+
+def reset_db(application):
+    data = get_config_data()
+    if not data:
+        return False
+
+    # Selecionar Banco
+    container_id, name = get_app(
+        application=application,
+        title="Redefinir Banco de Dados",
+        data=data
+    )
+
+    if not name:
+        return False
+
+    dbdata = [
+        obj
+        for obj in settings.LOCAL_DBS
+        if obj.get('admin') == name
+    ]
+
+    if not dbdata:
+        print(
+            Fore.RED +
+            "ERRO: Banco de Dados não encontrado para a Aplicação." +
+            Style.RESET_ALL)
+        return False
+
+    local_name = dbdata[0].get('local_name', None)
+    db_name = dbdata[0].get('name', None)
+    db_user = dbdata[0].get('user', None)
+
+    if not local_name or not db_name or not db_user:
+        print(
+            Fore.RED +
+            "ERRO: Configuração do Banco de Dados não encontrado." +
+            Style.RESET_ALL)
+        return False
+
+    # Confirmar
+    warning_text = Fore.RED + "Este comando exclui o banco de dados '{}'\n".format(
+        local_name.upper()) + Style.RESET_ALL
+    resp = confirma(
+        warning_text + "\nDeseja continuar"
+    )
+    if resp:
+        # Parar os containers
+        print("\n" + Fore.YELLOW + "Parando containers" + Style.RESET_ALL)
+        _stop_all(data)
+
+        # Iniciar o Postgres
+        print(
+            "\n" +
+            Fore.YELLOW +
+            "Iniciando {}".format(local_name) +
+            Style.RESET_ALL)
+        new_container_id = run_command(
+            get_stdout=True,
+            command_list=[
+                {
+                    'command': "cd {} && docker-compose "
+                    "run -d {}".format(
+                        data['docker_compose_path'],
+                        local_name),
+                    'run_stdout': False
+                },
+            ]
+        )
+        new_container_id = new_container_id.replace("\n", "")
+
+        # Apagar o banco antigo
+        cmd = "dropdb -U {user} {database}".format(
+            user=db_user,
+            database=db_name
+        )
+        print(
+            Fore.YELLOW +
+            "\nRodando comando: {}".format(cmd) +
+            Style.RESET_ALL)
+        os.system(
+            "docker exec -ti {container} {com}".format(
+                folder=data['docker_compose_path'],
+                container=new_container_id,
+                com=cmd)
+        )
+        # Criar o banco novo
+        cmd = "createdb -U {user} -O {user} {database}".format(
+            user=db_user,
+            database=db_name
+        )
+        print(
+            Fore.YELLOW +
+            "\nRodando comando: {}".format(cmd) +
+            Style.RESET_ALL)
+        os.system(
+            "docker exec -ti {container} {com}".format(
+                folder=data['docker_compose_path'],
+                container=new_container_id,
+                com=cmd)
+        )
+        # Reiniciar os containers
+        print(
+            Fore.YELLOW +
+            "\nReiniciando Containers".format(cmd) +
+            Style.RESET_ALL)
+        _stop_all(data)
+        os.system(
+            "cd {folder} && docker-compose up -d".format(
+                folder=data['docker_compose_path']
+            )
+        )
+        # Rodar makemigrations
+        cmd = "python manage.py makemigrations"
+        print(
+            Fore.YELLOW +
+            "\nRodando comando: {}".format(cmd) +
+            Style.RESET_ALL)
+        os.system(
+            "cd {folder} && docker-compose {cmd} {app} {com}".format(
+                folder=data['docker_compose_path'],
+                cmd="run",
+                app=name,
+                com=cmd)
+        )
+        # Rodar migrate
+        cmd = "python manage.py migrate"
+        print(
+            Fore.YELLOW +
+            "\nRodando comando: {}".format(cmd) +
+            Style.RESET_ALL)
+        os.system(
+            "cd {folder} && docker-compose {cmd} {app} {com}".format(
+                folder=data['docker_compose_path'],
+                cmd="run",
+                app=name,
+                com=cmd)
+        )
+        # Rodar createdata
+        cmd = "python manage.py createdata"
+        print(
+            Fore.YELLOW +
+            "\nRodando comando: {}".format(cmd) +
+            Style.RESET_ALL)
+        os.system(
+            "cd {folder} && docker-compose {cmd} {app} {com}".format(
+                folder=data['docker_compose_path'],
+                cmd="run",
+                app=name,
+                com=cmd)
+        )
+        # Parar os containers
+        print(Fore.YELLOW + "\nParando containers" + Style.RESET_ALL)
+        _stop_all(data)
+
+        # Excluir containers extra
+        os.system(
+            "docker rm $(docker ps -a | grep _run_ |  awk '{print $1}')"
+        )
+
         return True

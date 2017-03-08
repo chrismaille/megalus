@@ -46,7 +46,7 @@ def get_config_data(
             ret = False
 
     project_path = config['project_path']
-    if not project_path:
+    if not project_path and not start_over:
         return False
     if ret and not start_over:
         return config

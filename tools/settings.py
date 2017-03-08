@@ -12,11 +12,18 @@ TERMINAL_CMD = "meg"
 CONFIG_FILE = "meg-config"
 ENV_NAME = "MEGALUS_PATH"
 
-STAGE_DB = ""  # ex.: nome.ciksobkqlidb.us-east-1.rds.amazonaws.com
-STAGE_PORT = 5432
-
-LOCAL_DB = "service.postgres.local"
-LOCAL_PORT = 5432
+LOCAL_DBS = [
+    {
+        'local_name': "service.postgres.local",
+        'desc': "Banco de dados do Painel",
+        'local_port': 5432,
+        'user': 'megalus',
+        'name': 'megalus_db',
+        'admin': "frontend.painel.local",
+        'stage_name': "",
+        'stage_port': 5432
+    }
+]
 
 PYPI_NAME = "meg-tools"
 

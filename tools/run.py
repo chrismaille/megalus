@@ -14,6 +14,7 @@ Usage:
     meg rebuild     [-y | --yes]
     meg release     [(major|minor|patch)]
     meg release eb
+    meg resetdb     [<app>]
     meg run         [<app>] [<command> ...]
     meg service     (redis|memcached) [<key>]
     meg telnet      [<app>] (<port>)
@@ -258,6 +259,12 @@ def main():
     #
     if arguments['release'] and arguments['eb']:
         ret = start_deploy()
+        return ret
+    #
+    # RESET DB
+    # 
+    if arguments['resetdb'] is True:
+        ret = docker.reset_db(application=arguments['<app>'])
         return ret
 
 

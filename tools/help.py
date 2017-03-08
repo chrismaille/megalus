@@ -56,7 +56,7 @@ HELP_COMMANDS = [{'command': 'config',
                   * --using: Use uma das opções a seguir: nose, pytest, django
                   * --rds: Use o banco de dados na Amazon (utilizado pelo ambiente de Staging)
                     ao invés do banco de dados local, para rodar os testes
-                  * -v use a opcao "verbose" para mostrar mais detalhes dos testes  
+                  * -v use a opcao "verbose" para mostrar mais detalhes dos testes
                   ''',
                   'examples': '''
                   meg test painel (abre o Painel rodando a lib padrao e banco de dados local)
@@ -65,13 +65,27 @@ HELP_COMMANDS = [{'command': 'config',
                   'long_desc': None},
                  {'command': 'bash',
                   'options': 'meg bash <app>',
-                  'description': 'Use para abrir a aplicação informada num terminal bash (usuario root).\nSe não informar a aplicação a ferramenta irá perguntar qual aplicação abrir, a partir dos containers em atividade.\nEquivale ao comando "docker exec -ti _container_ /bin/bash"',
+                  'description': '''
+                  Use para abrir a aplicação informada num terminal bash (usuario root).
+                  Se não informar a aplicação a ferramenta irá perguntar qual aplicação abrir,
+                  a partir dos containers em atividade.
+
+                  Equivale ao comando "docker exec -ti _container_ /bin/bash"
+                  ''',
                   'examples': 'meg bash carrinho',
                   'long_desc': None},
                  {'command': 'run',
                   'options': 'meg run <app>',
-                  'description': 'Roda a aplicação informada e suas dependências ou todas as aplicações/containers se não informar nenhuma aplicação.\nEquivale ao comando "docker-compose stop && docker-compose up _aplicacao_"',
-                  'examples': 'meg run (roda todos os containers)\nmeg run painel (roda o container do Painel e os containers dependentes',
+                  'description': '''
+                  Roda a aplicação informada e suas dependências ou todas as aplicações/containers
+                  se não informar nenhuma aplicação.
+
+                  Equivale ao comando "docker-compose stop && docker-compose up _aplicacao_"
+                  ''',
+                  'examples': '''
+                  meg run (roda todos os containers)
+                  meg run painel (roda o container do Painel e os containers dependentes
+                  ''',
                   'long_desc': None},
                  {'command': 'build',
                   'options': 'meg build <app> [--no-cache]',
@@ -110,7 +124,7 @@ HELP_COMMANDS = [{'command': 'config',
                   'description': 'Este comando indica ao Webpack para entrar em modo "watch".\nO webopack irá gerar os arquivos estáticos (html, css, png, etc...) para serem lidos pelo Django.\nCaso os arquivos sejam alterados o webpack atualizará automaticamente o arquivo comprimido.',
                   'examples': 'meg watch painel (comprime os arquivos estáticos do Painel)',
                   'long_desc': None},
-                  {'command': 'ci',
+                 {'command': 'ci',
                   'options': 'meg ci (major|minor|patch)',
                   'description': '''
                   Este comando inicia o Continuous Integration (CI).
@@ -127,45 +141,53 @@ HELP_COMMANDS = [{'command': 'config',
                   Se nenhuma opção for selecionada, será usado a última tag criada.
                   ''',
                   'examples': 'meg ci patch (cria Pull Request e aumenta a versão x.x.Y+1)',
-                  'long_desc': None}
-]
+                  'long_desc': None},
+                 {'command': 'resetdb',
+                  'options': 'meg resetdb <application>',
+                  'description': '''
+                  Este comando irá apagar e recriar o banco de dados local da aplicação selecionada.
+                  Certifique-se que qualquer dado importante tenha sido salvo antes de rodar este comando.
+                  Após recriar o banco de dados, os comandos do Django, makemigrations, migrate e createdata
+                  serão rodados no novo banco.''',
+                  'examples': 'meg resetdb painel: recria o banco de dados do Painel',
+                  'long_desc': None}]
 
 
 def get_help(app=None):
-    if app:
-        command_help = [
-            obj
-            for obj in HELP_COMMANDS
-            if obj.get('command') == app
-        ]
-        if command_help:
-            show_help(command_help, show_long_desc=True)
-            return True
-        else:
-            return True
+  if app:
+    command_help = [
+        obj
+        for obj in HELP_COMMANDS
+        if obj.get('command') == app
+    ]
+    if command_help:
+      show_help(command_help, show_long_desc=True)
+      return True
     else:
-        show_help(sorted(HELP_COMMANDS, key=lambda x: x['command']))
-        return True
+      return True
+  else:
+    show_help(sorted(HELP_COMMANDS, key=lambda x: x['command']))
+    return True
 
 
 def show_help(help_list, show_long_desc=False):
-    if not show_long_desc:
-        print(dedent(INICIAL))
-    for command in help_list:
-        print("\n{}{}Commando: {}{}".format(
-            bcolors.BOLD,
-            bcolors.WARNING,
-            command['command'].upper(),
-            bcolors.ENDC
-        )
-        )
-        if command['options']:
-            print("{}Opções:{}".format(bcolors.BOLD, bcolors.ENDC))
-            print(command['options'])
-        print("\n{}Resumo:{}".format(bcolors.BOLD, bcolors.ENDC))
-        print(dedent(command['description']))
-        if show_long_desc and command['long_desc']:
-            print('\n{}'.format(dedent(command['long_desc'])))
-        if command['examples']:
-            print("\n{}Exemplos:{}".format(bcolors.BOLD, bcolors.ENDC))
-            print(dedent(command['examples']))
+  if not show_long_desc:
+    print(dedent(INICIAL))
+  for command in help_list:
+    print("\n{}{}Commando: {}{}".format(
+        bcolors.BOLD,
+        bcolors.WARNING,
+        command['command'].upper(),
+        bcolors.ENDC
+    )
+    )
+    if command['options']:
+      print("{}Opções:{}".format(bcolors.BOLD, bcolors.ENDC))
+      print(command['options'])
+    print("\n{}Resumo:{}".format(bcolors.BOLD, bcolors.ENDC))
+    print(dedent(command['description']))
+    if show_long_desc and command['long_desc']:
+      print('\n{}'.format(dedent(command['long_desc'])))
+    if command['examples']:
+      print("\n{}Exemplos:{}".format(bcolors.BOLD, bcolors.ENDC))
+      print(dedent(command['examples']))
