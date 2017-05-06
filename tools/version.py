@@ -2,11 +2,10 @@ import requests
 from colorama import Fore, Style
 from distutils.version import LooseVersion
 from tools import __version__
-from tools import settings
 
 
 def versions():
-    url = "https://pypi.python.org/pypi/{}/json".format(settings.PYPI_NAME)
+    url = "https://pypi.python.org/pypi/meg-tools/json"
     data = None
     versions = None
     try:

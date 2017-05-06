@@ -4,7 +4,7 @@ import requests
 from colorama import Fore, Style
 from git import Repo
 from requests.auth import HTTPBasicAuth
-from tools import settings
+from tools.projects import settings
 from tools.config import get_config_data
 from tools.deploy import run_deploy
 from tools.messages import Message, notify

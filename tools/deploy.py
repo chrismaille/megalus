@@ -4,7 +4,7 @@ import platform
 import re
 from colorama import Fore, Style
 from git import Repo
-from tools import settings
+from tools.projects import settings
 from tools.compress import minifyCSS, minifyJS
 from tools.config import get_config_data
 from tools.messages import Message, notify

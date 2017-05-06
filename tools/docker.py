@@ -1,8 +1,10 @@
 import os
+import time
 from colorama import Fore, Style
-from tools import settings
+from tools.build import run_build
 from tools.config import get_config_data, run_update
 from tools.messages import notify
+from tools.projects import settings
 from tools.utils import run_command, get_app, confirma, print_title
 
 
@@ -404,7 +406,7 @@ def rebuild_docker(no_confirm):
             "e containers existentes na máquina,\n"
             "e inicia um novo Update/Build.\n"
             "\n\033[91mCertifique-se que você tenha um backup\n"
-            "do banco de dados antes de rodar esse comando e"
+            "do banco de dados antes de rodar esse comando e\n"
             "que todas as alterações importantes"
             " estejam commitadas.\033[0m\n\n"
             "Deseja continuar")
@@ -437,17 +439,19 @@ def rebuild_docker(no_confirm):
         run_update(no_confirm=True, stable=True, staging=False)
 
         # Roda Build
-        run_runapp(application=None, action="build")
+        run_build(application=None)
 
         # Finaliza
         notify(msg="Rebuild dos Containers finalizado")
         os.system('cls' if os.name == 'nt' else 'clear')
         print("O Rebuild foi concluído.")
-        print("Antes de iniciar os containers, digite o comando:")
-        print((
-            "'cd {} && docker-compose up "
-            "service.postgres.local'".format(
-                data['docker_compose_path'])))
+        print("Antes de iniciar os containers, digite o(s) comando(s):")
+        for dbdata in settings.LOCAL_DBS:
+            print(
+                "'cd {} && docker-compose up "
+                "{}'".format(
+                    data['docker_compose_path'],
+                    dbdata['local_name']))
         print("para iniciar o Banco de dados pela primeira vez.")
         print("Em seguida use o comando 'meg run'.")
         return True
@@ -603,6 +607,8 @@ def reset_db(application):
                 app=name,
                 com=cmd)
         )
+        # Aguardar alguns segundos para as tarefas assincronas
+        time.sleep(2)
         # Parar os containers
         print(Fore.YELLOW + "\nParando containers" + Style.RESET_ALL)
         _stop_all(data)

@@ -3,7 +3,7 @@ import platform
 import requests
 import slackweb
 from colorama import Fore, Style
-from tools import settings
+from tools.projects import settings
 from tools.utils import run_command, unitext, print_title
 
 
@@ -51,7 +51,7 @@ class Message():
             )
             print("Datadog OK")
         else:
-            return "{}\n{}".format(title, text)
+            return "{}\n{}".format(self.title, self.text)
 
     def send_slack(self):
 
@@ -70,7 +70,7 @@ class Message():
                     self.config['slack_icon']))
             print("Slack OK")
         else:
-            return text
+            return self.text
 
     def send_grafana(self):
         if self.action == "INICIADO":
@@ -81,8 +81,7 @@ class Message():
             value = 0
 
         post_data = "{},action=deploy,user={},"
-        "repo={},status={},env={} value={}".format(
-            settings.GRAFANA_APP,
+        "repo=megtools,status={},env={} value={}".format(
             self.config['slack_user'],
             self.repo,
             status,
@@ -114,7 +113,7 @@ class Message():
 
 def notify(msg, title=None):
     if not title:
-        title = "{}-Tools".format(settings.TERMINAL_CMD.upper())
+        title = "MEG-Tools"
     if platform.system().lower() == 'linux':  # Linux
         run_command(
             command_list=[

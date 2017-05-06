@@ -1,5 +1,5 @@
 import os
-from tools import settings
+from tools.projects import settings
 from tools.config import get_config_data
 from tools.messages import notify
 from tools.utils import run_command, get_app
@@ -20,8 +20,9 @@ def run_build(application):
             title="Gera Imagem Base do Docker",
             command_list=[
                 {
-                    'command': "cd {} && docker build -t megbase:dev .".format(
-                        path
+                    'command': "cd {} && docker build -t {}:dev .".format(
+                        path,
+                        settings.DOCKER_BASE_IMAGE_REPO
                     ),
                     'run_stdout': False
                 },

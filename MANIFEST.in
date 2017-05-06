@@ -1,0 +1,1 @@
+recursive-include tools/app_data *.json

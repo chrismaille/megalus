@@ -43,7 +43,7 @@ from colorama import Fore, Style
 from docopt import docopt
 from tools import __version__
 from tools import docker
-from tools import settings
+from tools.projects import settings
 from tools.build import run_build
 from tools.config import get_config_data, run_update
 from tools.deploy import run_deploy
@@ -269,14 +269,25 @@ def main():
 
 
 def start():
+    
+    name = settings.get_project()
+    if not settings:
+        print("\nProjeto não selecionado.\n")
+        sys.exit(1)
+
     print(
         Fore.CYAN +
         "\033[1m\n\n************************\n\n"
-        "{cmd}-Tools v{version}\n\n"
+        "MEG-Tools v{version}\n\n"
         "************************".format(
-            cmd=settings.TERMINAL_CMD.upper(),
             version=__version__) +
         Style.RESET_ALL)
+    print("\n{}{}PROJETO: {}{}".format(
+        bcolors.BOLD,
+        bcolors.WARNING,
+        name,
+        bcolors.ENDC
+    ))
     show_version_warning()
     retorno = main()
     if retorno:

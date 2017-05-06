@@ -38,7 +38,7 @@ install_requires = [
     'requests<=2.9.1',
     'slackweb',
     'unidecode',
-    'colorama',
+    'colorama==0.3.7',
     'boto3',
     'pydocstyle',
     'pycodestyle'
@@ -51,6 +51,7 @@ setup(
     description='Dev tools for Megalus Web Applications',
     long_description=long_description,
     author='Chris Maillefaud',
+    include_package_data=True,
     # Choose your license
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -63,9 +64,7 @@ setup(
     install_requires=install_requires,
     entry_points={
         'console_scripts': [
-            '{}=tools.run:start'.format(
-                get_cmd_from_file()
-            ),
+            'meg=tools.run:start'
         ],
     },
 )

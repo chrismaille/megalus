@@ -6,7 +6,7 @@ from colorama import Back
 from tools.config import get_config_data
 from tools import utils
 from tools.utils import bcolors
-from tools.settings import LIBRARIES
+from tools.projects import settings
 
 
 def show_list(libs=[]):
@@ -104,7 +104,7 @@ def show_list(libs=[]):
         lib_list = []
         pip_ret = None
         if caminho_path:
-            for lib in LIBRARIES + libs:
+            for lib in settings.LIBRARIES + libs:
                 if container:
                     pip_ret = utils.run_command(
                         command_list=[
@@ -155,6 +155,6 @@ def show_list(libs=[]):
     utils.print_title("Listar Aplicações Docker")
     print(tabulate(
         table_data,
-        headers=["Aplicação", "Branch", "Rodando", "Porta"] + LIBRARIES + libs
+        headers=["Aplicação", "Branch", "Rodando", "Porta"] + settings.LIBRARIES + libs
     )
     )

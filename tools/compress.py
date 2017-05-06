@@ -2,7 +2,7 @@ import os
 import platform
 from colorama import Fore, Style
 from tools.utils import run_command
-from tools import settings
+from tools.projects import settings
 
 minify_command = "java -jar yuicompressor-2.4.8.jar "
 "{all} -o {min} --charset utf-8"

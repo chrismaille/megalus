@@ -3,7 +3,7 @@ import platform
 from colorama import Fore, Style
 from git import Repo
 from os.path import expanduser
-from tools import settings
+from tools.projects import settings
 from tools.messages import notify
 from tools.utils import run_command, confirma, print_title
 
