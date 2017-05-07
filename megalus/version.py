@@ -1,7 +1,7 @@
 import requests
 from colorama import Fore, Style
 from distutils.version import LooseVersion
-from tools import __version__
+from megalus import __version__
 
 
 def versions():

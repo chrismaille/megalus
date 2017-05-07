@@ -4,12 +4,12 @@ import requests
 from colorama import Fore, Style
 from git import Repo
 from requests.auth import HTTPBasicAuth
-from tools.projects import settings
-from tools.config import get_config_data
-from tools.deploy import run_deploy
-from tools.messages import Message, notify
-from tools.utils import run_command, confirma, print_title
-from tools.release_eb import AWSManager
+from megalus.aws.deploy import run_deploy
+from megalus.aws.release_eb import AWSManager
+from megalus.core.messages import Message, notify
+from megalus.core.utils import run_command, confirma, print_title
+from megalus.projects.config import get_config_data
+from megalus.projects.setup import settings
 
 
 def make_pull_request(release):

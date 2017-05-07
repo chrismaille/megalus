@@ -1,9 +1,9 @@
 import memcache
 import redis
 import telnetlib
-from .li_tabulate import tabulate
-from tools.config import get_config_data
-from tools.utils import print_title
+from megalus.core.li_tabulate import tabulate
+from megalus.core.utils import print_title
+from megalus.projects.config import get_config_data
 
 
 def run_service(service, key):

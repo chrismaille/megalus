@@ -1,6 +1,6 @@
 {
 	"CONFIG_FILE": "musi-config",
-	"ENV_NAME": "MUSI_PATH",
+	"ENV_NAME": "MU_PATH",
 	"LOCAL_DBS": [
 	    {
 	        "local_name": "musinauta.postgres.local",

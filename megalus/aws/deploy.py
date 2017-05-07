@@ -4,11 +4,11 @@ import platform
 import re
 from colorama import Fore, Style
 from git import Repo
-from tools.projects import settings
-from tools.compress import minifyCSS, minifyJS
-from tools.config import get_config_data
-from tools.messages import Message, notify
-from tools.utils import bcolors, run_command, confirma, print_title
+from megalus.commands.compress import minifyCSS, minifyJS
+from megalus.core.messages import Message, notify
+from megalus.core.utils import bcolors, run_command, confirma, print_title
+from megalus.projects.config import get_config_data
+from megalus.projects.setup import settings
 
 
 def run_deploy(only_pr=False):

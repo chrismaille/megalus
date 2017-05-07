@@ -1,9 +1,9 @@
 import os
 import json
 from colorama import Fore, Style
-from tools.li_tabulate import tabulate
-from tools.config import get_config_data
-from tools.utils import get_app, get_compose_data, run_command
+from megalus.core.li_tabulate import tabulate
+from megalus.core.utils import get_app, get_compose_data, run_command
+from megalus.projects.config import get_config_data
 
 
 def run_watch(application, dev):

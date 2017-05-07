@@ -3,8 +3,8 @@ import platform
 import requests
 import slackweb
 from colorama import Fore, Style
-from tools.projects import settings
-from tools.utils import run_command, unitext, print_title
+from megalus.projects.setup import settings
+from megalus.core.utils import run_command, unitext, print_title
 
 
 class Message():

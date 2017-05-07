@@ -3,9 +3,9 @@ import platform
 from colorama import Fore, Style
 from git import Repo
 from os.path import expanduser
-from tools.projects import settings
-from tools.messages import notify
-from tools.utils import run_command, confirma, print_title
+from megalus.core.messages import notify
+from megalus.core.utils import run_command, confirma, print_title
+from megalus.projects.setup import settings
 
 
 def get_config_data(

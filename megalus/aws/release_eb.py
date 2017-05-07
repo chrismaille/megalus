@@ -4,7 +4,7 @@ import datetime
 from botocore.exceptions import ClientError
 from git import Repo
 from time import strftime, sleep
-from tools.utils import print_title
+from megalus.core.utils import print_title
 
 
 class AWSManager():

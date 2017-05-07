@@ -2,8 +2,8 @@
 
 import yaml
 import os
-from tools.config import get_config_data
-from tools.utils import get_app
+from megalus.core.utils import get_app
+from megalus.projects.config import get_config_data
 
 
 def run_ngrok(subdomain, app):

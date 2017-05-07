@@ -96,23 +96,25 @@ GRAFANA_MSG_URL = URL para enviar eventos ao Grafana. Ex: "http://dominio:porta/
 import os
 import json
 from collections import OrderedDict
-from tools.utils import print_title
+from megalus.core.utils import print_title
 
 
 class Setting():
     def __init__(self, project):
         self.project = project
         curdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        if curdir.endswith("tools"):
+        if curdir.endswith("megalus"):
             self.path = os.path.join(
                 curdir,
-                "app_data"
+                "projects",
+                "data"
             )
         else:
             self.path = os.path.join(
                 curdir,
-                "tools",
-                "app_data"
+                "megalus",
+                "projects",
+                "data"
             )
 
     def get_project(self):

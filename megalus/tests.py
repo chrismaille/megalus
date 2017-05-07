@@ -1,11 +1,11 @@
 import unittest
 import os
-from tools.config import get_config_data
-from tools.compress import minifyJS, minifyCSS
-from tools.messages import Message
-from tools.utils import run_command
 from os.path import expanduser
 from unittest.mock import Mock
+from megalus.commands.compress import minifyJS, minifyCSS
+from megalus.core.messages import Message
+from megalus.core.utils import run_command
+from megalus.projects.config import get_config_data
 
 
 class TestDeploy(unittest.TestCase):

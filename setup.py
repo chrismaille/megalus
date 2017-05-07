@@ -1,18 +1,7 @@
 from codecs import open
 from os import path
 from setuptools import setup, find_packages
-from tools import __version__
-
-
-def get_cmd_from_file():
-    # get version number from __init__ file
-    # before module is installed
-
-    fname = 'tools/settings.py'
-    with open(fname) as f:
-        fcontent = f.readlines()
-    version_line = [l for l in fcontent if 'TERMINAL_CMD' in l][0]
-    return version_line.split('=')[1].strip().strip("'").strip('"')
+from megalus import __version__
 
 
 here = path.abspath(path.dirname(__file__))
@@ -57,14 +46,14 @@ setup(
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Build Tools',
-        'Programming Language :: Python :: 3.5'
+        'Programming Language :: Python :: 3.6'
     ],
     keywords='aws deploy docker npm redis memcached bash',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     install_requires=install_requires,
     entry_points={
         'console_scripts': [
-            'meg=tools.run:start'
+            'meg=megalus.run:start'
         ],
     },
 )

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Ferramenta Megalus/Mais Imovel.
+"""Ferramenta Megalus.
 Para mais detalhes digite 'meg help'
 
 Usage:
@@ -41,21 +41,21 @@ Options:
 import sys
 from colorama import Fore, Style
 from docopt import docopt
-from tools import __version__
-from tools import docker
-from tools.projects import settings
-from tools.build import run_build
-from tools.config import get_config_data, run_update
-from tools.deploy import run_deploy
-from tools.help import get_help
-from tools.li_tabulate import tabulate
-from tools.lists import show_list
-from tools.npm import run_watch, run_list
-from tools.services import run_service
-from tools.tunnel import run_ngrok
-from tools.utils import bcolors, confirma, run_command
-from tools.version import show_version_warning
-from tools.release import make_pull_request, start_deploy
+from megalus import __version__
+from megalus.aws.deploy import run_deploy
+from megalus.commands import docker
+from megalus.commands.build import run_build
+from megalus.commands.lists import show_list
+from megalus.commands.npm import run_watch, run_list
+from megalus.core.help import get_help
+from megalus.core.li_tabulate import tabulate
+from megalus.core.release import make_pull_request, start_deploy
+from megalus.core.services import run_service
+from megalus.core.tunnel import run_ngrok
+from megalus.core.utils import bcolors, confirma, run_command
+from megalus.projects.config import get_config_data, run_update
+from megalus.projects.setup import settings
+from megalus.version import show_version_warning
 
 
 def check_vpn():
@@ -262,14 +262,14 @@ def main():
         return ret
     #
     # RESET DB
-    # 
+    #
     if arguments['resetdb'] is True:
         ret = docker.reset_db(application=arguments['<app>'])
         return ret
 
 
 def start():
-    
+
     name = settings.get_project()
     if not settings:
         print("\nProjeto não selecionado.\n")
@@ -282,7 +282,7 @@ def start():
         "************************".format(
             version=__version__) +
         Style.RESET_ALL)
-    print("\n{}{}PROJETO: {}{}".format(
+    print("\n{}{}PROJETO: {}{}\n\n".format(
         bcolors.BOLD,
         bcolors.WARNING,
         name,

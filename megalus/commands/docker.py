@@ -1,11 +1,11 @@
 import os
 import time
 from colorama import Fore, Style
-from tools.build import run_build
-from tools.config import get_config_data, run_update
-from tools.messages import notify
-from tools.projects import settings
-from tools.utils import run_command, get_app, confirma, print_title
+from megalus.commands.build import run_build
+from megalus.core.messages import notify
+from megalus.core.utils import run_command, get_app, confirma, print_title
+from megalus.projects.config import get_config_data, run_update
+from megalus.projects.setup import settings
 
 
 def _stop_all(data):

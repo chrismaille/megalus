@@ -1,12 +1,12 @@
 import os
 import re
-from .li_tabulate import tabulate
-from git import Repo
 from colorama import Back
-from tools.config import get_config_data
-from tools import utils
-from tools.utils import bcolors
-from tools.projects import settings
+from git import Repo
+from megalus.core import utils
+from megalus.core.li_tabulate import tabulate
+from megalus.core.utils import bcolors
+from megalus.projects.config import get_config_data
+from megalus.projects.setup import settings
 
 
 def show_list(libs=[]):

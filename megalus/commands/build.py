@@ -1,8 +1,8 @@
 import os
-from tools.projects import settings
-from tools.config import get_config_data
-from tools.messages import notify
-from tools.utils import run_command, get_app
+from megalus.core.messages import notify
+from megalus.core.utils import run_command, get_app
+from megalus.projects.config import get_config_data
+from megalus.projects.setup import settings
 
 
 def run_build(application):

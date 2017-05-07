@@ -1,5 +1,5 @@
 from textwrap import dedent
-from tools.utils import bcolors
+from megalus.core.utils import bcolors
 
 INICIAL = """
 Este help mostra os comandos da ferramenta MEG-Tools.
@@ -12,7 +12,7 @@ HELP_COMMANDS = [{'command': 'config',
                   'options': 'meg config [--clone-only]',
                   'description': '''
                   Use para configurar o ambiente de desenvolvimento local.
-                  Use a opção `--clone-only` para clonar/baixar os repositórios apenas
+                  Use a opção `--clone-only` para clonar/baixar apenas
                   ''',
                   'examples': None,
                   'long_desc': None},
@@ -97,17 +97,48 @@ HELP_COMMANDS = [{'command': 'config',
                   * --no-cache: Durante a build, forçar o download de todas as livrarias/dependencias
                   Equivale ao comando "docker-compose stop && docker-compose build _aplicacao_"
                   ''',
-                  'examples': 'meg build (faz o build de todos os containers)\nmeg build loja (faz a build do container da Loja)',
+                  'examples': '''
+                  meg build (faz o build de todos os containers)
+                  meg build loja (faz a build do container da Loja)
+                  ''',
                   'long_desc': None},
                  {'command': 'update',
                   'options': 'meg update [--yes] [--production | --staging]',
-                  'description': 'Roda em cada repositório clonado pelo comando `meg config` o comando "git remote update && git fetch && git pull --all", desde que o repositorio esteja na branch prodution, staging, beta, release ou master (repositórios que estejam em outros branchs são ignorados)\nEm adição ele clona novos repositórios que não estejam na pasta do projeto informado.\nUse a opção --yes ou -y para confirmar automaticamente as operações.\nUse a opção --production para fazer o git checkout para a branch mais estável do projeto (exemplo: production, master, etc) antes do update.',
-                  'examples': 'meg update (atualiza todas as branchs atuais)\nmeg update --production (faz o checkout para a branch mais estável e atualiza)\nmeg update --staging (faz o checkout para staging/beta e atualiza os repositórios',
+                  'description': '''
+                  Roda em cada repositório clonado pelo comando `meg config`
+                  o comando "git remote update && git fetch && git pull --all",
+                  desde que o repositorio esteja na branch prodution, staging,
+                  beta, release ou master (repositórios que estejam em outros
+                  branchs são ignorados).
+                  Em adição ele clona novos repositórios que não estejam na pasta
+                  do projeto informado.
+                  Use a opção --yes ou -y para confirmar automaticamente as operações.
+                  Use a opção --production para fazer o git checkout para a branch
+                  mais estável do projeto (exemplo: production, master, etc) antes do update.
+                  ''',
+                  'examples': '''
+                  meg update (atualiza todas as branchs atuais)
+                  meg update --production (faz o checkout para a branch mais estável e atualiza)
+                  meg update --staging (faz o checkout para staging/beta e atualiza os repositórios
+                  ''',
                   'long_desc': None},
                  {'command': 'list',
                   'options': 'meg list [<libs>...]',
-                  'description': 'Lista as aplicações existentes no Docker-Compose, e informa as seguintes informações:\n* O nome da aplicação e se o container está rodando\n* A branch em que o container está.\n* As diferenças no branch, em relação ao VCS (commits a frente/atrás, etc...).\n* A porta que está sendo exposta no container\n\nPara listar outras livrarias, digite elas após o comando, separando com espaço.',
-                  'examples': 'meg list (para a lista padrao)\nmeg list django flask gunicorn (Para listar as versões do Django, Flask e Gunicorn que estão rodando dentro dos containers.)',
+                  'description': '''
+                  Lista as aplicações existentes no Docker-Compose, e informa as seguintes
+                  informações:
+                  * O nome da aplicação e se o container está rodando
+                  * A branch em que o container está.
+                  * As diferenças no branch, em relação ao VCS (commits a frente/atrás, etc...).
+                  * A porta que está sendo exposta no container
+
+                  Para listar outras livrarias, digite elas após o comando, separando com espaço.
+                  ''',
+                  'examples': '''
+                  meg list (para a lista padrao)
+                  meg list django flask gunicorn (Para listar as versões do Django,
+                  Flask e Gunicorn que estão rodando dentro dos containers.)
+                  ''',
                   'long_desc': None},
                  {'command': 'rebuild',
                   'options': 'meg rebuild',
