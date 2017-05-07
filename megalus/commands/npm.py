@@ -22,8 +22,6 @@ def run_watch(application, dev):
     dc_data = get_compose_data(data)
 
     try:
-        if "_" in name:
-            name = name.split("_")[1]
         app_folder = dc_data['services'][name][
             'build']['context'].split('/')[-1]
     except:
