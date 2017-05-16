@@ -1,6 +1,6 @@
 {
 	"CONFIG_FILE": "day-config",
-	"ENV_NAME": "DAY_PATH",
+	"ENV_NAME": "AD_PATH",
 	"LOCAL_DBS": [
 	    {
 	        "local_name": "adbem.postgres.local",
