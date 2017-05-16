@@ -1,5 +1,5 @@
 {
-	"CONFIG_FILE": "day-config",
+	"CONFIG_FILE": "ad-config",
 	"ENV_NAME": "AD_PATH",
 	"LOCAL_DBS": [
 	    {
