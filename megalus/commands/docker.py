@@ -338,16 +338,6 @@ def run_test(application, using, rds, verbose):
                 }
             ]
         )
-        if coverage_result:
-            print(
-            "\nResult: {}".format(
-                Fore.GREEN +
-                "OK" +
-                Style.RESET_ALL)
-            )
-        else:
-            os.system(
-                "docker exec -ti {} ./config/check_cover.sh".format(new_container_id))
         # PEP8
         pep8_result = run_command(
             title="PEP8 Check",

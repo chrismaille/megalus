@@ -177,7 +177,7 @@ if settings.project:
             'vcs_password'
         ]
     )
-    settings.CONFIG_DICT['use_for_tests'] = 'unittest'
+    settings.CONFIG_DICT['use_for_tests'] = 'django'
 
     if settings.USE_AWS:
         settings.CONFIG_DICT['aws_key'] = None
