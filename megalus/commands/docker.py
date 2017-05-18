@@ -200,6 +200,7 @@ def run_test(application, using, rds, verbose):
     if not container_id:
         return False
 
+    finalmsg = "Teste não efetuado."
     # Rodar o container com o endereco do
     # Banco de dados selecionado
     dbdata = [
@@ -328,10 +329,27 @@ def run_test(application, using, rds, verbose):
             "docker exec -ti {} coverage report -m --skip-covered".format(new_container_id)
         )
         print_title("Coverage Result")
-        os.system(
-            "docker exec -ti {} ./config/check_cover.sh".format(new_container_id))
+        coverage_result = run_command(
+            get_stdout=False,
+            command_list=[
+                {
+                    "command": "docker exec -ti {} ./config/check_cover.sh".format(new_container_id),
+                    "run_stdout": False
+                }
+            ]
+        )
+        if coverage_result:
+            print(
+            "\nResult: {}".format(
+                Fore.GREEN +
+                "OK" +
+                Style.RESET_ALL)
+            )
+        else:
+            os.system(
+                "docker exec -ti {} ./config/check_cover.sh".format(new_container_id))
         # PEP8
-        pep_result = run_command(
+        pep8_result = run_command(
             title="PEP8 Check",
             get_stdout=False,
             command_list=[
@@ -344,11 +362,11 @@ def run_test(application, using, rds, verbose):
             "\nResult: {}".format(
                 Fore.GREEN +
                 "OK" +
-                Style.RESET_ALL if pep_result else Fore.RED +
+                Style.RESET_ALL if pep8_result else Fore.RED +
                 "FAIL" +
                 Style.RESET_ALL))
         # PEP257
-        pep_result = run_command(
+        pep257_result = run_command(
             title="PEP257 Check",
             get_stdout=False,
             command_list=[
@@ -361,12 +379,19 @@ def run_test(application, using, rds, verbose):
             ]
         )
         print(
-            "\nResult: {}".format(
+            "\nResult: {}\n".format(
                 Fore.GREEN +
                 "OK" +
-                Style.RESET_ALL if pep_result else Fore.RED +
+                Style.RESET_ALL if pep257_result else Fore.RED +
                 "FAIL" +
                 Style.RESET_ALL))
+
+        if coverage_result and pep8_result and pep257_result:
+            finalmsg = "Todos os Testes passaram com sucesso."
+            print(Fore.GREEN + "\n{}".format(finalmsg) + Style.RESET_ALL)
+        else:
+            finalmsg = "ERROS ENCONTRADOS DURANTE OS TESTES. Verifique os logs."
+            print(Fore.RED + "\n{}".format(finalmsg) + Style.RESET_ALL)
 
     elif not dependencies_found:
         print(
@@ -389,7 +414,7 @@ def run_test(application, using, rds, verbose):
     os.system(
         "docker rm $(docker ps -a | grep _run_ |  awk '{print $1}')"
     )
-    notify(msg="Teste Unitário em {} finalizado.".format(name))
+    notify(msg="Teste Unitário em {}: {}".format(name, finalmsg))
     return False
 
 
