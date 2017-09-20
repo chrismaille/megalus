@@ -47,6 +47,7 @@ def get_config_data(
 
     project_path = config['project_path']
     if not project_path and not start_over:
+        print("Configuração não encontrada.")
         return False
     if ret and not start_over:
         return config
