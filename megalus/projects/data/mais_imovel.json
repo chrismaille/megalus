@@ -1,14 +1,14 @@
 {
 	"CONFIG_FILE": "meg-config",
-	"ENV_NAME": "MEGALUS_PATH",
+	"ENV_NAME": "MAIS_PATH",
 	"LOCAL_DBS": [
 	    {
-	        "local_name": "mais_imovel.postgres.local",
+	        "local_name": "maisimovel.postgres.local",
 	        "desc": "Banco de dados do Painel",
 	        "local_port": 5432,
 	        "user": "megalus",
 	        "name": "megalus_db",
-	        "admin": "mais_imovel.painel.local",
+	        "admin": "maisimovel.painel.local",
 	        "stage_name": "",
 	        "stage_port": 5432
 	    }
@@ -21,7 +21,6 @@
 	"APPLICATIONS": [
 	    ["megdocker", ["master"]],
 	    ["maispainel", ["develop", "master"]],
-	    ["megtools", ["master"]],
 	    ["megbase", ["master"]]
 	],
 	"LIBRARIES": [],
