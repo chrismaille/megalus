@@ -1,3 +1,4 @@
-from megalus import run
+from megalus.cmd import start
 
-run.start()
+if __name__ == '__main__':
+    start()

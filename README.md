@@ -7,14 +7,14 @@ Use o comando `sudo pip install --upgrade meg-tools`
 ### Uso:
 
 #### Config
-> Uso: `meg config`
+> Uso: `meg commands`
 
 Use para configurar o ambiente de desenvolvimento local. 
 
 #### Deploy
 > Uso: `meg deploy`
 
-Use para fazer o deploy de um ambiente local na Amazon. É preciso rodar este comando na pasta-raiz de um dos repositorios clonados pelo comando `meg config`
+Use para fazer o deploy de um ambiente local na Amazon. É preciso rodar este comando na pasta-raiz de um dos repositorios clonados pelo comando `meg commands`
 
 #### Debug
 > Uso: `meg debug <app>`
@@ -63,7 +63,7 @@ Use para fazer a build do container da aplicação selecionada. Se nenhuma aplic
 Equivale ao comando "docker-compose stop && docker-compose build _aplicacao_"
 
 #### Update
-Roda em cada repositório clonado pelo comando `meg config` o comando "git remote update && git fetch && git pull --all", desde que o repositorio esteja na branch prodution ou master (repositórios que estejam em outros branchs são ignorados)
+Roda em cada repositório clonado pelo comando `meg commands` o comando "git remote update && git fetch && git pull --all", desde que o repositorio esteja na branch prodution ou master (repositórios que estejam em outros branchs são ignorados)
 
 Em adição ele clona novos repositórios que não estejam na pasta do projeto informado.
 
