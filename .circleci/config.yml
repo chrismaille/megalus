@@ -6,11 +6,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Init submodules
-          command: |
-            git submodule init
-            git submodule update
-      - run:
           name: Install Pipenv
           command: pip install -U --user pipenv
       - run:
@@ -24,11 +19,6 @@ jobs:
       - image: circleci/python:3.6
     steps:
       - checkout
-      - run:
-          name: Init submodules
-          command: |
-            git submodule init
-            git submodule update
       - run:
           name: Install Pipenv
           command: pip install -U --user pipenv
@@ -44,11 +34,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Init submodules
-          command: |
-            git submodule init
-            git submodule update
-      - run:
           name: Install Pipenv
           command: pip install -U --user pipenv
       - run:
@@ -62,11 +47,6 @@ jobs:
       - image: circleci/python:3.7
     steps:
       - checkout
-      - run:
-          name: Init submodules
-          command: |
-            git submodule init
-            git submodule update
       - run:
           name: Install Changelog Libs
           command: |
