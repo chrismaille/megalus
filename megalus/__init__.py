@@ -10,7 +10,7 @@ from loguru import logger
 
 from megalus.utils import get_path
 
-__version__ = "2.0.0a1"
+__version__ = "2.0.0a2"
 
 
 class Megalus:
@@ -182,7 +182,7 @@ class Megalus:
     def _resolve_path(self, compose):
         base_compose_path = os.path.dirname(compose)
         if "." in base_compose_path:
-            base_compose_path = os.path.dirname(self._config_file)
+            base_compose_path = self.config_data['project']['working_dir']
         return get_path(compose, base_path=base_compose_path)
 
     def get_compose_files_for_group(self, group):
