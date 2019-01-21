@@ -8,7 +8,8 @@ from typing import List
 import click
 from loguru import logger
 
-from megalus import LOGFILE, Megalus
+from megalus import LOGFILE
+from megalus.main import Megalus
 from megalus.utils import backup_folder
 
 

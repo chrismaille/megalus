@@ -7,7 +7,7 @@ from typing import Union, Optional
 import click
 from loguru import logger
 
-from megalus import Megalus
+from megalus.main import Megalus
 from megalus.utils import run_command
 
 
