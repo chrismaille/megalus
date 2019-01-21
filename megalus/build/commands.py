@@ -29,7 +29,8 @@ from typing import List
 import click
 from loguru import logger
 
-from megalus import LOGFILE, Megalus
+from megalus import LOGFILE
+from megalus.main import Megalus
 
 
 def _build_services(meg, force, services) -> None:

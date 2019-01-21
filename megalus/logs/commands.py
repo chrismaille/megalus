@@ -9,7 +9,7 @@ import click
 from buzio import console
 from loguru import logger
 
-from megalus import Megalus
+from megalus.main import Megalus
 from megalus.utils import find_containers, find_service
 
 

@@ -4,8 +4,6 @@ commands.
 
 import click
 
-from megalus.utils import find_service
-
 
 def run_compose_command(meg, action, service_data, options=""):
     meg.run_command(
@@ -25,15 +23,6 @@ def restart(meg, services):
     for service in services:
         service_data = meg.find_service(service)
         run_compose_command(meg, "restart", service_data)
-
-
-@click.command()
-@click.argument('services', nargs=-1, required=True)
-@click.pass_obj
-def stop(meg, services):
-    for service in services:
-        service_data = meg.find_service(service)
-        run_compose_command(meg, "stop", service_data)
 
 
 @click.command()
