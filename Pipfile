@@ -12,6 +12,7 @@ loguru = "*"
 docker = "*"
 pyyaml = "*"
 click = "*"
+arrow = "*"
 
 [requires]
 python_version = "3.6"

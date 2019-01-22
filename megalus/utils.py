@@ -1,5 +1,6 @@
 import datetime
 import hashlib
+import json
 import os
 import re
 import shutil
@@ -99,3 +100,27 @@ def get_path(path: str, base_path: str) -> str:
         list_path = os.path.join(base_path, path)
         path = os.path.abspath(list_path)
     return path
+
+
+def update_service_status(service, key, value):
+    status_file = os.path.join(str(Path.home()), '.megalus', 'service_status.json')
+    with open(status_file, "w+") as file:
+        data = file.read()
+        service_status = json.loads(file.read()) if data else {}
+
+        service_data = service_status.get(service, {})
+        if not service_data:
+            service_data = {service: {key: value}}
+        else:
+            service_data.update({key: value})
+        service_status.update(service_data)
+
+        file.write(json.dumps(service_status, indent=4))
+
+
+def get_service_status(service):
+    status_file = os.path.join(str(Path.home()), '.megalus', 'service_status.json')
+    with open(status_file, "w+") as file:
+        data = file.read()
+        service_status = json.loads(file.read()) if data else {}
+    return service_status.get(service, {})

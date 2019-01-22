@@ -224,12 +224,13 @@ class Megalus:
         ret = console.run(command_to_run)
         if not ret:
             sys.exit(1)
+        return ret
 
     def get_environment(self):
         command_env = os.environ.copy()
         command_env["PATH"] = "/usr/sbin:/sbin:" + command_env["PATH"]
         for env in self.config_data['project'].get('environment'):
             command_env[env] = os.environ.get(env, self.config_data['project']['environment'].get(env, ""))
-        for env in self.config_data['project'][self.service].get('environment', []):
+        for env in self.config_data['project'].get(self.service, {}).get('environment', []):
             command_env[env] = os.environ.get(env, self.config_data['project']['environment'].get(env, ""))
         return command_env

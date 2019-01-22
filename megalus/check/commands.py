@@ -7,16 +7,18 @@ Attributes
     BASE_DIR (TYPE): Base dir for .geru files
 
 """
+import os
 
+import arrow
 import click
 import docker
-from buzio import console
 from docker.errors import ImageNotFound
 from loguru import logger
 
 from megalus.main import Megalus
 
 client = docker.from_env()
+
 
 def get_services(meg, service, service_list, ignore_list, tree, compose_data):
     if service in service_list or service in ignore_list:
@@ -40,45 +42,63 @@ def get_services(meg, service, service_list, ignore_list, tree, compose_data):
 def check(meg: Megalus, services):
     """Run main code."""
 
-    def need_docker_image(service_data):
-        if service_data.get('image', None) and service_data.get('build', None):
+    def get_docker_image(compose_data):
+        if compose_data.get('image', None) and compose_data.get('build', None):
             try:
-                client.images.get(service_data['image'])
-                return False
+                return client.images.get(compose_data['image'])
             except ImageNotFound:
+                return None
+
+    def has_old_image(ctx, service):
+
+        def get_date_from_file(file):
+            date = arrow.get(os.path.getmtime(os.path.join(data['working_dir'], file))).to('local')
+            logger.debug("Last update for file {} is {}".format(file, date))
+            return date
+
+        data = ctx.find_service(service)
+        image = get_docker_image(data['compose_data'])
+        if not image:
+            return False
+        else:
+            image_date_created = arrow.get(image.attrs['Created']).to('local')
+            global_files_to_watch = meg.config_data['project'].get('check_for_build', {}).get('files', [])
+            project_files_to_watch = meg.config_data['services'].get(service, {}).get('check_for_build', {}).get('files', [])
+            all_files = global_files_to_watch + project_files_to_watch
+            list_dates = [
+                get_date_from_file(file)
+                for file in all_files
+                if os.path.isfile(os.path.join(data['working_dir'], file))  # FIXME: Acertar o working_dir + build.context para achar o path dos arquivos
+            ]
+            if list_dates and image_date_created < max(list_dates):
                 return True
-        return False
+            return False
+
 
     service_list = []
     ignore_list = []
     for service in services:
         logger.info("Checking {}...".format(service))
         service_data = meg.find_service(service)
-        service_list, ignore_list = get_services(meg, service, service_list, ignore_list, [], service_data['compose_data'])
+        service_list, ignore_list = get_services(
+            meg, service, service_list, ignore_list, [],
+            service_data['compose_data']
+        )
 
-    need_build = [
+    services_without_images = [
         service
         for service in service_list
-        if need_docker_image(meg.find_service(service)['compose_data'])
+        if get_docker_image(meg.find_service(service))
     ]
 
-    if need_build:
-        logger.warning("Services without images: {}".format(", ".join(need_build)))
+    if services_without_images:
+        logger.warning("Services without images: {}".format(", ".join(services_without_images)))
 
-    # all_services = service_list + ignore_list
-    # use_database = [
-    #     service
-    #     for service in all_services
-    #     if 'postgres' in data['services'][service].get('depends_on', [])
-    # ]
-    #
-    # psql_command = "psql -h 127.0.0.1 -p 5433 -U geru -lqt | cut -d \| -f 1 | grep -w {} >/dev/null"
-    # if use_database:
-    #     need_migrate = [
-    #         service
-    #         for service in use_database
-    #         if not console.run(psql_command.format(service)) and
-    #            'sentry' not in service and 'worker' not in service
-    #     ]
-    #     if need_migrate:
-    #         console.warning("Services without databases: {}".format(", ".join(need_migrate)))
+    services_with_old_images = [
+        service
+        for service in service_list
+        if service not in services_without_images and has_old_image(meg, service)
+    ]
+
+    if services_with_old_images:
+        logger.warning("Services with old images: {}".format(", ".join(services_with_old_images)))

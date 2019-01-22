@@ -5,7 +5,7 @@ from megalus.main import Megalus
 from megalus.bash.commands import bash
 from megalus.build.commands import build, buildgroup
 from megalus.clone.commands import clone
-from megalus.commands.commands import config, install, reset, update
+from megalus.commands.commands import config, install, reset, update, init
 from megalus.compose.commands import restart, scale, up
 from megalus.stop.commands import stop
 from megalus.down.commands import down
@@ -38,7 +38,7 @@ cli.add_command(stop)
 cli.add_command(up)
 cli.add_command(update)
 cli.add_command(check)
-
+cli.add_command(init)
 
 def start():
     cli()

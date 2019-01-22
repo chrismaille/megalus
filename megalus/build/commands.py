@@ -26,11 +26,13 @@ If you have issues with docker cache during install, use the command
 """
 from typing import List
 
+import arrow as arrow
 import click
 from loguru import logger
 
 from megalus import LOGFILE
 from megalus.main import Megalus
+from megalus.utils import update_service_status
 
 
 def _build_services(meg, force, services) -> None:
@@ -45,7 +47,9 @@ def _build_services(meg, force, services) -> None:
                 service_data['name'],
                 LOGFILE
             ))
+        update_service_status(service_data['name'], "last_build", arrow.utcnow().to('local').isoformat())
         logger.success('Service {} builded.'.format(service_data['name']))
+
 
 
 @click.command()
