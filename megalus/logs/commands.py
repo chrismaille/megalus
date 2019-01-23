@@ -5,6 +5,7 @@ import re
 import sys
 from time import sleep
 
+import arrow
 import click
 from buzio import console
 from loguru import logger
@@ -25,7 +26,7 @@ def show_log(name, line):
         ],
         "extra": {
             "container": name,
-            "docker_timestamp": line[:22]
+            "docker_timestamp": arrow.get(line[:22]).to('local')
         }
     }
     logger.configure(**config)
