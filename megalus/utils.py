@@ -39,7 +39,7 @@ def find_containers(service):
     eligible_containers = [
         container
         for container in client.containers.list()
-        if service in container.name
+        if "_{}_".format(service) in container.name
     ]
     return eligible_containers
 
