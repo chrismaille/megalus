@@ -7,7 +7,7 @@ from loguru import logger
 
 from megalus.utils import get_path
 
-__version__ = "2.0.0a5"
+__version__ = "2.0.0a6"
 
 BASE_LOG_PATH = os.path.join(str(Path.home()), '.megalus', 'logs')
 
