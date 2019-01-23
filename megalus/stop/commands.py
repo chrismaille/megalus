@@ -9,7 +9,7 @@ def stop_all(meg):
         for data in meg.all_services
     ])
     for compose_dir in list(compose_set):
-        meg.run_command("cd ${} && docker-compose stop".format(compose_dir))
+        meg.run_command("cd {} && docker-compose stop".format(compose_dir))
 
 
 @click.command()
