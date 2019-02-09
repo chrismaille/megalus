@@ -1,16 +1,15 @@
 import click
 
-from megalus.check.commands import check
-from megalus.main import Megalus
 from megalus.bash.commands import bash
-from megalus.build.commands import build, buildgroup
-from megalus.clone.commands import clone
-from megalus.commands.commands import config, install, reset, update, init
+from megalus.build.commands import build
+from megalus.check.commands import check
+from megalus.commands.commands import config, init, install, reset, update
 from megalus.compose.commands import restart, scale, up
-from megalus.stop.commands import stop
 from megalus.down.commands import down
 from megalus.logs.commands import logs
+from megalus.main import Megalus
 from megalus.run.commands import run
+from megalus.stop.commands import stop
 
 
 @click.group()
@@ -18,14 +17,12 @@ from megalus.run.commands import run
 @click.pass_context
 def cli(ctx, config_file):
     meg = Megalus(config_file=config_file)
-    meg.get_all_compose_data()
+    meg.get_services()
     ctx.obj = meg
 
 
 cli.add_command(bash)
 cli.add_command(build)
-cli.add_command(buildgroup)
-cli.add_command(clone)
 cli.add_command(config)
 cli.add_command(down)
 cli.add_command(install)
@@ -39,6 +36,7 @@ cli.add_command(up)
 cli.add_command(update)
 cli.add_command(check)
 cli.add_command(init)
+
 
 def start():
     cli()

@@ -28,8 +28,10 @@ def bash(meg: Megalus, service: str) -> None:
     if not eligible_containers:
         logger.info("Running /bin/bash in service {}".format(service_data['name']))
         meg.run_command(
-            'cd {} && docker-compose run --rm --service-ports {} /bin/bash'.format(service_data['working_dir'],
-                                                                                   service_data['name'])
+            'cd {dir} && docker-compose {files} run --rm --service-ports {service} /bin/bash'.format(
+                dir=service_data['working_dir'],
+                files="-f ".join(service_data['compose_files']),
+                service=service_data['name'])
         )
     elif len(eligible_containers) == 1:
         container_id = eligible_containers[0].short_id

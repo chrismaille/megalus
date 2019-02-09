@@ -4,35 +4,12 @@ import json
 import os
 import re
 import shutil
-import sys
 from pathlib import Path
 
 import docker
-from buzio import console
 from loguru import logger
 
 client = docker.from_env()
-
-
-def find_service(compose_file, service_informed):
-    compose_services = compose_file['services']
-
-    if service_informed in compose_services:
-        service_name = service_informed
-    else:
-        eligible_services = [
-            eligible_service
-            for eligible_service in compose_services
-            if service_informed in eligible_service
-        ]
-        if not eligible_services:
-            logger.error("Service not found")
-            sys.exit(1)
-        elif len(eligible_services) == 1:
-            service_name = eligible_services[0]
-        else:
-            service_name = console.choose(eligible_services, 'Please select the service')
-    return service_name, compose_file['services'][service_name]
 
 
 def find_containers(service):
@@ -53,18 +30,6 @@ def backup_folder(folder_path):
     backup_path = os.path.join(*folders)
     logger.warning('Directory already exists. Moving folder to {}'.format(backup_path))
     shutil.move(folder_path, backup_path)
-
-
-def run_command(meg, command):
-    logger.debug("Running command: {}".format(command))
-    command_to_run = "{run_before}{command}{run_after}".format(
-        run_before="{} && ".format(meg.run_before) if meg.run_before else "",
-        command=command,
-        run_after=" && {}".format(meg.run_after) if meg.run_after else ""
-    )
-    ret = console.run(command_to_run)
-    if not ret:
-        sys.exit(1)
 
 
 def get_path(path: str, base_path: str) -> str:
@@ -102,7 +67,7 @@ def get_path(path: str, base_path: str) -> str:
     return path
 
 
-def update_service_status(service, key, value):
+def save_status(service, key, value):
     status_file = os.path.join(str(Path.home()), '.megalus', 'service_status.json')
     with open(status_file, "w+") as file:
         data = file.read()
@@ -118,7 +83,7 @@ def update_service_status(service, key, value):
         file.write(json.dumps(service_status, indent=4))
 
 
-def get_service_status(service):
+def load_status(service):
     status_file = os.path.join(str(Path.home()), '.megalus', 'service_status.json')
     with open(status_file, "w+") as file:
         data = file.read()

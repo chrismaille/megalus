@@ -1,0 +1,28 @@
+version: "1"
+log_level: "INFO"
+
+defaults:
+  install_commands:
+    default: "make install service={service}"
+  config_commands:
+    default: "code ./megalus.yml"
+  scripts:
+    init: "make init service={service}"
+    update: "make update service={service}"
+    clone: "make clone service={service}"
+  check_for_build:
+    - requirements.txt
+    - Pipfile
+    - Pipfile.lock
+    - setup.py
+    - Dockerfile
+
+compose_projects:
+    backend:
+      path: ./backend
+      files:
+        - docker-compose.yml
+        - docker-compose.override.yml
+
+
+

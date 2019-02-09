@@ -7,8 +7,9 @@ import click
 
 def run_compose_command(meg, action, service_data, options=""):
     meg.run_command(
-        "cd {working_dir} && docker-compose {action}{options}{services}".format(
+        "cd {working_dir} && docker-compose {files} {action}{options}{services}".format(
             working_dir=service_data['working_dir'],
+            files="-f ".join(service_data['compose_files']),
             options=" {} ".format(options) if options else " ",
             action=action,
             services=service_data['name']

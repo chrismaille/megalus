@@ -11,7 +11,7 @@ from buzio import console
 from loguru import logger
 
 from megalus.main import Megalus
-from megalus.utils import find_containers, find_service
+from megalus.utils import find_containers
 
 
 def show_log(name, line):

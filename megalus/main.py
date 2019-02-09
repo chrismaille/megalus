@@ -1,5 +1,6 @@
 import os
 import sys
+from typing import Dict, Any
 
 import yaml
 from buzio import console
@@ -13,9 +14,17 @@ class Megalus:
     def __init__(self, config_file):
         self.service = None
         self._config_file = config_file
+        self.base_path = os.path.dirname(config_file)
         self.compose_data_list = []
         self._data = {}  # type: Dict[str, Any]
         self.all_services = []
+        self.all_composes = {}
+
+    @property
+    def config_data(self):
+        with open(self._config_file) as file:
+            config_data = yaml.load(file.read())
+        return config_data
 
     def _convert_lists(self, data, key):
         """Convert list to dict inside yaml data.
@@ -106,21 +115,58 @@ class Megalus:
             else:
                 target[key] = source[key]
 
-    def get_all_compose_data(self):
-        for compose_subgroup_name in self.config_data['compose_files']:
-            compose_paths = self.get_compose_files_for_group(compose_subgroup_name)
-            compose_data = self.get_compose_data_for_group(compose_paths)
+    def _get_compose_data_for(self, compose_paths) -> dict:
+        """Read docker compose files data.
+
+        :return: None
+        """
+        resolved_paths = [
+            get_path(file, base_path=self.base_path)
+            for file in compose_paths
+        ]
+
+        compose_data_list = []
+        for compose_file in resolved_paths:
+            with open(compose_file, 'r') as file:
+                compose_data = yaml.load(file.read())
+                for key in compose_data:  # type: ignore
+                    self._convert_lists(compose_data, key)
+                compose_data_list.append(compose_data)
+        reversed_list = list(reversed(compose_data_list))
+        self._data = reversed_list[-1]
+        for index, override in enumerate(reversed_list):
+            self.override = override
+            if index + 1 == len(reversed_list):
+                break
+            for key in self.override:
+                self._load_data_from_override(self.override, self._data, key)
+        return self._data
+
+    def get_services(self):
+
+        for compose_project in self.config_data.get('compose_projects'):
+            compose_files = self.config_data['compose_projects'][compose_project]['files']
+            compose_data = self._get_compose_data_for(compose_files)
+            self.all_composes.update({compose_project: compose_data})
             for service in compose_data['services']:
                 self.all_services.append(
                     {
-                        'index': "{}_{}".format(service, compose_subgroup_name),
                         'name': service,
-                        'subgroup': compose_subgroup_name,
-                        'working_dir': os.path.dirname(compose_paths[0]),
-                        'compose_data': compose_data['services'][service],
-                        'all_compose_data': compose_data
+                        'compose': compose_project,
+                        'full_name': "{} ({})".format(service, compose_project),
+                        'compose_files': compose_files,
+                        'working_dir': os.path.dirname(get_path(compose_files[0], self.base_path)),
+                        'compose_data': compose_data['services'][service]
                     }
                 )
+
+    @staticmethod
+    def run_command(command):
+        logger.debug("Running command: {}".format(command))
+        ret = console.run(command)
+        if not ret:
+            sys.exit(1)
+        return ret
 
     def find_service(self, service_informed):
 
@@ -146,91 +192,14 @@ class Megalus:
             return eligible_services[0]
         else:
             choice_list = [
-                data['index']
+                data['full_name']
                 for data in eligible_services
             ]
             service_name = console.choose(choice_list, 'Please select the service')
         data = [
             data
             for data in eligible_services
-            if service_name == data['index']
+            if service_name == data['full_name']
         ][0]
         self.service = data['name']
         return data
-
-    def get_compose_data_for_group(self, compose_paths) -> dict:
-        """Read docker compose files data.
-
-        :return: None
-        """
-        compose_data_list = []
-        for compose_file in compose_paths:
-            with open(compose_file, 'r') as file:
-                compose_data = yaml.load(file.read())
-                for key in compose_data:  # type: ignore
-                    self._convert_lists(compose_data, key)
-                compose_data_list.append(compose_data)
-        reversed_list = list(reversed(compose_data_list))
-        self._data = reversed_list[-1]
-        for index, override in enumerate(reversed_list):
-            self.override = override
-            if index + 1 == len(reversed_list):
-                break
-            for key in self.override:
-                self._load_data_from_override(self.override, self._data, key)
-        return self._data
-
-    def _resolve_path(self, compose):
-        base_compose_path = os.path.dirname(compose)
-        if "." in base_compose_path:
-            base_compose_path = self.config_data['project']['working_dir']
-        return get_path(compose, base_path=base_compose_path)
-
-    def get_compose_files_for_group(self, group):
-        return [
-            self._resolve_path(compose)
-            for compose in self.config_data['compose_files'][group]
-        ]
-
-    @property
-    def working_dir(self):
-        return self._resolve_path(self.config_data['project']['working_dir'])
-
-    @property
-    def config_data(self):
-        with open(self._config_file) as file:
-            config_data = yaml.load(file.read())
-        return config_data
-
-    def get_config_from_service(self, service, key):
-        return self.config_data.get('services', {}).get(service, {}).get('config', {}).get(key, None)
-
-    @property
-    def run_before(self):
-        return self.config_data['project'].get('run_before', "")
-
-    @property
-    def run_after(self):
-        return self.config_data['project'].get('run_after', "")
-
-    def run_command(self, command):
-        env = self.get_environment()
-        logger.debug("Running command: {}".format(command))
-        command_to_run = "{run_before}{command}{run_after}".format(
-            run_before="{} && ".format(self.run_before) if self.run_before else "",
-            command=command,
-            run_after=" && {}".format(self.run_after) if self.run_after else ""
-        )
-        ret = console.run(command_to_run)
-        if not ret:
-            sys.exit(1)
-        return ret
-
-    def get_environment(self):
-        command_env = os.environ.copy()
-        command_env["PATH"] = "/usr/sbin:/sbin:" + command_env["PATH"]
-        for env in self.config_data['project'].get('environment'):
-            command_env[env] = os.environ.get(env, self.config_data['project']['environment'].get(env, ""))
-        for env in self.config_data['project'].get(self.service, {}).get('environment', []):
-            command_env[env] = os.environ.get(env, self.config_data['project']['environment'].get(env, ""))
-        return command_env
