@@ -1,0 +1,143 @@
+swagger: "2.0"
+info:
+  description: This is the swagger file that goes with our server code
+  version: "1.0.0"
+  title: Swagger ReST Article
+consumes:
+  - application/json
+produces:
+  - application/json
+
+basePath: /api
+
+# Paths supported by the server application
+paths:
+  /people:
+    get:
+      operationId: app.read_all
+      tags:
+        - People
+      summary: Read the entire list of people
+      description: Read the list of people
+      parameters:
+        - name: length
+          in: query
+          type: integer
+          description: Number of people to get from people
+          required: false
+        - name: offset
+          in: query
+          type: integer
+          description: Offset from beginning of list where to start gathering people
+          required: false
+      responses:
+        200:
+          description: Successfully read people list operation
+          schema:
+            type: array
+            items:
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                email:
+                  type: string
+                timestamp:
+                  type: string
+
+    post:
+      operationId: app.create
+      tags:
+        - people
+      summary: Create a person and add it to the people list
+      description: Create a new person in the people list
+      parameters:
+        - name: person
+          in: body
+          description: Person to create
+          required: True
+          schema:
+            type: object
+            properties:
+              first_name:
+                type: string
+                description: First name of person to create
+              last_name:
+                type: string
+                description: Last name of person to create
+              email:
+                type: string
+                description: Email of person to create
+      responses:
+        201:
+          description: Successfully created person in list
+
+  /people/{email}:
+    get:
+      operationId: app.read_one
+      tags:
+        - people
+      summary: Read one person from the people list
+      description: Read one person from the people list
+      parameters:
+        - name: email
+          in: path
+          description: Email of the person to get from the list
+          type: string
+          required: True
+      responses:
+        200:
+          description: Successfully read person from people list operation
+          schema:
+            properties:
+              first_name:
+                type: string
+              last_name:
+                type: string
+              email:
+                type: string
+              timestamp:
+                type: string
+
+    put:
+      operationId: app.update
+      tags:
+        - people
+      summary: Update a person in the people list
+      description: Update a person in the people list
+      parameters:
+        - name: last_name
+          in: path
+          description: Last name of the person to update in the list
+          type: string
+          required: True
+        - name: person
+          in: body
+          schema:
+            type: object
+            properties:
+              first_name:
+                type: string
+              last_name:
+                type: string
+              email:
+                type: string
+      responses:
+        200:
+          description: Successfully updated person in people list
+
+    delete:
+      operationId: app.delete
+      tags:
+        - people
+      summary: Delete a person from the people list
+      description: Delete a person
+      parameters:
+        - name: email
+          in: path
+          type: string
+          required: True
+      responses:
+        200:
+          description: Successfully deleted a person from people list

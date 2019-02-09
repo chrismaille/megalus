@@ -1,27 +1,13 @@
 version: "3"
 services:
-  django:
+ flask:
     build:
-      dockerfile: Dockerfile_dev
-    depends_on:
-      - postgres
-      - django-redis
-    command: python manage.py runserver 0.0.0.0:8080
-    environment:
-      DEBUG: "True"
-    ports:
-      - "8090:8080"
-  django-worker:
-    depends_on:
-      - postgres
-  flask:
-    build:
-      context: ./flask_app
+      context: flask_app
     image: "flask:dev"
     ports:
       - "5010:5000"
     depends_on:
-      - postgres
+      - mongo
     volumes:
       - ./flask_app:/opt/app
     environment:
@@ -36,3 +22,10 @@ services:
       backend:
         aliases:
           - flask
+  mongo:
+    image: "mongo"
+    ports:
+      - "27018:27017"
+networks:
+  backend:
+    driver: bridge

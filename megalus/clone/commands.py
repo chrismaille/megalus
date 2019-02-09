@@ -1,6 +1,4 @@
-"""
-clone.
-"""
+"""Clone service command."""
 import os
 from pathlib import Path
 from typing import List
@@ -14,6 +12,14 @@ from megalus.utils import backup_folder
 
 
 def get_clone_path(service_data: dict) -> Path:
+    """Get the git clone destination path.
+
+    Get the destination path looking the 'build: context:'
+    value in docker-compose yaml.
+
+    :param service_data: docker-compose data
+    :return: Path instance
+    """
     path = service_data['compose_data'].get('build', {}).get('context', None)
     clone_path = Path(os.path.join(service_data['working_dir'], path)).resolve()
     logger.debug("Clone path for service {} is: {}".format(service_data['name'], clone_path))
@@ -25,6 +31,20 @@ def get_clone_path(service_data: dict) -> Path:
 @click.option('--force', is_flag=True)
 @click.pass_obj
 def clone(meg: Megalus, services: List, force: bool) -> None:
+    """Clone services command.
+
+    This command will 'git clone' the selected services
+    based on 'config: repository:' value in megalus.yml
+
+    If destination path exists, this command will warn the
+    user and ignore clone, except if the --force is used -
+    is this case, the existing folder will be backup first.
+
+    :param meg: click context object
+    :param services: services to be cloned
+    :param force: use the --force to backup destination folder if exists
+    :return: None
+    """
     for service in services:
         service_data = meg.find_service(service)
 

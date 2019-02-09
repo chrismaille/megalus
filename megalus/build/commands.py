@@ -1,29 +1,4 @@
-"""
-BUILD
-Usage: geru build [--no-cache]| [<service> ...]
-This command will build the selected service (using docker-compose build).
-Use the --no-cache option to force installing without cache
-If you do not inform any service, the command will make the minimal install
-**Do not start this until you have tested your docker install.**
-
-This command will make the minimum install: ***core***, ***migrate***,
-***awscli***, ***geru-ngrok***, ***ftp*** and ***monitor*** services.
-
-If you have issues with docker cache during install, use the command
-`geru forcebuild <service>` to make install.
-
-
-##### Troubleshooting:
-
-1. Check if the repositories are in their default branches (ie. stage)
-2. Check if you have permission to read the repositories
-3. Check if you git personal token has all "repo" operations marked
-4. Check if your docker are working correctly typing `docker run busybox
-  nslookup google.com`
-5. Check you have at least 40Gb free disk space.
-6. Check your internet connection. You can run again `geru build` (the
-   build will resume the operation)
-"""
+"""Build command."""
 from typing import List
 
 import arrow as arrow
@@ -51,12 +26,20 @@ def _build_services(meg, force, services) -> None:
         logger.success('Service {} builded.'.format(service_data['name']))
 
 
-
 @click.command()
 @click.argument('services', nargs=-1, required=True)
 @click.option('--force', is_flag=True)
 @click.pass_obj
 def build(meg: Megalus, services: List, force: bool) -> None:
+    """Run the build command on selected services.
+
+    Use this command to build the selected services.
+
+    :param meg: click context object
+    :param services: services list to build
+    :param force: use the --force to add the --no-cache option in build
+    :return:
+    """
     _build_services(meg, force, services)
 
 
@@ -65,6 +48,17 @@ def build(meg: Megalus, services: List, force: bool) -> None:
 @click.option('--force', is_flag=True)
 @click.pass_obj
 def buildgroup(meg: Megalus, groups: List, force: bool) -> None:
+    """Build a group of services.
+
+    You can define a docker-compose services group in
+    the megalus.yml file. This command will run the 'build'
+    command for every one of them.
+
+    :param meg: click context object
+    :param groups: group list name
+    :param force: use the --force to add the --no-cache option to build
+    :return: None
+    """
     all_groups = set(
         [
             meg.get_config_from_service(service, "group")

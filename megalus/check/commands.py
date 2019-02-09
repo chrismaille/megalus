@@ -1,13 +1,6 @@
-"""Create folders in FTP.
-
-Use the /app/ftp_tree.yaml to get tree structure.
-
-Attributes
-----------
-    BASE_DIR (TYPE): Base dir for .geru files
-
-"""
+"""Check command."""
 import os
+from typing import List, Tuple, Optional
 
 import arrow
 import click
@@ -20,7 +13,20 @@ from megalus.main import Megalus
 client = docker.from_env()
 
 
-def get_services(meg, service, service_list, ignore_list, tree, compose_data):
+def get_services_to_check(meg: Megalus, service: str, service_list: list, ignore_list: list, tree: list,
+                          compose_data: dict) -> Optional[Tuple[List, List]]:
+    """Get services to check.
+
+    Recursively get all services to check and ignore.
+
+    :param meg: click context object
+    :param service: service to inspect
+    :param service_list: services to check list
+    :param ignore_list: services to ignore list
+    :param tree: current service dependencies list
+    :param compose_data: docker-compose data
+    :return: Tuple
+    """
     if service in service_list or service in ignore_list:
         return
 
@@ -32,15 +38,34 @@ def get_services(meg, service, service_list, ignore_list, tree, compose_data):
     if tree:
         for key in tree:
             key_data = meg.find_service(key)
-            get_services(meg, key, service_list, ignore_list, tree, key_data['compose_data'])
+            get_services_to_check(meg, key, service_list, ignore_list, tree, key_data['compose_data'])
     return service_list, ignore_list
 
 
 @click.command()
 @click.argument('services', nargs=-1)
 @click.pass_obj
-def check(meg: Megalus, services):
-    """Run main code."""
+def check(meg: Megalus, services) -> None:
+    """Check services.
+
+    This command will check the selected services for:
+
+    * Need build because does not have image
+    * Need build because his image is outdated
+
+    To find out if the image needs updating,
+    add the list of files in the megalus.yml file,
+    whose update date should be compared to the build date of the image.
+
+    Example: if you add the 'Dockerfile', 'requirements.txt' and 'Pipfile'
+    inside the 'check_for_build: files:' section in megalus.yml, this command will compare,
+    for each file, his last modification date against docker image build date
+    for the service.
+
+    :param meg: click context object
+    :param services: services list to be inspected
+    :return: None
+    """
 
     def get_docker_image(compose_data):
         if compose_data.get('image', None) and compose_data.get('build', None):
@@ -63,24 +88,25 @@ def check(meg: Megalus, services):
         else:
             image_date_created = arrow.get(image.attrs['Created']).to('local')
             global_files_to_watch = meg.config_data['project'].get('check_for_build', {}).get('files', [])
-            project_files_to_watch = meg.config_data['services'].get(service, {}).get('check_for_build', {}).get('files', [])
+            project_files_to_watch = meg.config_data['services'].get(service, {}).get('check_for_build', {}).get(
+                'files', [])
             all_files = global_files_to_watch + project_files_to_watch
             list_dates = [
                 get_date_from_file(file)
                 for file in all_files
-                if os.path.isfile(os.path.join(data['working_dir'], file))  # FIXME: Acertar o working_dir + build.context para achar o path dos arquivos
+                if os.path.isfile(os.path.join(data['working_dir'], file))
+                # FIXME: Acertar o working_dir + build.context para achar o path dos arquivos
             ]
             if list_dates and image_date_created < max(list_dates):
                 return True
             return False
-
 
     service_list = []
     ignore_list = []
     for service in services:
         logger.info("Checking {}...".format(service))
         service_data = meg.find_service(service)
-        service_list, ignore_list = get_services(
+        service_list, ignore_list = get_services_to_check(
             meg, service, service_list, ignore_list, [],
             service_data['compose_data']
         )
