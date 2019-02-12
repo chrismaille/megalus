@@ -18,7 +18,7 @@ now = arrow.utcnow().to("local").isoformat()
 LOGFILE = os.path.join(BASE_LOG_PATH, '{}.log'.format(now))
 
 DEFAULT_LOGGER_MESSAGE = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> |" \
-                         " <level>{level: <8}</level> - <level>{message}</level>",
+                         " <level>{level: <8}</level> - <level>{message}</level>"
 
 config = {
     "handlers": [

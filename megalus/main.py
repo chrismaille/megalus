@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import Dict, Any
+from typing import Any, Dict
 
 import yaml
 from buzio import console
@@ -14,7 +14,7 @@ class Megalus:
     def __init__(self, config_file):
         self.service = None
         self._config_file = config_file
-        self.base_path = os.path.dirname(config_file)
+        self.base_path = get_path(os.path.dirname(config_file), '.')
         self.compose_data_list = []
         self._data = {}  # type: Dict[str, Any]
         self.all_services = []
@@ -58,7 +58,7 @@ class Megalus:
                 context: ../core
             image: core
             networks:
-                - backend
+                - api1
             environment:
                 - DEBUG=false
             ports:
@@ -90,7 +90,7 @@ class Megalus:
             environment:
                 DEBUG: "True"
             networks:
-                - backend
+                - api1
             ports:
              - "8080:80"
              - "9000:80"
@@ -115,14 +115,14 @@ class Megalus:
             else:
                 target[key] = source[key]
 
-    def _get_compose_data_for(self, compose_paths) -> dict:
+    def _get_compose_data_for(self, compose_path, compose_files) -> dict:
         """Read docker compose files data.
 
         :return: None
         """
         resolved_paths = [
-            get_path(file, base_path=self.base_path)
-            for file in compose_paths
+            get_path(os.path.join(compose_path, file), base_path=self.base_path)
+            for file in compose_files
         ]
 
         compose_data_list = []
@@ -145,8 +145,9 @@ class Megalus:
     def get_services(self):
 
         for compose_project in self.config_data.get('compose_projects'):
+            compose_path = self.config_data['compose_projects'][compose_project]['path']
             compose_files = self.config_data['compose_projects'][compose_project]['files']
-            compose_data = self._get_compose_data_for(compose_files)
+            compose_data = self._get_compose_data_for(compose_path, compose_files)
             self.all_composes.update({compose_project: compose_data})
             for service in compose_data['services']:
                 self.all_services.append(
@@ -155,7 +156,8 @@ class Megalus:
                         'compose': compose_project,
                         'full_name': "{} ({})".format(service, compose_project),
                         'compose_files': compose_files,
-                        'working_dir': os.path.dirname(get_path(compose_files[0], self.base_path)),
+                        'working_dir': os.path.dirname(
+                            get_path(os.path.join(compose_path, compose_files[0]), self.base_path)),
                         'compose_data': compose_data['services'][service]
                     }
                 )

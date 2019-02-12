@@ -18,11 +18,15 @@ defaults:
     - Dockerfile
 
 compose_projects:
-    backend:
-      path: ./backend
+    api1:
+      path: ./api1
       files:
         - docker-compose.yml
         - docker-compose.override.yml
+    api2:
+      path: ./api2
+      files:
+        - docker-compose.yml
 
 
 

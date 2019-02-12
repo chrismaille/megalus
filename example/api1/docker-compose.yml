@@ -1,6 +1,6 @@
 version: "3"
 services:
- flask:
+  flask:
     build:
       context: flask_app
     image: "flask:dev"
@@ -8,10 +8,12 @@ services:
       - "5010:5000"
     depends_on:
       - mongo
+    external_links:
+      - api2_flask_1:flask2
     volumes:
-      - ./flask_app:/opt/app
+      - .:/opt/app
     environment:
-      - FLASK_APP=app.py
+      - FLASK_APP=flask_app.app:app
       - FLASK_ENV=development
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]  # Always return error
@@ -19,13 +21,20 @@ services:
       timeout: 5s
       retries: 3
     networks:
-      backend:
+      api2_default:
+      api1:
         aliases:
           - flask
   mongo:
     image: "mongo"
     ports:
       - "27018:27017"
+    networks:
+      api1:
+        aliases:
+          - mongo
 networks:
-  backend:
+  api2_default:
+    external: true
+  api1:
     driver: bridge

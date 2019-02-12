@@ -1,7 +1,7 @@
 FROM python:latest
 
 WORKDIR /opt/app
-RUN pip install -U pip Flask-PyMongo connexion
+RUN pip install -U pip flask-restful
 ADD . .
 
 EXPOSE 5000

@@ -1,0 +1,20 @@
+version: "3"
+services:
+  flask:
+    build:
+      context: flask_app
+    image: "flask:dev"
+    ports:
+      - "5020:5000"
+    volumes:
+      - .:/opt/app
+    environment:
+      - FLASK_APP=flask_app.app:app
+      - FLASK_ENV=development
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]  # Always return error
+      interval: 30s
+      timeout: 5s
+      retries: 3
+networks:
+  api2:
