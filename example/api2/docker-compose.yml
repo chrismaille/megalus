@@ -16,5 +16,12 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+  pyramid:
+    build:
+      context: pyramid_app
+    ports:
+      - "6544:6543"
+    volumes:
+      - .:/opt/app
 networks:
   api2:

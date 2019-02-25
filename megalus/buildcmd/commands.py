@@ -1,13 +1,10 @@
 """Build command."""
 from typing import List
 
-import arrow as arrow
 import click
 from loguru import logger
 
-from megalus import LOGFILE
 from megalus.main import Megalus
-from megalus.utils import save_status
 
 
 @click.command()
@@ -29,12 +26,11 @@ def build(meg: Megalus, services: List, force: bool) -> None:
         service_data = meg.find_service(service_to_find)
 
         meg.run_command(
-            'cd {dir} && docker-compose {files} build --force-rm {options}{service} | pv -lft -D 2 >> {log}'.format(
+            'cd {dir} && docker-compose -f {files} build --force-rm {options}{service} | pv -lft -D 2 >> {log}'.format(
                 dir=service_data['working_dir'],
-                files="-f ".join(service_data['compose_files']),
+                files=" -f ".join(service_data['compose_files']),
                 options=" --no-cache " if force else "",
                 service=service_data['name'],
-                log=LOGFILE
+                log=meg.logfile
             ))
-        save_status(service_data['name'], "last_build", arrow.utcnow().to('local').isoformat())
         logger.success('Service {} builded.'.format(service_data['name']))

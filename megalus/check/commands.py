@@ -5,6 +5,7 @@ from typing import List, Tuple, Optional
 import arrow
 import click
 import docker
+from docker import DockerClient
 from docker.errors import ImageNotFound
 from loguru import logger
 
@@ -13,7 +14,7 @@ from megalus.main import Megalus
 client = docker.from_env()
 
 
-def get_services_to_check(meg: Megalus, service: str, service_list: list, ignore_list: list, tree: list,
+def get_services_to_check(meg: Megalus, service: str, service_list: List[str], ignore_list: List[str], tree: List[str],
                           compose_data: dict) -> Optional[Tuple[List, List]]:
     """Get services to check.
 
@@ -28,9 +29,9 @@ def get_services_to_check(meg: Megalus, service: str, service_list: list, ignore
     :return: Tuple
     """
     if service in service_list or service in ignore_list:
-        return
+        return  # type: ignore
 
-    service_list.append(service) if compose_data.get('build', None) else ignore_list.append(
+    service_list.append(service) if compose_data.get('build', None) else ignore_list.append(  # type: ignore
         service)
     if compose_data.get('depends_on', None):
         tree = compose_data['depends_on']
@@ -66,17 +67,31 @@ def check(meg: Megalus, services) -> None:
     :param services: services list to be inspected
     :return: None
     """
+    def get_docker_image(compose_data: dict) -> Optional[DockerClient]:  # type: ignore
+        """Get docker image data.
 
-    def get_docker_image(compose_data):
+        :param compose_data: compose parsed data.
+        :return: DockerClient image instance or None
+        """
         if compose_data.get('image', None) and compose_data.get('build', None):
             try:
                 return client.images.get(compose_data['image'])
             except ImageNotFound:
                 return None
 
-    def has_old_image(ctx, service):
+    def has_old_image(ctx: Megalus, service: str) -> bool:
+        """Check if image is outdated.
 
-        def get_date_from_file(file):
+        :param ctx: Megalus instance
+        :param service: docker service selected
+        :return: bool
+        """
+        def get_date_from_file(file: str) -> arrow:
+            """Get date from file.
+
+            :param file: file full path
+            :return: Arrow instance
+            """
             date = arrow.get(os.path.getmtime(os.path.join(data['working_dir'], file))).to('local')
             logger.debug("Last update for file {} is {}".format(file, date))
             return date
@@ -101,12 +116,12 @@ def check(meg: Megalus, services) -> None:
                 return True
             return False
 
-    service_list = []
-    ignore_list = []
+    service_list = []  # type: List[str]
+    ignore_list = []  # type: List[str]
     for service in services:
         logger.info("Checking {}...".format(service))
         service_data = meg.find_service(service)
-        service_list, ignore_list = get_services_to_check(
+        service_list, ignore_list = get_services_to_check(  # type: ignore
             meg, service, service_list, ignore_list, [],
             service_data['compose_data']
         )

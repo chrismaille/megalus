@@ -1,6 +1,7 @@
+"""Main module."""
 import os
 import sys
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import yaml
 from buzio import console
@@ -10,23 +11,38 @@ from megalus.utils import get_path
 
 
 class Megalus:
+    """Megalus main class."""
 
-    def __init__(self, config_file):
+    def __init__(self, config_file: str, logfile: str) -> None:
+        """Initialize class.
+
+        :param config_file: path for megalus config path
+        :param logfile: path for save log file
+        """
         self.service = None
         self._config_file = config_file
         self.base_path = get_path(os.path.dirname(config_file), '.')
-        self.compose_data_list = []
+        self.compose_data_list = []  # type: List[dict]
         self._data = {}  # type: Dict[str, Any]
-        self.all_services = []
-        self.all_composes = {}
+        self.all_services = []  # type: List[dict]
+        self.all_composes = {}  # type: dict
+        self.logfile = logfile
 
     @property
-    def config_data(self):
-        with open(self._config_file) as file:
-            config_data = yaml.load(file.read())
+    def config_data(self) -> dict:
+        """Return megalus configuration data.
+
+        :return: dict
+        """
+        config_path = os.path.join(
+            self.base_path,
+            os.path.basename(self._config_file)
+        )
+        with open(config_path) as file:
+            config_data = yaml.safe_load(file.read())
         return config_data
 
-    def _convert_lists(self, data, key):
+    def _convert_lists(self, data: dict, key: str) -> None:
         """Convert list to dict inside yaml data.
 
         Works only for Key=Value lists.
@@ -48,7 +64,7 @@ class Megalus:
             for k in data[key]:
                 self._convert_lists(data[key], k)
 
-    def _load_data_from_override(self, source, target, key):
+    def _load_data_from_override(self, source: dict, target: dict, key: str) -> None:
         """Append override data in self.compose.
 
         Example Compose::
@@ -115,10 +131,10 @@ class Megalus:
             else:
                 target[key] = source[key]
 
-    def _get_compose_data_for(self, compose_path, compose_files) -> dict:
+    def _get_compose_data_for(self, compose_path: str, compose_files: List[str]) -> dict:
         """Read docker compose files data.
 
-        :return: None
+        :return: dict
         """
         resolved_paths = [
             get_path(os.path.join(compose_path, file), base_path=self.base_path)
@@ -128,7 +144,7 @@ class Megalus:
         compose_data_list = []
         for compose_file in resolved_paths:
             with open(compose_file, 'r') as file:
-                compose_data = yaml.load(file.read())
+                compose_data = yaml.safe_load(file.read())
                 for key in compose_data:  # type: ignore
                     self._convert_lists(compose_data, key)
                 compose_data_list.append(compose_data)
@@ -142,9 +158,12 @@ class Megalus:
                 self._load_data_from_override(self.override, self._data, key)
         return self._data
 
-    def get_services(self):
+    def get_services(self) -> None:
+        """Build service configuration from yaml files.
 
-        for compose_project in self.config_data.get('compose_projects'):
+        :return: None
+        """
+        for compose_project in self.config_data.get('compose_projects', []):
             compose_path = self.config_data['compose_projects'][compose_project]['path']
             compose_files = self.config_data['compose_projects'][compose_project]['files']
             compose_data = self._get_compose_data_for(compose_path, compose_files)
@@ -163,15 +182,24 @@ class Megalus:
                 )
 
     @staticmethod
-    def run_command(command):
+    def run_command(command: str) -> bool:
+        """Run command inside subprocess.
+
+        :param command: string: command to be run
+        :return: bool
+        """
         logger.debug("Running command: {}".format(command))
         ret = console.run(command)
         if not ret:
             sys.exit(1)
         return ret
 
-    def find_service(self, service_informed):
+    def find_service(self, service_informed: str) -> dict:
+        """Find service inside megalus service data.
 
+        :param service_informed: string: docker service informed in command.
+        :return: docker service megalus data.
+        """
         exact_matches = [
             data
             for data in self.all_services

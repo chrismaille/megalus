@@ -1,6 +1,4 @@
-"""
-commands.
-"""
+"""Megalus commands log module."""
 import re
 import sys
 from time import sleep
@@ -14,7 +12,13 @@ from megalus.main import Megalus
 from megalus.utils import find_containers
 
 
-def show_log(name, line):
+def show_log(name: str, line: str) -> None:
+    """Show docker container log in loguru.
+
+    :param name: service name
+    :param line: service log line
+    :return: None
+    """
     config = {
         "handlers": [
             {
@@ -45,6 +49,13 @@ def show_log(name, line):
 @click.option('--regex')
 @click.pass_obj
 def logs(meg: Megalus, services: list, regex: str):
+    """Log docker services containers.
+
+    :param meg: Megalus instance
+    :param services: selected docker services
+    :param regex: regex to filter logs
+    :return: None
+    """
     try:
         time_to_fetch = 2
         services_data_to_log = [

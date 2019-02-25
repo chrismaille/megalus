@@ -3,13 +3,14 @@ log_level: "INFO"
 
 defaults:
   install_commands:
-    default: "make install service={service}"
+    default: "make install"
   config_commands:
     default: "code ./megalus.yml"
+    django: "python ./api1/manage.py shell"
   scripts:
-    init: "make init service={service}"
-    update: "make update service={service}"
-    clone: "make clone service={service}"
+    init: "make init"
+    update: "make update"
+    clone: "make clone"
   check_for_build:
     - requirements.txt
     - Pipfile
