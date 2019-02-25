@@ -89,3 +89,4 @@ ENV/
 .ropeproject
 
 /.mypy_cache/
+/Pipfile.lock
