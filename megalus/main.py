@@ -1,13 +1,20 @@
 """Main module."""
 import os
 import sys
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
+import docker
 import yaml
-from buzio import console
+from blessed import terminal
+from buzio import console, formatStr
+from dashing.dashing import HSplit, Text
+from git import InvalidGitRepositoryError, Repo
 from loguru import logger
+from tabulate import tabulate
 
 from megalus.utils import get_path
+
+client = docker.from_env()
 
 
 class Megalus:
@@ -233,3 +240,105 @@ class Megalus:
         ][0]
         self.service = data['name']
         return data
+
+    def get_layout(self, term: terminal) -> HSplit:
+        """Get dashing terminal layout
+
+        :param term: Blessed Terminal
+        :return: dashing instance
+        """
+        boxes = [self.get_box(project) for project in self.config_data['compose_projects'].keys()]
+        ui = HSplit(*boxes, terminal=term, main=True, color=7, background_color=16)
+        return ui
+
+    def get_box(self, project: str) -> Text:
+        """Return Box widget.
+
+        :param project: project name
+        :return: dashing Text widget
+        """
+        all_services = [
+            service
+            for service in self.all_composes[project]
+        ]
+        project_path = self.config_data['compose_projects'][project]['path']
+        project_name = os.path.dirname(project_path)
+        ignore_list = self.config_data['compose_projects'][project].get('show_status', {}).get('ignore_list', [])
+
+        table_header = ['name', 'status', 'git']
+        table_lines = []
+        for service in all_services:
+            if service in ignore_list:
+                continue
+            name, service_status = self.get_service_status(service, project_name)
+            service_context_path = self.all_composes[project]['services'][service].get('build', {}).get('context', None)
+            if service_context_path:
+                git_status = self.get_git_status(service_context_path, project_path)
+            if not git_status:
+                git_status = formatStr.info('--', use_prefix=False, theme="dark")
+            table_lines.append([name, service_status, git_status])
+
+        table = tabulate(table_lines, table_header)
+        return Text(table, color=6, border_color=5, background_color=16,
+                    title=project)
+
+    def get_service_status(self, service: str, project_name: str) -> Tuple[str, str]:
+        """Get formatted service name and status
+
+        :param service: service name
+        :param project_name: project name
+        :return: Tuple
+        """
+        service_status = [
+            container.status
+            for container in client.containers.list()
+            if "{}_{}".format(project_name, service) in container.name
+        ]
+        if not service_status:
+            return (
+                formatStr.info(service, use_prefix=False, theme="dark"),
+                formatStr.info("Not Found", use_prefix=False, theme="dark")
+            )
+
+        main_status = max(set(service_status), key=service_status.count)
+        replicas = len(service_status)
+        replicas_in_main_status = service_status.count(main_status)
+
+        if replicas == 1 or replicas == replicas_in_main_status:
+            text = "{}{}".format(
+                main_status,
+                " x{}".format(replicas) if replicas > 1 else ""
+            )
+        else:
+            text = "{} x{}/{}".format(
+                main_status,
+                replicas_in_main_status,
+                replicas
+            )
+        return (
+            formatStr.success(service, use_prefix=False)
+            if "running" in main_status else formatStr.warning(service, use_prefix=False),
+            formatStr.success(text, use_prefix=False)
+            if "running" in main_status else formatStr.warning(text, use_prefix=False)
+        )
+
+    def get_git_status(self, service_path: str, project_path: str) -> str:
+        """Get formatted git status.
+
+        :param service_path: service build context path
+        :param project_path: project base path
+        :return: String
+        """
+        try:
+            service_repo = Repo(get_path(os.path.join(project_path, service_path), self.base_path))
+        except InvalidGitRepositoryError:
+            return None
+        is_dirty = service_repo.is_dirty()
+        text = "{}{}".format(
+            service_repo.active_branch.name,
+            " (modified)" if is_dirty else ""
+        )
+        if is_dirty:
+            return formatStr.warning(text, use_prefix=False)
+        else:
+            return formatStr.info(text, use_prefix=False)

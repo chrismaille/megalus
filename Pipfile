@@ -21,6 +21,9 @@ docker = "*"
 pyyaml = "*"
 click = "*"
 arrow = "*"
+pydashing = "*"
+gitpython = "*"
+tabulate = "*"
 
 [requires]
 python_version = "3.6"
