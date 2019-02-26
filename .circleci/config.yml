@@ -13,7 +13,7 @@ jobs:
           command: sudo pip install -e .
       - run:
           name: Test
-          command: make test
+          command: make ci
   build_test_python3.6:
     docker:
       - image: circleci/python:3.6
@@ -27,7 +27,7 @@ jobs:
           command: sudo pipenv install --system --deploy --dev
       - run:
           name: Test
-          command: make test
+          command: make ci
   build_test_python3.7:
     docker:
       - image: circleci/python:3.7
@@ -41,7 +41,7 @@ jobs:
           command: sudo pip install -e .
       - run:
           name: Test
-          command: make test
+          command: make ci
   release:
     docker:
       - image: circleci/python:3.7
