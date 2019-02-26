@@ -44,7 +44,7 @@ def get_services_to_check(meg: Megalus, service: str, service_list: List[str], i
 
 
 @click.command()
-@click.argument('services', nargs=-1)
+@click.argument('services', nargs=-1, required=True)
 @click.pass_obj
 def check(meg: Megalus, services) -> None:
     """Check services.
@@ -102,13 +102,10 @@ def check(meg: Megalus, services) -> None:
             return False
         else:
             image_date_created = arrow.get(image.attrs['Created']).to('local')
-            global_files_to_watch = meg.config_data['project'].get('check_for_build', {}).get('files', [])
-            project_files_to_watch = meg.config_data['services'].get(service, {}).get('check_for_build', {}).get(
-                'files', [])
-            all_files = global_files_to_watch + project_files_to_watch
+            global_files_to_watch = meg.config_data['defaults'].get('check_for_build', [])
             list_dates = [
                 get_date_from_file(file)
-                for file in all_files
+                for file in global_files_to_watch
                 if os.path.isfile(os.path.join(data['working_dir'], file))
                 # FIXME: Acertar o working_dir + build.context para achar o path dos arquivos
             ]

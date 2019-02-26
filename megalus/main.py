@@ -1,7 +1,7 @@
 """Main module."""
 import os
 import sys
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Optional
 
 import docker
 import yaml
@@ -34,6 +34,7 @@ class Megalus:
         self.all_services = []  # type: List[dict]
         self.all_composes = {}  # type: dict
         self.logfile = logfile
+        self._config_data = {}  # type: dict
 
     @property
     def config_data(self) -> dict:
@@ -41,13 +42,16 @@ class Megalus:
 
         :return: dict
         """
+        if self._config_data:
+            return self._config_data
+
         config_path = os.path.join(
             self.base_path,
             os.path.basename(self._config_file)
         )
         with open(config_path) as file:
-            config_data = yaml.safe_load(file.read())
-        return config_data
+            self._config_data = yaml.safe_load(file.read()) or {}
+        return self._config_data
 
     def _convert_lists(self, data: dict, key: str) -> None:
         """Convert list to dict inside yaml data.
@@ -242,7 +246,7 @@ class Megalus:
         return data
 
     def get_layout(self, term: terminal) -> HSplit:
-        """Get dashing terminal layout
+        """Get dashing terminal layout.
 
         :param term: Blessed Terminal
         :return: dashing instance
@@ -259,10 +263,10 @@ class Megalus:
         """
         all_services = [
             service
-            for service in self.all_composes[project]
+            for service in self.all_composes[project]['services']
         ]
         project_path = self.config_data['compose_projects'][project]['path']
-        project_name = os.path.dirname(project_path)
+        project_name = os.path.basename(project_path)
         ignore_list = self.config_data['compose_projects'][project].get('show_status', {}).get('ignore_list', [])
 
         table_header = ['name', 'status', 'git']
@@ -272,6 +276,7 @@ class Megalus:
                 continue
             name, service_status = self.get_service_status(service, project_name)
             service_context_path = self.all_composes[project]['services'][service].get('build', {}).get('context', None)
+            git_status = None
             if service_context_path:
                 git_status = self.get_git_status(service_context_path, project_path)
             if not git_status:
@@ -283,7 +288,7 @@ class Megalus:
                     title=project)
 
     def get_service_status(self, service: str, project_name: str) -> Tuple[str, str]:
-        """Get formatted service name and status
+        """Get formatted service name and status.
 
         :param service: service name
         :param project_name: project name
@@ -304,14 +309,14 @@ class Megalus:
         replicas = len(service_status)
         replicas_in_main_status = service_status.count(main_status)
 
-        if replicas == 1 or replicas == replicas_in_main_status:
+        if replicas == replicas_in_main_status:
             text = "{}{}".format(
-                main_status,
+                main_status.title(),
                 " x{}".format(replicas) if replicas > 1 else ""
             )
         else:
             text = "{} x{}/{}".format(
-                main_status,
+                main_status.title(),
                 replicas_in_main_status,
                 replicas
             )
@@ -322,15 +327,16 @@ class Megalus:
             if "running" in main_status else formatStr.warning(text, use_prefix=False)
         )
 
-    def get_git_status(self, service_path: str, project_path: str) -> str:
+    def get_git_status(self, service_path: str, project_path: str) -> Optional[str]:
         """Get formatted git status.
 
         :param service_path: service build context path
         :param project_path: project base path
         :return: String
         """
+        git_path = get_path(os.path.join(project_path, service_path), self.base_path)
         try:
-            service_repo = Repo(get_path(os.path.join(project_path, service_path), self.base_path))
+            service_repo = Repo(git_path)
         except InvalidGitRepositoryError:
             return None
         is_dirty = service_repo.is_dirty()

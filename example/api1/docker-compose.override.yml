@@ -1,8 +1,8 @@
 version: "3"
 services:
   django:
-    context:
-      build: ./django_app
+    build:
+      context: ./django_app
     ports:
       - "8100:8000"
     volumes:

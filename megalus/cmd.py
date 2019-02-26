@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 import click
-from arrow import arrow
+import arrow
 from loguru import logger
 
 from megalus.bash.commands import bash
@@ -16,6 +16,7 @@ from megalus.down.commands import down
 from megalus.logscmd.commands import logs
 from megalus.main import Megalus
 from megalus.run.commands import run
+from megalus.status.commands import status
 from megalus.stop.commands import stop
 
 
@@ -64,6 +65,7 @@ cli.add_command(scale)
 cli.add_command(stop)
 cli.add_command(up)
 cli.add_command(check)
+cli.add_command(status)
 
 
 def start() -> None:
