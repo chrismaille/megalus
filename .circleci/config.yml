@@ -1,6 +1,7 @@
 version: 2
 jobs:
   build_test_python3.5:
+    working_directory: ~/app
     docker:
       - image: circleci/python:3.5
     steps:
@@ -13,8 +14,9 @@ jobs:
           command: sudo pip install -e .
       - run:
           name: Test
-          command: make ci && codecov
+          command: make ci
   build_test_python3.6:
+    working_directory: ~/app
     docker:
       - image: circleci/python:3.6
     steps:
@@ -27,8 +29,15 @@ jobs:
           command: sudo pipenv install --system --deploy --dev
       - run:
           name: Test
-          command: make ci && codecov
+          command: make ci
+      - save_cache:
+          key: cache-megalus-{{ .BuildNum }}
+          paths:
+            - .
+            - "/usr/local/bin"
+            - "/usr/local/lib/python3.6/site-packages"
   build_test_python3.7:
+    working_directory: ~/app
     docker:
       - image: circleci/python:3.7
     steps:
@@ -41,7 +50,20 @@ jobs:
           command: sudo pip install -e .
       - run:
           name: Test
-          command: make ci && codecov
+          command: make ci
+  coverage:
+    working_directory: ~/app
+      docker:
+          - image: circleci/python:3.6
+      steps:
+        - checkout
+        - restore_cache:
+          keys:
+            - cache-megalus-{{ .BuildNum }}
+            - cache-megalus-
+        - run:
+            name: Send Coverage
+            command: codecov
   release:
     docker:
       - image: circleci/python:3.7
@@ -67,6 +89,9 @@ workflows:
       - build_test_python3.5
       - build_test_python3.6
       - build_test_python3.7
+      - coverage:
+          requires:
+            - build_test_python3.6
       - release:
           requires:
             - build_test_python3.5
