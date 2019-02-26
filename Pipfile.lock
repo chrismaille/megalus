@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "b92679a36efbf2f9a6af3425cf1fba9199b7b11268a53893648bbcb258504d25"
+            "sha256": "1f77d192d89267f7cc82d51d1de6f9ea24d9c559a22b1c525de1bfde3fe3a132"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -58,6 +58,14 @@
                 "sha256:ca4be454458f9dec299268d472aaa5a11f67a4ff70093396e1ceae9c76cf4bbb"
             ],
             "version": "==18.2.0"
+        },
+        "auto-changelog": {
+            "hashes": [
+                "sha256:1d2850865ddbc1e31c1d6536ff7e23ee7fa9a3bc57c60bf61521ad575fd9045a",
+                "sha256:fa05018d7ed8212bb2fe81aa6df9c4442cef22ff3bed3d3a409e159364729084"
+            ],
+            "index": "pypi",
+            "version": "==0.1.7"
         },
         "babel": {
             "hashes": [
@@ -166,6 +174,12 @@
                 "sha256:7266112468627868005106ec19cd0d722702d2b7d5912a28e19b826c3d37af49"
             ],
             "version": "==0.4.0"
+        },
+        "docopt": {
+            "hashes": [
+                "sha256:49b3a825280bd66b3aa83585ef59c4a8c82f2c8a522dbe754a8bc8d08c85c491"
+            ],
+            "version": "==0.6.2"
         },
         "docutils": {
             "hashes": [

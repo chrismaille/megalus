@@ -1,9 +1,10 @@
 from codecs import open
 from os import path
 from setuptools import setup, find_packages
-from megalus import __version__
 from pipenv.project import Project
 from pipenv.utils import convert_deps_to_pip
+
+VERSION = "5.0.0"
 
 here = path.abspath(path.dirname(__file__))
 
@@ -19,7 +20,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='Megalus',
-    version=__version__,
+    version=VERSION,
     description='Command line helpers for docker and docker-compose',
     long_description=long_description,
     author='Chris Maillefaud',

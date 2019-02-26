@@ -28,6 +28,7 @@ pytest-pep8 = "*"
 pytest-mypy = "*"
 pytest-cov = "*"
 coverage = "*"
+auto-changelog = "*"
 
 [requires]
 python_version = "3.6"
