@@ -34,8 +34,6 @@ jobs:
           key: cache-megalus-{{ .BuildNum }}
           paths:
             - .
-            - "/usr/local/bin"
-            - "/usr/local/lib/python3.6/site-packages"
   build_test_python3.7:
     working_directory: ~/app
     docker:
@@ -61,6 +59,9 @@ jobs:
           keys:
             - cache-megalus-{{ .BuildNum }}
             - cache-megalus-
+      - run:
+          name: Install codecov
+          command: pip install codecov
       - run:
           name: Send Coverage
           command: codecov
