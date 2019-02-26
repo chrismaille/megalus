@@ -10,7 +10,7 @@ jobs:
           command: pip install -U --user pipenv
       - run:
           name: Build
-          command: pip install --user -e .
+          command: sudo pip install -e .
       - run:
           name: Test
           command: make test
@@ -38,7 +38,7 @@ jobs:
           command: pip install -U --user pipenv
       - run:
           name: Build
-          command: pip install --user -e .
+          command: sudo pip install -e .
       - run:
           name: Test
           command: make test
