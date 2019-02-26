@@ -8,6 +8,7 @@ def test_bash_with_service(caplog, obj, mocker):
     runner = CliRunner()
     with runner.isolated_filesystem():
         mocker.patch('megalus.main.console.run')
+        mocker.patch('megalus.bash.commands.find_containers', return_value=[])
         result = runner.invoke(bash, ['django'], obj=obj)
         running_command = [
             message
