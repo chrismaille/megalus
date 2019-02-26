@@ -4,15 +4,6 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-pipenv = "*"
-pytest = "*"
-pytest-mock = "*"
-pytest-xdist = "*"
-pytest-docstyle = "*"
-pytest-pep8 = "*"
-pytest-mypy = "*"
-pytest-cov = "*"
-coverage = "*"
 
 [packages]
 buzio = "*"
@@ -25,6 +16,18 @@ pydashing = "*"
 gitpython = "*"
 tabulate = "*"
 blessed = "*"
+sphinx = "*"
+tox = "*"
+tox-pyenv = "*"
+pipenv = "*"
+pytest = "*"
+pytest-mock = "*"
+pytest-xdist = "*"
+pytest-docstyle = "*"
+pytest-pep8 = "*"
+pytest-mypy = "*"
+pytest-cov = "*"
+coverage = "*"
 
 [requires]
 python_version = "3.6"

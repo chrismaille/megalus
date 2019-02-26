@@ -1,4 +1,6 @@
 test:
+	pytest
+ci:
 	pytest --docstyle --pep8 --cov=megalus --mypy
 changelog:
 	echo "TODO"
