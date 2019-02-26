@@ -61,7 +61,7 @@ jobs:
             - cache-megalus-
       - run:
           name: Install codecov
-          command: pip install --user codecov
+          command: sudo pip install codecov
       - run:
           name: Send Coverage
           command: codecov
