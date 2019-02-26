@@ -54,7 +54,6 @@ jobs:
     docker:
       - image: circleci/python:3.6
     steps:
-      - checkout
       - restore_cache:
           keys:
             - cache-megalus-{{ .BuildNum }}
