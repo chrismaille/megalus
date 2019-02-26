@@ -58,9 +58,9 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-        keys:
-          - cache-megalus-{{ .BuildNum }}
-          - cache-megalus-
+          keys:
+            - cache-megalus-{{ .BuildNum }}
+            - cache-megalus-
       - run:
           name: Send Coverage
           command: codecov
