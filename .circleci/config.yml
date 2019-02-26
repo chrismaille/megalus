@@ -30,10 +30,9 @@ jobs:
       - run:
           name: Test
           command: make ci
-      - save_cache:
-          key: cache-megalus-{{ .BuildNum }}
-          paths:
-            - .
+      - run:
+          name: Send coverage
+          command: codecov
   build_test_python3.7:
     working_directory: ~/app
     docker:
@@ -49,21 +48,6 @@ jobs:
       - run:
           name: Test
           command: make ci
-  coverage:
-    working_directory: ~/app
-    docker:
-      - image: circleci/python:3.6
-    steps:
-      - restore_cache:
-          keys:
-            - cache-megalus-{{ .BuildNum }}
-            - cache-megalus-
-      - run:
-          name: Install codecov
-          command: sudo pip install codecov
-      - run:
-          name: Send Coverage
-          command: codecov
   release:
     docker:
       - image: circleci/python:3.7
@@ -89,9 +73,6 @@ workflows:
       - build_test_python3.5
       - build_test_python3.6
       - build_test_python3.7
-      - coverage:
-          requires:
-            - build_test_python3.6
       - release:
           requires:
             - build_test_python3.5
