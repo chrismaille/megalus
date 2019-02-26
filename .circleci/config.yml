@@ -53,17 +53,17 @@ jobs:
           command: make ci
   coverage:
     working_directory: ~/app
-      docker:
-          - image: circleci/python:3.6
-      steps:
-        - checkout
-        - restore_cache:
-          keys:
-            - cache-megalus-{{ .BuildNum }}
-            - cache-megalus-
-        - run:
-            name: Send Coverage
-            command: codecov
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+      - restore_cache:
+        keys:
+          - cache-megalus-{{ .BuildNum }}
+          - cache-megalus-
+      - run:
+          name: Send Coverage
+          command: codecov
   release:
     docker:
       - image: circleci/python:3.7
