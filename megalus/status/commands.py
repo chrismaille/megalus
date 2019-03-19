@@ -24,7 +24,7 @@ def status(meg: Megalus) -> None:
                     while True:
                         ui = meg.get_layout(term)
                         ui.display()
-                        key_pressed = term.inkey(timeout=5)
+                        key_pressed = term.inkey(timeout=1)
                         if 'q' in key_pressed.lower():
                             raise KeyboardInterrupt
 

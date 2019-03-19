@@ -8,10 +8,12 @@ import yaml
 from blessed import terminal
 from buzio import console, formatStr
 from dashing.dashing import HSplit, Text, VSplit
+from docker.models.containers import Container
 from git import InvalidGitRepositoryError, Repo
 from loguru import logger
 from tabulate import tabulate
 
+from megalus.status.system_watch import get_machine_info_widget
 from megalus.utils import get_path
 
 client = docker.from_env()
@@ -257,16 +259,24 @@ class Megalus:
         running_boxes = []
         for project in self.config_data['compose_projects'].keys():
             box = self.get_box(project)
-            if "Running" in box.text or "ealthy" in box.text:
+            if "Running" in box.text or "ealthy" in box.text or "Starting" in box.text:
                 running_boxes.append(box)
-        boxes_qty = len(running_boxes)
+        running_boxes.append(get_machine_info_widget())
+
         boxes = []
-        for index, box in enumerate(running_boxes):
-            if (index+1) % 2 != 0:
-                if index + 1 < len(running_boxes):
-                    boxes.append(VSplit(running_boxes[index], running_boxes[index+1]))
-                else:
-                    boxes.append(box)
+        index = 0
+        while index < len(running_boxes):
+            box = running_boxes[index]
+            if self.config_data['compose_projects'].get(box.title, {}).get("show_status", {}).get("big", False):
+                boxes.append(box)
+                index += 1
+                continue
+            if index + 1 < len(running_boxes):
+                boxes.append(VSplit(running_boxes[index], running_boxes[index + 1]))
+                index += 2
+                continue
+            boxes.append(box)
+            index += 1
 
         ui = HSplit(*boxes, terminal=term, main=True, color=7, background_color=16)
         return ui
@@ -292,13 +302,15 @@ class Megalus:
                 continue
 
             # Name and Status
-            name, service_status = self.get_service_status(service, project_name)
+            container_name = self.all_composes[project]['services'][service].get(
+                'container_name', "{}_{}_".format(project_name, service))
+            name, service_status = self.get_service_status(service, container_name)
 
             # Get Ports
             service_containers_ports = [
                 container.attrs['NetworkSettings']['Ports']
                 for container in client.containers.list()
-                if "{}_{}_".format(project_name, service) in container.name
+                if container_name in container.name
             ]
             external_port_list = []
             for container_data in service_containers_ports:
@@ -324,17 +336,22 @@ class Megalus:
         return Text(table, color=6, border_color=5, background_color=16,
                     title=project)
 
-    def get_service_status(self, service: str, project_name: str) -> Tuple[str, str]:
+    @staticmethod
+    def get_service_status(service: str, container_name: str) -> Tuple[str, str]:
         """Get formatted service name and status.
 
         :param service: service name
-        :param project_name: project name
+        :param container_name: container name for service
         :return: Tuple
         """
+        def _get_container_status(container: Container) -> str:
+            health_check = container.attrs['State'].get('Health', {}).get('Status')
+            return health_check if health_check else container.status
+
         service_status = [
-            container.status
+            _get_container_status(container)
             for container in client.containers.list()
-            if "{}_{}_".format(project_name, service) in container.name
+            if container_name in container.name
         ]
         if not service_status:
             return (
@@ -357,12 +374,16 @@ class Megalus:
                 replicas_in_main_status,
                 replicas
             )
-        return (
-            formatStr.success(service, use_prefix=False)
-            if "running" in main_status else formatStr.warning(service, use_prefix=False),
-            formatStr.success(text, use_prefix=False)
-            if "running" in main_status else formatStr.warning(text, use_prefix=False)
-        )
+        if "unhealthy" in main_status:
+            formatted_service = formatStr.error(service, use_prefix=False)
+            formatted_status = formatStr.error(text, use_prefix=False)
+        elif "running" in main_status or main_status.startswith("healthy"):
+            formatted_service = formatStr.success(service, use_prefix=False)
+            formatted_status = formatStr.success(text, use_prefix=False)
+        else:
+            formatted_service = formatStr.warning(service, use_prefix=False)
+            formatted_status = formatStr.warning(text, use_prefix=False)
+        return formatted_service, formatted_status
 
     def get_git_status(self, service_path: str, project_path: str) -> Optional[str]:
         """Get formatted git status.
@@ -380,35 +401,51 @@ class Megalus:
         default_branch = self._get_default_branch(service_repo)
         behind_default = self._get_commits_behind(service_repo, default_branch)
         behind_origin = self._get_commits_behind(service_repo)
-        commits_behind_origin_text = formatStr.error(f"{ARROW_DOWN} {behind_origin} ",
+        commits_behind_origin_text = formatStr.error("{} {} ".format(ARROW_DOWN, behind_origin),
                                                      use_prefix=False) if behind_origin else ""
         commits_behind_default_text = formatStr.error(
-            f" {ARROW_DOWN} {behind_default} {default_branch}", use_prefix=False) \
+            " {} {} {}".format(ARROW_DOWN, behind_default, default_branch), use_prefix=False) \
             if behind_default and default_branch != service_repo.active_branch.name else ""
+        name = service_repo.active_branch.name.split("/")[-1]
+        branch_name = formatStr.warning(name, use_prefix=False) if is_dirty else formatStr.info(name, use_prefix=False)
+
         text = "{}{}{}{}".format(
             commits_behind_origin_text,
-            service_repo.active_branch.name.split("/")[-1],
+            branch_name,
             "*" if is_dirty else "",
             commits_behind_default_text
         )
-        if is_dirty:
-            return formatStr.warning(text, use_prefix=False)
-        else:
-            return formatStr.info(text, use_prefix=False)
+        return text
 
-    def _get_default_branch(self, service_repo: Repo):
+    @staticmethod
+    def _get_default_branch(service_repo: Repo) -> str:
+        """Get Default Branch name.
+
+        Retrieve default branch in CVS (ie.: Github)
+
+        :param service_repo: Repo instance
+        :return: String
+        """
         refs_list = service_repo.refs
         header_ref = [ref for ref in refs_list if "HEAD" in ref.name][0]
         default_ref = [ref for ref in refs_list if ref.commit == header_ref.commit and ref != header_ref]
         return default_ref[0].name.split("/")[-1] if default_ref else ""
 
-    def _get_commits_behind(self, service_repo: Repo, default_branch: str = None):
+    @staticmethod
+    def _get_commits_behind(service_repo: Repo, default_branch: str = "") -> int:
+        """Get commits behind origin.
 
+        Get number of commits actual branch was behind origin.
+
+        :param service_repo: Repo Instance
+        :param default_branch: String - Default branch in CVS.
+        :return: integer
+        """
         if not default_branch:
             default_branch = service_repo.active_branch.name
 
         git = service_repo.git
-        commit_list = git.log(f"..origin/{default_branch}", oneline=True).split("\n")
+        commit_list = git.log("..origin/{}".format(default_branch), oneline=True).split("\n")
         if commit_list and commit_list[0] == "":
             commit_list = []
         return len(commit_list) if commit_list else 0
