@@ -1,13 +1,13 @@
 """Main module."""
 import os
 import sys
-from typing import Any, Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import docker
 import yaml
 from blessed import terminal
 from buzio import console, formatStr
-from dashing.dashing import HSplit, Text
+from dashing.dashing import HSplit, Text, VSplit
 from git import InvalidGitRepositoryError, Repo
 from loguru import logger
 from tabulate import tabulate
@@ -15,6 +15,9 @@ from tabulate import tabulate
 from megalus.utils import get_path
 
 client = docker.from_env()
+
+ARROW_UP = u"↑"
+ARROW_DOWN = u"↓"
 
 
 class Megalus:
@@ -251,7 +254,20 @@ class Megalus:
         :param term: Blessed Terminal
         :return: dashing instance
         """
-        boxes = [self.get_box(project) for project in self.config_data['compose_projects'].keys()]
+        running_boxes = []
+        for project in self.config_data['compose_projects'].keys():
+            box = self.get_box(project)
+            if "Running" in box.text or "ealthy" in box.text:
+                running_boxes.append(box)
+        boxes_qty = len(running_boxes)
+        boxes = []
+        for index, box in enumerate(running_boxes):
+            if (index+1) % 2 != 0:
+                if index + 1 < len(running_boxes):
+                    boxes.append(VSplit(running_boxes[index], running_boxes[index+1]))
+                else:
+                    boxes.append(box)
+
         ui = HSplit(*boxes, terminal=term, main=True, color=7, background_color=16)
         return ui
 
@@ -269,19 +285,40 @@ class Megalus:
         project_name = os.path.basename(project_path)
         ignore_list = self.config_data['compose_projects'][project].get('show_status', {}).get('ignore_list', [])
 
-        table_header = ['name', 'status', 'git']
+        table_header = ['Name', 'Status', 'Ports', 'Git']
         table_lines = []
         for service in all_services:
             if service in ignore_list:
                 continue
+
+            # Name and Status
             name, service_status = self.get_service_status(service, project_name)
+
+            # Get Ports
+            service_containers_ports = [
+                container.attrs['NetworkSettings']['Ports']
+                for container in client.containers.list()
+                if "{}_{}_".format(project_name, service) in container.name
+            ]
+            external_port_list = []
+            for container_data in service_containers_ports:
+                for key in container_data:
+                    if container_data[key] is not None:
+                        for port_data in container_data[key]:
+                            external_port_list.append(port_data.get("HostPort"))
+
+            service_ports = ",".join(external_port_list) if external_port_list else ""
+
+            # Git Status
             service_context_path = self.all_composes[project]['services'][service].get('build', {}).get('context', None)
             git_status = None
             if service_context_path:
                 git_status = self.get_git_status(service_context_path, project_path)
             if not git_status:
                 git_status = formatStr.info('--', use_prefix=False, theme="dark")
-            table_lines.append([name, service_status, git_status])
+
+            # Append service in table
+            table_lines.append([name, service_status, service_ports, git_status])
 
         table = tabulate(table_lines, table_header)
         return Text(table, color=6, border_color=5, background_color=16,
@@ -297,7 +334,7 @@ class Megalus:
         service_status = [
             container.status
             for container in client.containers.list()
-            if "{}_{}".format(project_name, service) in container.name
+            if "{}_{}_".format(project_name, service) in container.name
         ]
         if not service_status:
             return (
@@ -340,11 +377,38 @@ class Megalus:
         except InvalidGitRepositoryError:
             return None
         is_dirty = service_repo.is_dirty()
-        text = "{}{}".format(
-            service_repo.active_branch.name,
-            " (modified)" if is_dirty else ""
+        default_branch = self._get_default_branch(service_repo)
+        behind_default = self._get_commits_behind(service_repo, default_branch)
+        behind_origin = self._get_commits_behind(service_repo)
+        commits_behind_origin_text = formatStr.error(f"{ARROW_DOWN} {behind_origin} ",
+                                                     use_prefix=False) if behind_origin else ""
+        commits_behind_default_text = formatStr.error(
+            f" {ARROW_DOWN} {behind_default} {default_branch}", use_prefix=False) \
+            if behind_default and default_branch != service_repo.active_branch.name else ""
+        text = "{}{}{}{}".format(
+            commits_behind_origin_text,
+            service_repo.active_branch.name.split("/")[-1],
+            "*" if is_dirty else "",
+            commits_behind_default_text
         )
         if is_dirty:
             return formatStr.warning(text, use_prefix=False)
         else:
             return formatStr.info(text, use_prefix=False)
+
+    def _get_default_branch(self, service_repo: Repo):
+        refs_list = service_repo.refs
+        header_ref = [ref for ref in refs_list if "HEAD" in ref.name][0]
+        default_ref = [ref for ref in refs_list if ref.commit == header_ref.commit and ref != header_ref]
+        return default_ref[0].name.split("/")[-1] if default_ref else ""
+
+    def _get_commits_behind(self, service_repo: Repo, default_branch: str = None):
+
+        if not default_branch:
+            default_branch = service_repo.active_branch.name
+
+        git = service_repo.git
+        commit_list = git.log(f"..origin/{default_branch}", oneline=True).split("\n")
+        if commit_list and commit_list[0] == "":
+            commit_list = []
+        return len(commit_list) if commit_list else 0
