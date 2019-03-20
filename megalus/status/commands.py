@@ -9,8 +9,9 @@ from megalus.main import Megalus
 
 
 @click.command()
+@click.option('--show-all', is_flag=True)
 @click.pass_obj
-def status(meg: Megalus) -> None:
+def status(meg: Megalus, show_all: bool) -> None:
     """Return docker services status.
 
     :param meg: Megalus instance
@@ -22,7 +23,7 @@ def status(meg: Megalus) -> None:
             with term.hidden_cursor():
                 with term.cbreak():
                     while True:
-                        ui = meg.get_layout(term)
+                        ui = meg.get_layout(term, show_all)
                         ui.display()
                         key_pressed = term.inkey(timeout=1)
                         if 'q' in key_pressed.lower():

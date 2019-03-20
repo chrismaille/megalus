@@ -9,7 +9,7 @@ from blessed import terminal
 from buzio import console, formatStr
 from dashing.dashing import HSplit, Text, VSplit
 from docker.models.containers import Container
-from git import InvalidGitRepositoryError, Repo
+from git import GitCommandError, InvalidGitRepositoryError, Repo
 from loguru import logger
 from tabulate import tabulate
 
@@ -250,16 +250,17 @@ class Megalus:
         self.service = data['name']
         return data
 
-    def get_layout(self, term: terminal) -> HSplit:
+    def get_layout(self, term: terminal, show_all: bool) -> HSplit:
         """Get dashing terminal layout.
 
+        :param show_all: show all boxes even if no containers are running
         :param term: Blessed Terminal
         :return: dashing instance
         """
         running_boxes = []
         for project in self.config_data['compose_projects'].keys():
             box = self.get_box(project)
-            if "Running" in box.text or "ealthy" in box.text or "Starting" in box.text:
+            if "Running" in box.text or "ealthy" in box.text or "Starting" in box.text or show_all:
                 running_boxes.append(box)
         running_boxes.append(get_machine_info_widget())
 
@@ -344,6 +345,7 @@ class Megalus:
         :param container_name: container name for service
         :return: Tuple
         """
+
         def _get_container_status(container: Container) -> str:
             health_check = container.attrs['State'].get('Health', {}).get('Status')
             return health_check if health_check else container.status
@@ -444,8 +446,11 @@ class Megalus:
         if not default_branch:
             default_branch = service_repo.active_branch.name
 
-        git = service_repo.git
-        commit_list = git.log("..origin/{}".format(default_branch), oneline=True).split("\n")
-        if commit_list and commit_list[0] == "":
-            commit_list = []
-        return len(commit_list) if commit_list else 0
+        try:
+            git = service_repo.git
+            commit_list = git.log("..origin/{}".format(default_branch), oneline=True).split("\n")
+            if commit_list and commit_list[0] == "":
+                commit_list = []
+            return len(commit_list) if commit_list else 0
+        except GitCommandError:
+            return 0

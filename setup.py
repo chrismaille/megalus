@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 from pipenv.project import Project
 from pipenv.utils import convert_deps_to_pip
 
-VERSION = "5.0.0b2"
+VERSION = "5.0.0b3"
 
 here = path.abspath(path.dirname(__file__))
 
