@@ -18,6 +18,7 @@ from megalus.main import Megalus
 from megalus.run.commands import run
 from megalus.status.commands import status
 from megalus.stop.commands import stop
+from megalus.start.commands import start
 
 
 @click.group()
@@ -66,6 +67,7 @@ cli.add_command(stop)
 cli.add_command(up)
 cli.add_command(check)
 cli.add_command(status)
+cli.add_command(start)
 
 
 def start() -> None:

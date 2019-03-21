@@ -6,26 +6,33 @@ from blessed import Terminal
 from colorama import Style
 
 from megalus.main import Megalus
+from megalus.status.dashboard import Dashboard
 
 
 @click.command()
-@click.option('--show-all', is_flag=True)
+@click.option('--all', is_flag=True)
+@click.option('--diff', is_flag=True)
 @click.pass_obj
-def status(meg: Megalus, show_all: bool) -> None:
+def status(meg: Megalus, all: bool, diff: bool) -> None:
     """Return docker services status.
 
+    :param all: Show all services
+    :param diff: Show only services with diff in git
     :param meg: Megalus instance
     :return: None
     """
+    dashboard = Dashboard(meg)
     term = Terminal()
     try:
         with term.fullscreen():
             with term.hidden_cursor():
                 with term.cbreak():
                     while True:
-                        ui = meg.get_layout(term, show_all)
+                        ui = dashboard.get_layout(term, all, diff)
                         ui.display()
                         key_pressed = term.inkey(timeout=1)
+                        if 'd' in key_pressed.lower():
+                            diff = not diff
                         if 'q' in key_pressed.lower():
                             raise KeyboardInterrupt
 
