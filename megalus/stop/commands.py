@@ -1,5 +1,5 @@
 """Stop command."""
-from typing import List, Optional
+from typing import List
 
 import click
 
@@ -13,12 +13,15 @@ def stop_all(meg: Megalus) -> None:
     :param meg: Megalus instance
     :return: None
     """
-    compose_set = set([
-        data['working_dir']
-        for data in meg.all_services
-    ])
-    for compose_dir in list(compose_set):
-        meg.run_command("cd {} && docker-compose stop".format(compose_dir))
+    all_projects: List[dict] = []
+    service_data_list = []
+    for service in meg.all_services:
+        if service['compose'] not in all_projects:
+            service['name'] = ""
+            service_data_list.append(service)
+            all_projects.append(service['compose'])
+    for service_data in service_data_list:
+        run_compose_command(meg, "stop", service_data)
 
 
 @click.command()

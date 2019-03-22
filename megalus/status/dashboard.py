@@ -12,7 +12,7 @@ from tabulate import tabulate
 
 from megalus import get_path
 from megalus.main import Megalus
-from megalus.status.system_watch import get_machine_info_widget
+from megalus.status.system_watch import megalus_info_widget
 
 client = docker.from_env()
 
@@ -33,10 +33,9 @@ class Dashboard:
         self.all_composes = context.all_composes
         self.base_path = context.base_path
 
-    def get_layout(self, term: terminal, all: bool, diff: bool) -> HSplit:
+    def get_layout(self, term: terminal, all: bool) -> HSplit:
         """Get dashing terminal layout.
 
-        :param diff: show only boxes with services with git differences
         :param all: show all boxes even if no containers are running
         :param term: Blessed Terminal
         :return: dashing instance
@@ -46,11 +45,14 @@ class Dashboard:
             box = self.get_box(project)
             if all:
                 running_boxes.append(box)
-            elif diff and ARROW_DOWN in box.text or ARROW_UP in box.text or MODIFIED in box.text:
+            elif ARROW_DOWN in box.text \
+                    or ARROW_UP in box.text \
+                    or MODIFIED in box.text \
+                    or "Running" in box.text \
+                    or "ealthy" in box.text \
+                    or "Starting" in box.text:
                 running_boxes.append(box)
-            elif "Running" in box.text or "ealthy" in box.text or "Starting" in box.text:
-                running_boxes.append(box)
-        running_boxes.append(get_machine_info_widget())
+        running_boxes.append(megalus_info_widget())
 
         boxes = []
         index = 0
@@ -166,7 +168,7 @@ class Dashboard:
         :param container_name: container name for service
         :return: Tuple
         """
-        # fix D202 check
+
         def _get_container_status(container: Container) -> str:
             health_check = container.attrs['State'].get('Health', {}).get('Status')
             return health_check if health_check else container.status

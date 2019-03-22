@@ -1,0 +1,15 @@
+## {{ release.version }} ({{ release.date }})
+{% if has_commits %}
+{% for prefix in prefixes %}
+{% if commits[prefix] %}
+### {{ prefix.title() }}
+{% for commit in commits[prefix] %}
+* [{{ commit.hash }}]({{ git_url }}/{{ commit.hash }}) {{ commit.subject }} ({{ commit.author }}) - _{{ commit.date }}_
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% else %}
+_No conventional commits was founded._
+
+*Last commit*: {{ lasts_commit }}
+{% endif %}

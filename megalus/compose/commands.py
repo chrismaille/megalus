@@ -21,7 +21,7 @@ def run_compose_command(meg: Megalus, action: str, service_data: dict, options: 
             files="-f {}".format(" -f ".join(service_data['compose_files'])),
             options=" {} ".format(options) if options else " ",
             action=action,
-            services=service_data['name']
+            services=service_data.get('name', "")
         )
     )
 

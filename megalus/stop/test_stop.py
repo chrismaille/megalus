@@ -40,7 +40,8 @@ def test_stop_all(caplog, obj, mocker):
             for service in obj.all_services
             if service['name'] == 'django'
         ][0]
-        assert 'cd {} && docker-compose stop'.format(service_path) in running_command
+        assert 'cd {} && docker-compose -f docker-compose.yml -f docker-compose.override.yml stop'.format(
+            service_path) in running_command
         running_command = [
             message
             for message in caplog.messages
@@ -51,4 +52,5 @@ def test_stop_all(caplog, obj, mocker):
             for service in obj.all_services
             if service['name'] == 'pyramid'
         ][0]
-        assert 'cd {} && docker-compose stop'.format(service_path) in running_command
+        assert 'cd {} && docker-compose -f docker-compose.yml stop'.format(
+            service_path) in running_command

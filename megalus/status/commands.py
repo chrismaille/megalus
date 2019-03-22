@@ -11,13 +11,11 @@ from megalus.status.dashboard import Dashboard
 
 @click.command()
 @click.option('--all', is_flag=True)
-@click.option('--diff', is_flag=True)
 @click.pass_obj
-def status(meg: Megalus, all: bool, diff: bool) -> None:
+def status(meg: Megalus, all: bool) -> None:
     """Return docker services status.
 
     :param all: Show all services
-    :param diff: Show only services with diff in git
     :param meg: Megalus instance
     :return: None
     """
@@ -28,7 +26,7 @@ def status(meg: Megalus, all: bool, diff: bool) -> None:
             with term.hidden_cursor():
                 with term.cbreak():
                     while True:
-                        ui = dashboard.get_layout(term, all, diff)
+                        ui = dashboard.get_layout(term, all)
                         ui.display()
                         key_pressed = term.inkey(timeout=1)
                         if 'd' in key_pressed.lower():

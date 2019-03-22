@@ -7,9 +7,23 @@ Uses PSUtil to get machine stats:
 """
 import psutil
 from dashing import dashing
+from dashing.dashing import Text, VSplit
+
+from megalus import __version__
 
 
-def get_machine_info_widget() -> dashing.VSplit:
+def megalus_info_widget() -> VSplit:
+    """Return Megalus Info Widget.
+
+    :return: dashing VSplit instance
+    """
+    machine_info_widget = get_machine_info_widget()
+    megalus_info_widget = Text("Version: {}".format(__version__), color=6, border_color=5, background_color=16,
+                               title="Megalus")
+    return VSplit(megalus_info_widget, machine_info_widget)
+
+
+def get_machine_info_widget() -> VSplit:
     """Return widget from machine stats.
 
     :return: dashing.HSplit
