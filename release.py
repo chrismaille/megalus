@@ -19,6 +19,7 @@ Branch Master
     4. Merge data in develop
 """
 import sys
+from os import path
 from typing import Optional
 
 import arrow
@@ -76,7 +77,8 @@ class Release:
 
         :return: File read.
         """
-        with open("CHANGELOG.jinja2") as file:
+        here = path.abspath(path.dirname(__file__))
+        with open(path.join(here, "..", "CHANGELOG.jinja2")) as file:
             return file.read()
 
     def release(self):
