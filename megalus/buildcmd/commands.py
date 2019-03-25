@@ -4,6 +4,7 @@ from typing import List
 import click
 from loguru import logger
 
+from megalus.compose.commands import run_compose_command
 from megalus.main import Megalus
 
 
@@ -25,12 +26,9 @@ def build(meg: Megalus, services: List, force: bool) -> None:
         logger.info('Looking for Service: {}'.format(service_to_find))
         service_data = meg.find_service(service_to_find)
 
-        meg.run_command(
-            'cd {dir} && docker-compose -f {files} build --force-rm {options}{service} | pv -lft -D 2 >> {log}'.format(
-                dir=service_data['working_dir'],
-                files=" -f ".join(service_data['compose_files']),
-                options=" --no-cache " if force else "",
-                service=service_data['name'],
-                log=meg.logfile
-            ))
+        options = ["force-rm"]
+        if force:
+            options.append("no-cache")
+        command_args = "| pv -lft -D 2 >> {log}".format(log=meg.logfile)
+        run_compose_command(meg, action="build", options=options, service_data=service_data, command_args=command_args)
         logger.success('Service {} builded.'.format(service_data['name']))

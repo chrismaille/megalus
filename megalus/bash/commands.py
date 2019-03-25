@@ -4,6 +4,7 @@ import click
 from buzio import console
 from loguru import logger
 
+from megalus.compose.commands import run_compose_command
 from megalus.main import Megalus
 from megalus.utils import client, find_containers
 
@@ -27,12 +28,8 @@ def bash(meg: Megalus, service: str) -> None:
     eligible_containers = find_containers(service_data['name'])
     if not eligible_containers:
         logger.info("Running /bin/bash in service {}".format(service_data['name']))
-        meg.run_command(
-            'cd {dir} && docker-compose {files} run --rm --service-ports {service} /bin/bash'.format(
-                dir=service_data['working_dir'],
-                files="-f ".join(service_data['compose_files']),
-                service=service_data['name'])
-        )
+        run_compose_command(meg, action="run", options=["rm", "service-ports"], service_data=service_data,
+                            command_args="/bin/bash")
     elif len(eligible_containers) == 1:
         container_id = eligible_containers[0].short_id
     else:

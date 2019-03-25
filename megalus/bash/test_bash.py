@@ -21,7 +21,7 @@ def test_bash_with_service(caplog, obj, mocker):
             if service['name'] == 'django'
         ][0]
         assert result.exit_code == 0
-        assert 'cd {} && docker-compose docker-compose.yml-f docker-compose.override.yml ' \
+        assert 'cd {} && docker-compose -f docker-compose.yml -f docker-compose.override.yml ' \
                'run --rm --service-ports django /bin/bash'.format(service_path) in running_command
 
 

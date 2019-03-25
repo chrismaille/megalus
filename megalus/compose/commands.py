@@ -1,14 +1,17 @@
 """Docker-Compose commands module."""
-from typing import List
+from typing import List, Optional
 
 import click
 
 from megalus.main import Megalus
 
 
-def run_compose_command(meg: Megalus, action: str, service_data: dict, options: str = "") -> None:
+def run_compose_command(meg: Megalus, action: str, service_data: dict, environment: Optional[List[str]] = None,
+                        options: Optional[List[str]] = None, command_args: str = "") -> None:
     """Run docker-compose command.
 
+    :param command_args: Command arguments to send after service name in docker-compose command.
+    :param environment: Optional list of environment variables
     :param meg: Megalus instance
     :param action: docker-compose command
     :param service_data: docker service parsed data
@@ -16,12 +19,14 @@ def run_compose_command(meg: Megalus, action: str, service_data: dict, options: 
     :return: None
     """
     meg.run_command(
-        "cd {working_dir} && docker-compose {files} {action}{options}{services}".format(
+        "cd {working_dir} && {environment}docker-compose {files} {action}{options}{services}{args}".format(
             working_dir=service_data['working_dir'],
+            environment="-e {}".format(" -e ".join(environment)) if environment else "",
             files="-f {}".format(" -f ".join(service_data['compose_files'])),
-            options=" {} ".format(options) if options else " ",
+            options=" --{} ".format(" --".join(options)) if options else " ",
             action=action,
-            services=service_data.get('name', "")
+            services=service_data.get('name', ""),
+            args=" {}".format(command_args) if command_args else ""
         )
     )
 
@@ -54,8 +59,8 @@ def scale(meg: Megalus, service: str, number: int) -> None:
     :return: None
     """
     service_data = meg.find_service(service)
-    options = "-d --scale {}={}".format(service_data['name'], number)
-    run_compose_command(meg, "up", options=options, service_data=service_data)
+    options = ["scale {}={}".format(service_data['name'], number)]
+    run_compose_command(meg, "up -d", options=options, service_data=service_data)
 
 
 @click.command()
@@ -70,7 +75,7 @@ def up(meg: Megalus, services: List[str], d: bool) -> None:
     :param d: detached option
     :return: None
     """
-    options = "-d" if d or len(services) > 1 else ""
+    command = "up -d" if d or len(services) > 1 else "up"
     for service in services:
         service_data = meg.find_service(service)
-        run_compose_command(meg, "up", options=options, service_data=service_data)
+        run_compose_command(meg, command, service_data=service_data)
