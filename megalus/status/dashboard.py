@@ -11,6 +11,7 @@ from git import GitCommandError, InvalidGitRepositoryError, Repo
 from tabulate import tabulate
 
 from megalus import get_path
+from megalus.check.commands import check_docker_image
 from megalus.main import Megalus
 from megalus.status.system_watch import megalus_info_widget
 
@@ -19,6 +20,8 @@ client = docker.from_env()
 ARROW_UP = u"↑"
 ARROW_DOWN = u"↓"
 MODIFIED = u"✎"
+RUNNING = u"⇄"
+WARNING = u"⚠"
 
 
 class Dashboard:
@@ -29,6 +32,7 @@ class Dashboard:
 
         :param context: Click context instance
         """
+        self.context = context
         self.config_data = context.config_data
         self.all_composes = context.all_composes
         self.base_path = context.base_path
@@ -42,17 +46,17 @@ class Dashboard:
         """
         running_boxes = []
         for project in self.config_data['compose_projects'].keys():
-            box = self.get_box(project)
-            if all:
-                running_boxes.append(box)
-            elif ARROW_DOWN in box.text \
-                    or ARROW_UP in box.text \
-                    or MODIFIED in box.text \
-                    or "Running" in box.text \
-                    or "ealthy" in box.text \
-                    or "Starting" in box.text:
-                running_boxes.append(box)
-        running_boxes.append(megalus_info_widget())
+            if project in self.all_composes:
+                box = self.get_box(project)
+                if all:
+                    running_boxes.append(box)
+                elif ARROW_DOWN in box.text \
+                        or ARROW_UP in box.text \
+                        or MODIFIED in box.text \
+                        or RUNNING in box.text \
+                        or WARNING in box.text:
+                    running_boxes.append(box)
+        running_boxes.append(megalus_info_widget(self.context))
 
         boxes = []
         index = 0
@@ -81,6 +85,7 @@ class Dashboard:
         all_services = [
             service
             for service in self.all_composes[project]['services']
+            if project in self.all_composes
         ]
         project_path = self.config_data['compose_projects'][project]['path']
         project_path_basename = os.path.basename(project_path)
@@ -157,13 +162,13 @@ class Dashboard:
         """
         container_name = self.all_composes[project]['services'][service].get(
             'container_name', "{}_{}_".format(project_path_basename, service))
-        name, service_status = self.get_service_status(service, container_name)
+        name, service_status = self.get_service_status(service, container_name, project)
         return container_name, name, service_status
 
-    @staticmethod
-    def get_service_status(service: str, container_name: str) -> Tuple[str, str]:
+    def get_service_status(self, service: str, container_name: str, project: str) -> Tuple[str, str]:
         """Get formatted service name and status.
 
+        :param project: project name
         :param service: service name
         :param container_name: container name for service
         :return: Tuple
@@ -172,6 +177,18 @@ class Dashboard:
         def _get_container_status(container: Container) -> str:
             health_check = container.attrs['State'].get('Health', {}).get('Status')
             return health_check if health_check else container.status
+
+        service_data = [
+            data
+            for data in self.context.all_services
+            if data['name'] == service and data['compose'] == project
+        ][0]
+
+        if not check_docker_image(self.context, service_data):
+            return (
+                formatStr.error(service, use_prefix=False),
+                formatStr.error("{} Need Build".format(WARNING), use_prefix=False)
+            )
 
         service_status = [
             _get_container_status(container)
@@ -201,13 +218,13 @@ class Dashboard:
             )
         if "unhealthy" in main_status:
             formatted_service = formatStr.error(service, use_prefix=False)
-            formatted_status = formatStr.error(text, use_prefix=False)
+            formatted_status = formatStr.error(WARNING + " " + text, use_prefix=False)
         elif "running" in main_status or main_status.startswith("healthy"):
             formatted_service = formatStr.success(service, use_prefix=False)
-            formatted_status = formatStr.success(text, use_prefix=False)
+            formatted_status = formatStr.success(RUNNING + " " + text, use_prefix=False)
         else:
             formatted_service = formatStr.warning(service, use_prefix=False)
-            formatted_status = formatStr.warning(text, use_prefix=False)
+            formatted_status = formatStr.warning(WARNING + " " + text, use_prefix=False)
         return formatted_service, formatted_status
 
     def get_git_status(self, service_path: str, project_path: str) -> Optional[str]:

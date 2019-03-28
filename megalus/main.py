@@ -42,9 +42,13 @@ class Megalus:
             self.base_path,
             os.path.basename(self._config_file)
         )
-        with open(config_path) as file:
-            self._config_data = yaml.safe_load(file.read()) or {}
-        return self._config_data
+        try:
+            with open(config_path) as file:
+                self._config_data = yaml.safe_load(file.read()) or {}
+            return self._config_data
+        except FileNotFoundError:
+            logger.warning("File {} not found. Skipping...".format(config_path))
+            return {}
 
     def _convert_lists(self, data: dict, key: str) -> None:
         """Convert list to dict inside yaml data.
@@ -140,27 +144,31 @@ class Megalus:
 
         :return: dict
         """
-        resolved_paths = [
-            get_path(os.path.join(compose_path, file), base_path=self.base_path)
-            for file in compose_files
-        ]
+        try:
+            resolved_paths = [
+                get_path(os.path.join(compose_path, file), base_path=self.base_path)
+                for file in compose_files
+            ]
 
-        compose_data_list = []
-        for compose_file in resolved_paths:
-            with open(compose_file, 'r') as file:
-                compose_data = yaml.safe_load(file.read())
-                for key in compose_data:  # type: ignore
-                    self._convert_lists(compose_data, key)
-                compose_data_list.append(compose_data)
-        reversed_list = list(reversed(compose_data_list))
-        self._data = reversed_list[-1]
-        for index, override in enumerate(reversed_list):
-            self.override = override
-            if index + 1 == len(reversed_list):
-                break
-            for key in self.override:
-                self._load_data_from_override(self.override, self._data, key)
-        return self._data
+            compose_data_list = []
+            for compose_file in resolved_paths:
+                with open(compose_file, 'r') as file:
+                    compose_data = yaml.safe_load(file.read())
+                    for key in compose_data:  # type: ignore
+                        self._convert_lists(compose_data, key)
+                    compose_data_list.append(compose_data)
+            reversed_list = list(reversed(compose_data_list))
+            self._data = reversed_list[-1]
+            for index, override in enumerate(reversed_list):
+                self.override = override
+                if index + 1 == len(reversed_list):
+                    break
+                for key in self.override:
+                    self._load_data_from_override(self.override, self._data, key)
+            return self._data
+        except FileNotFoundError:
+            logger.warning("File {} not found. Skipping...".format(compose_file or ""))
+            return {}
 
     def get_services(self) -> None:
         """Build service configuration from yaml files.
@@ -171,6 +179,9 @@ class Megalus:
             compose_path = self.config_data['compose_projects'][compose_project]['path']
             compose_files = self.config_data['compose_projects'][compose_project]['files']
             compose_data = self._get_compose_data_for(compose_path, compose_files)
+            if not compose_data:
+                logger.warning("Project {} has errors. Ignoring...".format(compose_project))
+                continue
             self.all_composes.update({compose_project: compose_data})
             for service in compose_data['services']:
                 self.all_services.append(

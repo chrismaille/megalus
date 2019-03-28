@@ -6,21 +6,40 @@ Uses PSUtil to get machine stats:
 * Memory Used
 """
 import psutil
+from buzio import formatStr
 from dashing import dashing
 from dashing.dashing import Text, VSplit
 
 from megalus import __version__
+from megalus.main import Megalus
 
 
-def megalus_info_widget() -> VSplit:
+def megalus_info_widget(meg: Megalus) -> VSplit:
     """Return Megalus Info Widget.
 
     :return: dashing VSplit instance
     """
     machine_info_widget = get_machine_info_widget()
-    megalus_info_widget = Text("Version: {}".format(__version__), color=6, border_color=5, background_color=16,
-                               title="Megalus")
-    return VSplit(megalus_info_widget, machine_info_widget)
+    info_widget = get_megalus_info_widget(meg)
+    return VSplit(info_widget, machine_info_widget)
+
+
+def get_megalus_info_widget(meg: Megalus) -> Text:
+    """Get projects in error.
+
+    :param meg: Megalus instance
+    :return: String
+    """
+    projects_in_error = [
+        project
+        for project in meg.config_data['compose_projects'].keys()
+        if project not in meg.all_composes
+    ]
+    status_text = formatStr.success("All projects loaded.",
+                                    use_prefix=False) if not projects_in_error else formatStr.error(
+        "Projects in error: {}".format(",".join(projects_in_error)), use_prefix=False)
+    return Text(status_text, color=6, border_color=5, background_color=16,
+                title="Megalus v{}".format(__version__))
 
 
 def get_machine_info_widget() -> VSplit:
