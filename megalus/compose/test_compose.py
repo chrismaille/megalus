@@ -41,7 +41,7 @@ def test_scale(caplog, obj, mocker):
             if service['name'] == 'django'
         ][0]
         assert 'cd {} && docker-compose -f docker-compose.yml -f ' \
-               'docker-compose.override.yml up -d --scale django=2 django'.format(service_path) in running_command
+               'docker-compose.override.yml up -d --scale django=2'.format(service_path) in running_command
 
 
 def test_up_detached(caplog, obj, mocker):

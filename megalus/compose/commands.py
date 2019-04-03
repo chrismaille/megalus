@@ -7,9 +7,10 @@ from megalus.main import Megalus
 
 
 def run_compose_command(meg: Megalus, action: str, service_data: dict, environment: Optional[List[str]] = None,
-                        options: Optional[List[str]] = None, command_args: str = "") -> None:
+                        options: Optional[List[str]] = None, command_args: str = "", all_services: bool =False) -> None:
     """Run docker-compose command.
 
+    :param all_services: The command will be used for all services?
     :param command_args: Command arguments to send after service name in docker-compose command.
     :param environment: Optional list of environment variables
     :param meg: Megalus instance
@@ -25,7 +26,7 @@ def run_compose_command(meg: Megalus, action: str, service_data: dict, environme
             files="-f {}".format(" -f ".join(service_data['compose_files'])),
             options=" --{} ".format(" --".join(options)) if options else " ",
             action=action,
-            services=service_data.get('name', ""),
+            services=service_data.get('name', "") if not all_services else "",
             args=" {}".format(command_args) if command_args else ""
         )
     )
@@ -60,7 +61,7 @@ def scale(meg: Megalus, service: str, number: int) -> None:
     """
     service_data = meg.find_service(service)
     options = ["scale {}={}".format(service_data['name'], number)]
-    run_compose_command(meg, "up -d", options=options, service_data=service_data)
+    run_compose_command(meg, "up -d", options=options, service_data=service_data, all_services=True)
 
 
 @click.command()

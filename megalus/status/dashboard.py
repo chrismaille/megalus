@@ -10,7 +10,7 @@ from docker.models.containers import Container
 from git import GitCommandError, InvalidGitRepositoryError, Repo
 from tabulate import tabulate
 
-from megalus import get_path
+from megalus.utils import get_path
 from megalus.check.commands import check_docker_image
 from megalus.main import Megalus
 from megalus.status.system_watch import megalus_info_widget

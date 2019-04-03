@@ -3,7 +3,7 @@ from typing import List
 
 import click
 
-from megalus import get_path
+from megalus.utils import get_path
 from megalus.main import Megalus
 
 
