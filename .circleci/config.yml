@@ -1,7 +1,7 @@
 version: 2.1
 
 commands:
-  installDeps:
+  install_deps:
     description: "Install pipenv and dependencies"
     steps:
       - run:
@@ -18,7 +18,7 @@ jobs:
       - image: circleci/python:3.5
     steps:
       - checkout
-      - installDeps
+      - install_deps
       - run:
           name: Test
           command: make ci
@@ -28,7 +28,7 @@ jobs:
       - image: circleci/python:3.6
     steps:
       - checkout
-      - installDeps
+      - install_deps
       - run:
           name: Test
           command: make ci
