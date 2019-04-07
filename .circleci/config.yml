@@ -1,4 +1,16 @@
-version: 2
+version: 2.1
+
+commands:
+  installDeps:
+    description: "Install pipenv and dependencies"
+    steps:
+      - run:
+          name: Install Pipenv
+          command: pip install -U --user pipenv
+      - run:
+          name: Build
+          command: sudo pip install -e .
+
 jobs:
   build_test_python3.5:
     working_directory: ~/app
@@ -6,12 +18,7 @@ jobs:
       - image: circleci/python:3.5
     steps:
       - checkout
-      - run:
-          name: Install Pipenv
-          command: pip install -U --user pipenv
-      - run:
-          name: Build
-          command: sudo pip install -e .
+      - installDeps
       - run:
           name: Test
           command: make ci
@@ -21,12 +28,7 @@ jobs:
       - image: circleci/python:3.6
     steps:
       - checkout
-      - run:
-          name: Install Pipenv
-          command: pip install -U --user pipenv
-      - run:
-          name: Build
-          command: sudo pipenv install --system --deploy --dev
+      - installDeps
       - run:
           name: Test
           command: make ci
@@ -39,12 +41,7 @@ jobs:
       - image: circleci/python:3.7
     steps:
       - checkout
-      - run:
-          name: Install Pipenv
-          command: pip install -U --user pipenv
-      - run:
-          name: Build
-          command: sudo pip install -e .
+      - installDeps
       - run:
           name: Test
           command: make ci

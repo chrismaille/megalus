@@ -9,11 +9,14 @@ from megalus import __version__
 here = path.abspath(path.dirname(__file__))
 
 pfile = Project(chdir=False).parsed_pipfile
-requirements = convert_deps_to_pip(pfile['packages'], r=False)
-test_requirements = convert_deps_to_pip(pfile['dev-packages'], r=False)
-if os.getenv("CI"):
-    print(requirements)
-    print(test_requirements)
+package_requirements = convert_deps_to_pip(pfile['packages'], r=False)
+
+requirements = [
+    req
+    for req in package_requirements
+    if not req.startswith("http")
+]
+
 
 # Get the long description from the README file
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
