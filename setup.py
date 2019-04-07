@@ -1,3 +1,4 @@
+import os
 from codecs import open
 from os import path
 from setuptools import setup, find_packages
@@ -10,7 +11,9 @@ here = path.abspath(path.dirname(__file__))
 pfile = Project(chdir=False).parsed_pipfile
 requirements = convert_deps_to_pip(pfile['packages'], r=False)
 test_requirements = convert_deps_to_pip(pfile['dev-packages'], r=False)
-
+if os.getenv("CI"):
+    print(requirements)
+    print(test_requirements)
 
 # Get the long description from the README file
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
