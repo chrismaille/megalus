@@ -5,10 +5,10 @@ commands:
     description: "Install pipenv and dependencies"
     steps:
       - run:
-          name: Install Pipenv
+          name: "Install Pipenv"
           command: pip install -U --user pipenv
       - run:
-          name: Build
+          name: "Build"
           command: sudo pip install -e .
 
 jobs:
