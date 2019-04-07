@@ -41,7 +41,7 @@ jobs:
       - image: circleci/python:3.7
     steps:
       - checkout
-      - installDeps
+      - install_deps
       - run:
           name: Test
           command: make ci
