@@ -13,7 +13,7 @@ def stop_all(meg: Megalus) -> None:
     :param meg: Megalus instance
     :return: None
     """
-    all_projects: List[dict] = []
+    all_projects = []  # type: List[dict]
     service_data_list = []
     for service in meg.all_services:
         if service['compose'] not in all_projects:
