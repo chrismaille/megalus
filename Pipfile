@@ -33,7 +33,7 @@ codecov = "*"
 sphinx_rtd_theme = "*"
 psutil = "*"
 semver = "*"
-curses = {uri = "https://download.lfd.uci.edu/pythonlibs/u2hcgva4/curses-2.2+utf8-cp36-cp36m-win_amd64.whl", python_version = "== 3.6", sys_platform = "== 'win32'"}
+curses = {file = "https://download.lfd.uci.edu/pythonlibs/u2hcgva4/curses-2.2+utf8-cp36-cp36m-win_amd64.whl", python_version = "== 3.6", sys_platform = "== 'win32'"}
 
 [requires]
 python_version = "3.6"
