@@ -1,5 +1,7 @@
 """Click command module."""
 import os
+import platform
+import re
 import sys
 from pathlib import Path
 
@@ -38,6 +40,8 @@ def cli(ctx, config_file) -> None:
 
     now = arrow.utcnow().to("local").isoformat()
     LOGFILE = os.path.join(BASE_LOG_PATH, '{}.log'.format(now))
+    if "windows" in platform.system().lower():
+        LOGFILE = "".join(re.findall("[0-9]+", now))
 
     DEFAULT_LOGGER_MESSAGE = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> |" \
                              " <level>{level: <8}</level> - <level>{message}</level>"

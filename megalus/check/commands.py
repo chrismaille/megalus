@@ -89,7 +89,6 @@ def has_old_image(ctx: Megalus, service: str, show_logs) -> bool:
             get_date_from_file(file)
             for file in global_files_to_watch
             if os.path.isfile(os.path.join(data['working_dir'], file))
-            # FIXME: Acertar o working_dir + build.context para achar o path dos arquivos
         ]
         if list_dates and image_date_created < max(list_dates):
             return True
