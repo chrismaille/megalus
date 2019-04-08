@@ -175,6 +175,8 @@ class Megalus:
 
         :return: None
         """
+        if not self.validate_config_data():
+            raise SystemExit(1)
         for compose_project in self.config_data.get('compose_projects', []):
             compose_path = self.config_data['compose_projects'][compose_project]['path']
             compose_files = self.config_data['compose_projects'][compose_project]['files']
@@ -248,3 +250,12 @@ class Megalus:
         ][0]
         self.service = data['name']
         return data
+
+    def validate_config_data(self) -> bool:
+        """Validate data parsed from megalus.yml file."""
+        no_errors = True
+        if not self.config_data.get('compose_projects'):
+            no_errors = False
+            logger.error("Key 'compose_projects' not found in configuration file."
+                         " Please check and try again.")
+        return no_errors
