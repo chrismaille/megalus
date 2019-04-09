@@ -3,8 +3,9 @@ from typing import List
 
 import click
 
-from megalus.utils import get_path
+from megalus.compose.commands import run_compose_command
 from megalus.main import Megalus
+from megalus.utils import get_path
 
 
 @click.command()
@@ -19,16 +20,21 @@ def down(meg: Megalus, projects: List[str], remove_all: bool) -> None:
     :param remove_all: remove image and containers too
     :return: None
     """
-    options = "--rmi all -v --remove-orphans" if remove_all else ""
+    options = ["rmi all", "volumes", "remove-orphans"] if remove_all else None
 
-    for project_name in meg.config_data['compose_projects']:
-        if (projects and project_name in projects) or not projects:
-            compose_files = meg.config_data['compose_projects'][project_name]['files']
-            compose_path = meg.config_data['compose_projects'][project_name]['path']
-            meg.run_command(
-                "cd {working_dir} && docker-compose -f {files} down {options}".format(
-                    working_dir=get_path(compose_path, meg.base_path),
-                    files=" -f ".join(compose_files),
-                    options=options
-                )
-            )
+    projects_to_run = projects if projects else meg.config_data['compose_projects'].keys()
+
+    for project_informed in projects_to_run:
+        project_data = meg.find_project(project_informed)
+        service_data = {
+            'compose_files': project_data['files'],
+            'working_dir': get_path(project_data['path'], meg.base_path),
+            'compose_project': project_data
+        }
+        run_compose_command(
+            meg,
+            action="down",
+            service_data=service_data,
+            options=options,
+            all_services=True
+        )

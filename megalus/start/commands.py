@@ -16,15 +16,16 @@ def start(meg: Megalus, projects: str) -> None:
     :param projects: Megalus projects to be started up
     :return: None
     """
-    for project_name in meg.config_data['compose_projects']:
-        if project_name in projects:
-            service_data = {
-                'compose_files': meg.config_data['compose_projects'][project_name]['files'],
-                'working_dir': get_path(meg.config_data['compose_projects'][project_name]['path'], meg.base_path)
-            }
-            run_compose_command(
-                meg,
-                action="up -d",
-                service_data=service_data,
-                all_services=True
-            )
+    for project_informed in projects:
+        project_data = meg.find_project(project_informed)
+        service_data = {
+            'compose_files': project_data['files'],
+            'working_dir': get_path(project_data['path'], meg.base_path),
+            'compose_project': project_data
+        }
+        run_compose_command(
+            meg,
+            action="up -d",
+            service_data=service_data,
+            all_services=True
+        )

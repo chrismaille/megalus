@@ -53,5 +53,5 @@ def test_down_with_remove(caplog, obj, mocker):
             if service['name'] == 'django'
         ][0]
         assert 'cd {} && docker-compose -f docker-compose.yml ' \
-               '-f docker-compose.override.yml down --rmi all -v ' \
+               '-f docker-compose.override.yml down --rmi all --volumes ' \
                '--remove-orphans'.format(service_path) in running_command

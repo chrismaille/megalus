@@ -1,28 +1,88 @@
 """Docker-Compose commands module."""
+import os
 from typing import List, Optional
 
 import click
+import requests
+from loguru import logger
 
 from megalus.main import Megalus
 
 
-def run_compose_command(meg: Megalus, action: str, service_data: dict, environment: Optional[List[str]] = None,
-                        options: Optional[List[str]] = None, command_args: str = "", all_services: bool =False) -> None:
+def get_ngrok_address(service_data: dict) -> list:
+    """Get Ngrok address for selected port.
+
+    :param service_data: service parsed data
+    :return: List
+    """
+    ngrok_config = service_data['compose_project'].get('ngrok')
+    if not ngrok_config:
+        return []
+    port = ngrok_config['port']
+    secure = ngrok_config['secure']
+    env = ngrok_config['env']
+    protocol = "https" if secure else "http"
+
+    ret = requests.get(
+        "http://127.0.0.1:4040/api/tunnels",
+        timeout=1
+    )
+    try:
+        ret.raise_for_status()
+        api_data = ret.json()
+        http_url = [
+            obj['public_url']
+            for obj in api_data['tunnels']
+            if obj['proto'] == protocol and str(port) in obj['config']['addr']
+        ]
+        if http_url:
+            return [
+                "{}={}".format(env, http_url[0])
+            ]
+        else:
+            logger.warning("Ngrok port {} not found. Skipping...".format(port))
+            return []
+    except requests.exceptions.RequestException as e:
+        logger.error("Status Error trying to get ngrok address for port {}: {}".format(port, e))
+        return []
+
+
+def get_env_from_project(service_data: dict) -> list:
+    """Get environment variable from yaml.
+
+    Get value from yaml or from memory.
+
+    :param service_data: service parsed data
+    :return: List
+    """
+    project_envs = service_data['compose_project'].get('environment')
+    if not project_envs:
+        return []
+    return [
+        "{}={}".format(env, project_envs.get(env, os.getenv(env)))
+        for env in project_envs
+    ]
+
+
+def run_compose_command(meg: Megalus, action: str, service_data: dict,
+                        options: Optional[List[str]] = None, command_args: str = "",
+                        all_services: bool = False) -> None:
     """Run docker-compose command.
 
     :param all_services: The command will be used for all services?
     :param command_args: Command arguments to send after service name in docker-compose command.
-    :param environment: Optional list of environment variables
     :param meg: Megalus instance
     :param action: docker-compose command
     :param service_data: docker service parsed data
     :param options: docker-compose command options
     :return: None
     """
+    environment = get_ngrok_address(service_data=service_data)
+    environment += get_env_from_project(service_data=service_data)
     meg.run_command(
         "cd {working_dir} && {environment}docker-compose {files} {action}{options}{services}{args}".format(
             working_dir=service_data['working_dir'],
-            environment="-e {}".format(" -e ".join(environment)) if environment else "",
+            environment="{} ".format(" ".join(environment)) if environment else "",
             files="-f {}".format(" -f ".join(service_data['compose_files'])),
             options=" --{} ".format(" --".join(options)) if options else " ",
             action=action,

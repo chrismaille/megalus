@@ -194,7 +194,8 @@ class Megalus:
                         'compose_files': compose_files,
                         'working_dir': os.path.dirname(
                             get_path(os.path.join(compose_path, compose_files[0]), self.base_path)),
-                        'compose_data': compose_data['services'][service]
+                        'compose_data': compose_data['services'][service],
+                        'compose_project': self.config_data['compose_projects'][compose_project]
                     }
                 )
 
@@ -210,6 +211,31 @@ class Megalus:
         if not ret:
             sys.exit(1)
         return ret
+
+    def find_project(self, project_informed: str) -> dict:
+        """Find project from string.
+
+        :param project_informed: string informed in command
+        :return: compose project data from yml.
+        """
+        exact_match = list(self.config_data['compose_projects'].keys()).count(project_informed)
+        if exact_match == 1:
+            return self.config_data['compose_projects'][project_informed]
+
+        eligible_projects = [
+            key
+            for key in self.config_data['compose_projects'].keys()
+            if project_informed in key
+        ]
+        if not eligible_projects:
+            logger.error("Project not found")
+            sys.exit(1)
+
+        elif len(eligible_projects) == 1:
+            return self.config_data['compose_projects'][eligible_projects[0]]
+
+        project_key = console.choose(eligible_projects, 'Please select project')
+        return self.config_data['compose_projects'][project_key]
 
     def find_service(self, service_informed: str) -> dict:
         """Find service inside megalus service data.
