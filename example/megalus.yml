@@ -28,6 +28,10 @@ compose_projects:
       path: ./api2
       files:
         - docker-compose.yml
+      ngrok:
+        port: 6544
+        secure: False
+        env: MEGALUS_NGROK_TEST_ENV
 
 
 

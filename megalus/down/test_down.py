@@ -4,10 +4,11 @@ from click.testing import CliRunner
 from megalus.down.commands import down
 
 
-def test_down_all_composes(caplog, obj, mocker):
+def test_down_all_composes(caplog, obj, mocker, ngrok_response):
     runner = CliRunner()
     with runner.isolated_filesystem():
         mocker.patch('megalus.main.console.run')
+        mocker.patch('megalus.compose.commands.requests.get', return_value=ngrok_response)
         result = runner.invoke(down, obj=obj)
         assert result.exit_code == 0
         running_command = [
@@ -33,7 +34,9 @@ def test_down_all_composes(caplog, obj, mocker):
             for service in obj.all_services
             if service['name'] == 'pyramid'
         ][0]
-        assert 'cd {} && docker-compose -f docker-compose.yml down'.format(service_path) in running_command
+        assert 'cd {} && MEGALUS_NGROK_TEST_ENV=http://87f3557f.ngrok.io ' \
+               'NGROK_DOMAIN=87f3557f.ngrok.io docker-compose ' \
+               '-f docker-compose.yml down'.format(service_path) in running_command
 
 
 def test_down_with_remove(caplog, obj, mocker):

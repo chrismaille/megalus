@@ -62,6 +62,9 @@ def ngrok_response():
     def _return_json():
         return json_loader.loads(response.content)
 
+    def _raise_for_status():
+        return True
+
     response = Mock()
     response.content = \
         b'{"tunnels":[{"name":"core","uri":"/api/tunnels/core","public_url":"https://87f3557f.ngrok.io",' \
@@ -84,4 +87,5 @@ def ngrok_response():
         b'"p50":0,"p90":0,"p95":0,"p99":0}}}],"uri":"/api/tunnels"}\n'
     response.json = _return_json
     response.status_code = 200
+    response.raise_for_status = _raise_for_status
     return response

@@ -1,6 +1,7 @@
 """Docker-Compose commands module."""
 import os
 from typing import List, Optional
+from urllib.parse import urlparse
 
 import click
 import requests
@@ -9,9 +10,10 @@ from loguru import logger
 from megalus.main import Megalus
 
 
-def get_ngrok_address(service_data: dict) -> list:
+def get_ngrok_address(service_data: dict, only_domain: bool = False) -> list:
     """Get Ngrok address for selected port.
 
+    :param only_domain: Return only login or full url
     :param service_data: service parsed data
     :return: List
     """
@@ -36,9 +38,12 @@ def get_ngrok_address(service_data: dict) -> list:
             if obj['proto'] == protocol and str(port) in obj['config']['addr']
         ]
         if http_url:
-            return [
-                "{}={}".format(env, http_url[0])
-            ]
+            if only_domain:
+                return urlparse(http_url[0]).netloc
+            else:
+                return [
+                    "{}={}".format(env, http_url[0])
+                ]
         else:
             logger.warning("Ngrok port {} not found. Skipping...".format(port))
             return []
@@ -77,7 +82,10 @@ def run_compose_command(meg: Megalus, action: str, service_data: dict,
     :param options: docker-compose command options
     :return: None
     """
-    environment = get_ngrok_address(service_data=service_data)
+    environment = []  # type: list
+    if service_data['compose_project'].get('ngrok'):
+        environment += get_ngrok_address(service_data=service_data)
+        environment += ['NGROK_DOMAIN={}'.format(get_ngrok_address(service_data=service_data, only_domain=True))]
     environment += get_env_from_project(service_data=service_data)
     meg.run_command(
         "cd {working_dir} && {environment}docker-compose {files} {action}{options}{services}{args}".format(

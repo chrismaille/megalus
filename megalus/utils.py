@@ -5,10 +5,9 @@ import os
 import re
 import shutil
 from pathlib import Path
-from typing import List, Optional, Dict
+from typing import List
 
 import docker
-import requests
 from docker import DockerClient
 from loguru import logger
 
@@ -78,28 +77,3 @@ def get_path(path: str, base_path: str) -> str:
         list_path = os.path.join(base_path, path)
         path = os.path.abspath(list_path)
     return path
-
-
-def get_ngrok_url(ngrok_dict: Dict[str, str]) -> Optional[str]:
-    """Get Ngrok data from API.
-
-    Return /api/tunnels data for selected port
-
-    :param ngrok_dict: ngrok parameters to find
-    :return: dict: ngrok data from api
-    """
-    protocol = "https" if ngrok_dict.get('secure', False) else "http"
-    port = ngrok_dict['port']
-    try:
-        http_url = None
-        ret = requests.get("http://127.0.0.1:4040/api/tunnels", timeout=1)
-        if ret.status_code == requests.codes.ok:
-            api_data = ret.json()
-            http_url = [
-                obj['public_url']
-                for obj in api_data['tunnels']
-                if obj['proto'] == protocol and str(port) in obj['config']['addr']
-            ]
-        return http_url[0] if http_url else None
-    except ConnectionError:
-        return None
