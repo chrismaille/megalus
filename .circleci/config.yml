@@ -9,7 +9,7 @@ commands:
           command: pip install -U --user pipenv
       - run:
           name: "Build"
-          command: sudo pip install -e .
+          command: USE_DEV_DEPS=1 sudo pip install -e .
 
 jobs:
   build_test_python35:

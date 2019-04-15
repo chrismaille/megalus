@@ -84,8 +84,11 @@ def run_compose_command(meg: Megalus, action: str, service_data: dict,
     """
     environment = []  # type: list
     if service_data['compose_project'].get('ngrok'):
-        environment += get_ngrok_address(service_data=service_data)
-        environment += ['NGROK_DOMAIN={}'.format(get_ngrok_address(service_data=service_data, only_domain=True))]
+        ngrok_url_env = get_ngrok_address(service_data=service_data)
+        ngrok_domain_env = get_ngrok_address(service_data=service_data, only_domain=True)
+        environment = ngrok_url_env
+        if ngrok_domain_env:
+            environment += ["NGROK_DOMAIN={}".format(ngrok_domain_env)]
     environment += get_env_from_project(service_data=service_data)
     meg.run_command(
         "cd {working_dir} && {environment}docker-compose {files} {action}{options}{services}{args}".format(

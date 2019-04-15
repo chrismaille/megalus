@@ -28,7 +28,7 @@ def status(meg: Megalus, all: bool) -> None:
                     while True:
                         ui = dashboard.get_layout(term, all)
                         ui.display()
-                        key_pressed = term.inkey(timeout=1)
+                        key_pressed = term.inkey(timeout=5)
                         if 'd' in key_pressed.lower():
                             diff = not diff
                         if 'q' in key_pressed.lower():

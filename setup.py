@@ -1,3 +1,4 @@
+"""Setup.py main file."""
 import os
 from codecs import open
 from os import path
@@ -10,10 +11,17 @@ here = path.abspath(path.dirname(__file__))
 
 pfile = Project(chdir=False).parsed_pipfile
 package_requirements = convert_deps_to_pip(pfile['packages'], r=False)
+dev_requirements = convert_deps_to_pip(pfile['dev-packages'], r=False)
+
+if os.getenv('USE_DEV_DEPS'):
+    print("Installing dev-packages...")
+    full_requirements = package_requirements + dev_requirements
+else:
+    full_requirements = package_requirements
 
 requirements = [
     req
-    for req in package_requirements
+    for req in full_requirements
     if not req.startswith("http")
 ]
 

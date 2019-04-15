@@ -4,6 +4,21 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+sphinx = "*"
+tox = "*"
+tox-pyenv = "*"
+pytest = "*"
+pytest-mock = "*"
+pytest-xdist = "*"
+pytest-docstyle = "*"
+pytest-pep8 = "*"
+pytest-mypy = "*"
+pytest-cov = "*"
+coverage = "*"
+auto-changelog = "*"
+codecov = "*"
+sphinx_rtd_theme = "*"
+semver = "*"
 
 [packages]
 buzio = "*"
@@ -16,24 +31,9 @@ pydashing = "*"
 gitpython = "*"
 tabulate = "*"
 blessed = "*"
-sphinx = "*"
-tox = "*"
-tox-pyenv = "*"
 pipenv = "*"
-pytest = "*"
-pytest-mock = "*"
-pytest-xdist = "*"
-pytest-docstyle = "*"
-pytest-pep8 = "*"
-pytest-mypy = "*"
-pytest-cov = "*"
-coverage = "*"
-auto-changelog = "*"
-codecov = "*"
-sphinx_rtd_theme = "*"
 psutil = "*"
-semver = "*"
-curses = {file = "https://download.lfd.uci.edu/pythonlibs/u2hcgva4/curses-2.2+utf8-cp36-cp36m-win_amd64.whl", markers="python_version == '3.6' and sys_platform == 'win32'"}
+curses = {file = "https://download.lfd.uci.edu/pythonlibs/u2hcgva4/curses-2.2+utf8-cp36-cp36m-win_amd64.whl",markers = "python_version == '3.6' and sys_platform == 'win32'"}
 
 [requires]
 python_version = "3.6"
