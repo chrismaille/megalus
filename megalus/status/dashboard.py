@@ -10,10 +10,10 @@ from docker.models.containers import Container
 from git import GitCommandError, InvalidGitRepositoryError, Repo
 from tabulate import tabulate
 
-from megalus.utils import get_path
 from megalus.check.commands import check_docker_image
 from megalus.main import Megalus
 from megalus.status.system_watch import megalus_info_widget
+from megalus.utils import get_path
 
 client = docker.from_env()
 
@@ -60,18 +60,37 @@ class Dashboard:
 
         boxes = []
         index = 0
+        vertical_boxes = int(len(running_boxes) / 5)
+        if vertical_boxes > 4:
+            vertical_boxes = 4
         while index < len(running_boxes):
             box = running_boxes[index]
             if self.config_data['compose_projects'].get(box.title, {}).get("show_status", {}).get("big", False):
                 boxes.append(box)
                 index += 1
                 continue
-            if index + 1 < len(running_boxes):
+            if index + vertical_boxes < len(running_boxes):
+                if vertical_boxes == 1:
+                    boxes.append(VSplit(running_boxes[index], running_boxes[index + 1]))
+                elif vertical_boxes == 2:
+                    boxes.append(VSplit(running_boxes[index], running_boxes[index + 1], running_boxes[index + 2]))
+                elif vertical_boxes == 3:
+                    boxes.append(VSplit(running_boxes[index], running_boxes[index + 1], running_boxes[index + 2],
+                                        running_boxes[index + 3]))
+                else:
+                    boxes.append(VSplit(running_boxes[index], running_boxes[index + 1], running_boxes[index + 2],
+                                        running_boxes[index + 3], running_boxes[index + 4]))
+                index += (vertical_boxes + 1)
+                continue
+            if len(running_boxes) - (index + vertical_boxes) == 1:
+                boxes.append(running_boxes[index])
+                index += 1
+            elif len(running_boxes) - (index + vertical_boxes) == 2:
                 boxes.append(VSplit(running_boxes[index], running_boxes[index + 1]))
                 index += 2
-                continue
-            boxes.append(box)
-            index += 1
+            else:
+                boxes.append(VSplit(running_boxes[index], running_boxes[index + 1], running_boxes[index + 2]))
+                index += 3
 
         ui = HSplit(*boxes, terminal=term, main=True, color=7, background_color=16)
         return ui
