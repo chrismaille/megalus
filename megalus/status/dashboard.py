@@ -60,7 +60,7 @@ class Dashboard:
 
         boxes = []
         index = 0
-        vertical_boxes = int(len(running_boxes) / 5)
+        vertical_boxes = int(len(running_boxes) / 4)
         if vertical_boxes > 4:
             vertical_boxes = 4
         while index < len(running_boxes):
@@ -82,15 +82,19 @@ class Dashboard:
                                         running_boxes[index + 3], running_boxes[index + 4]))
                 index += (vertical_boxes + 1)
                 continue
-            if len(running_boxes) - (index + vertical_boxes) <= 1:
+            if len(running_boxes) - index <= 1:
                 boxes.append(running_boxes[index])
                 index += 1
-            elif len(running_boxes) - (index + vertical_boxes) == 2:
+            elif len(running_boxes) - index == 2:
                 boxes.append(VSplit(running_boxes[index], running_boxes[index + 1]))
                 index += 2
-            else:
+            elif len(running_boxes) - index == 3:
                 boxes.append(VSplit(running_boxes[index], running_boxes[index + 1], running_boxes[index + 2]))
                 index += 3
+            else:
+                boxes.append(VSplit(running_boxes[index], running_boxes[index + 1], running_boxes[index + 2],
+                                    running_boxes[index + 3]))
+                index += 4
 
         ui = HSplit(*boxes, terminal=term, main=True, color=7, background_color=16)
         return ui

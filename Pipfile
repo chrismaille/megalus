@@ -33,7 +33,6 @@ tabulate = "*"
 blessed = "*"
 pipenv = "*"
 psutil = "*"
-curses = {file = "https://download.lfd.uci.edu/pythonlibs/u2hcgva4/curses-2.2+utf8-cp36-cp36m-win_amd64.whl",markers = "python_version == '3.6' and sys_platform == 'win32'"}
 
 [requires]
 python_version = "3.6"
