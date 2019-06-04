@@ -8,6 +8,7 @@ import click
 from buzio import console
 from loguru import logger
 
+from megalus.compose.commands import run_compose_command
 from megalus.main import Megalus
 from megalus.utils import find_containers
 
@@ -62,21 +63,31 @@ def logs(meg: Megalus, services: list, regex: str):
             meg.find_service(service_to_find)
             for service_to_find in services
         ]
+        logger.info(f"Show log info for services: {', '.join([service['name'] for service in services_data_to_log])}")
         while True:
             for service_data in services_data_to_log:
                 if len(services_data_to_log) > 1:
                     console.section(service_data['name'])
                 containers = find_containers(service_data['name'])
-                for container in containers:
-                    log_data = container.logs(timestamps=True, stream=True, since=time_to_fetch)
-                    for data in log_data:
-                        if data:
-                            line = data.decode('UTF-8').replace("\n", "")
-                            if regex:
-                                ret = re.search(regex, line)
-                                if not ret:
-                                    continue
-                            show_log(container.name, line)
-            sleep(time_to_fetch)
+                if containers:
+                    for container in containers:
+                        run_stream = container.status == "running"
+                        log_data = container.logs(timestamps=True, stream=run_stream, since=time_to_fetch)
+                        for data in log_data:
+                            if data:
+                                line = data.decode('UTF-8').replace("\n", "")
+                                if regex:
+                                    ret = re.search(regex, line)
+                                    if not ret:
+                                        continue
+                                show_log(container.name, line)
+                    sleep(time_to_fetch)
+                else:
+                    logger.warning(
+                        f"No running containers found for service: {service_data['name']}. Show last 100 lines.")
+                    action = "logs"
+                    options = ['tail=100']
+                    run_compose_command(meg, action, service_data, options)
+                    raise KeyboardInterrupt()
     except KeyboardInterrupt:
         sys.exit(0)
