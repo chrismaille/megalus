@@ -14,7 +14,7 @@ def test_stop_service(caplog, obj, mocker):
             message
             for message in caplog.messages
             if "Running command:" in message
-        ][0]
+        ][-1]
         service_path = [
             service['working_dir']
             for service in obj.all_services
@@ -47,7 +47,7 @@ def test_stop_all(caplog, obj, mocker, ngrok_response):
             message
             for message in caplog.messages
             if "api2" in message
-        ][0]
+        ][-1]
         service_path = [
             service['working_dir']
             for service in obj.all_services

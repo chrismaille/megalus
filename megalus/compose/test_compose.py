@@ -14,7 +14,7 @@ def test_restart(caplog, obj, mocker):
             message
             for message in caplog.messages
             if "Running command:" in message
-        ][0]
+        ][-1]
         service_path = [
             service['working_dir']
             for service in obj.all_services
@@ -34,7 +34,7 @@ def test_scale(caplog, obj, mocker):
             message
             for message in caplog.messages
             if "Running command:" in message
-        ][0]
+        ][-1]
         service_path = [
             service['working_dir']
             for service in obj.all_services
@@ -54,14 +54,14 @@ def test_up_detached(caplog, obj, mocker):
             message
             for message in caplog.messages
             if "Running command:" in message
-        ][0]
+        ][-1]
         service_path = [
             service['working_dir']
             for service in obj.all_services
             if service['name'] == 'django'
         ][0]
         assert 'cd {} && docker-compose -f docker-compose.yml ' \
-               '-f docker-compose.override.yml up -d django'.format(service_path) in running_command
+               '-f docker-compose.override.yml up -d --remove-orphans django'.format(service_path) in running_command
 
 
 def test_up_multiple_services(caplog, obj, mocker, ngrok_response):
@@ -82,7 +82,7 @@ def test_up_multiple_services(caplog, obj, mocker, ngrok_response):
             if service['name'] == 'django'
         ][0]
         assert 'cd {} && docker-compose -f docker-compose.yml ' \
-               '-f docker-compose.override.yml up -d django'.format(service_path) in running_command
+               '-f docker-compose.override.yml up -d --remove-orphans django'.format(service_path) in running_command
 
         running_command = [
             message
@@ -96,7 +96,7 @@ def test_up_multiple_services(caplog, obj, mocker, ngrok_response):
         ][0]
         assert 'cd {} && MEGALUS_NGROK_TEST_ENV=http://87f3557f.ngrok.io ' \
                'NGROK_DOMAIN=87f3557f.ngrok.io docker-compose -f ' \
-               'docker-compose.yml up -d pyramid'.format(service_path) in running_command
+               'docker-compose.yml up -d --remove-orphans pyramid'.format(service_path) in running_command
 
 
 def test_up_service_with_ngrok(caplog, obj, mocker, ngrok_response):

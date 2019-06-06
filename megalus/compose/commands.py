@@ -72,9 +72,10 @@ def get_env_from_project(service_data: dict) -> list:
     ]
 
 
-def check_for_docker_network(service_data: dict) -> None:
+def check_for_docker_network(meg: Megalus, service_data: dict) -> None:
     """Check and create External Docker Networks.
 
+    :param meg: Megalus instance
     :param service_data: Dict
     :return: None
     """
@@ -91,7 +92,7 @@ def check_for_docker_network(service_data: dict) -> None:
         ]
         if not network_found:
             logger.warning(f"External network '{external_network}' not found. Creating...")
-            client.networks.create(name=external_network, driver="bridge")
+            meg.run_command(command="docker network create {}".format(external_network))
 
 
 def run_compose_command(meg: Megalus, action: str, service_data: dict,
@@ -115,7 +116,7 @@ def run_compose_command(meg: Megalus, action: str, service_data: dict,
         if ngrok_domain_env:
             environment += ["NGROK_DOMAIN={}".format(ngrok_domain_env)]
     environment += get_env_from_project(service_data=service_data)
-    check_for_docker_network(service_data)
+    check_for_docker_network(meg, service_data)
     meg.run_command(
         "cd {working_dir} && {environment}docker-compose {files} {action}{options}{services}{args}".format(
             working_dir=service_data['working_dir'],
@@ -176,4 +177,4 @@ def up(meg: Megalus, services: List[str], d: bool) -> None:
     command = "up -d" if d or len(services) > 1 else "up"
     for service in services:
         service_data = meg.find_service(service)
-        run_compose_command(meg, command, service_data=service_data)
+        run_compose_command(meg, command, options=['remove-orphans'], service_data=service_data)

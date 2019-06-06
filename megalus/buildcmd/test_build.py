@@ -14,7 +14,7 @@ def test_build(caplog, obj, mocker):
             message
             for message in caplog.messages
             if "Running command:" in message
-        ][0]
+        ][-1]
         service_path = [
             service['working_dir']
             for service in obj.all_services
