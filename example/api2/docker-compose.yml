@@ -25,3 +25,4 @@ services:
       - .:/opt/app
 networks:
   api2:
+    driver: bridge

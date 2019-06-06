@@ -4,10 +4,13 @@ from typing import List, Optional
 from urllib.parse import urlparse
 
 import click
+import docker
 import requests
 from loguru import logger
 
 from megalus.main import Megalus
+
+client = docker.from_env()
 
 
 def get_ngrok_address(service_data: dict, only_domain: bool = False) -> list:
@@ -69,6 +72,28 @@ def get_env_from_project(service_data: dict) -> list:
     ]
 
 
+def check_for_docker_network(service_data: dict) -> None:
+    """Check and create External Docker Networks.
+
+    :param service_data: Dict
+    :return: None
+    """
+    external_network_list = [
+        network_name
+        for network_name in service_data['all_compose_data'].get('networks', {})
+        if service_data['all_compose_data'].get('networks', {}).get(network_name).get('external', False)
+    ]
+    for external_network in external_network_list:
+        network_found = [
+            docker_network
+            for docker_network in client.networks.list()
+            if docker_network.name == external_network
+        ]
+        if not network_found:
+            logger.warning(f"External network '{external_network}' not found. Creating...")
+            client.networks.create(name=external_network, driver="bridge")
+
+
 def run_compose_command(meg: Megalus, action: str, service_data: dict,
                         options: Optional[List[str]] = None, command_args: str = "",
                         all_services: bool = False) -> None:
@@ -90,6 +115,7 @@ def run_compose_command(meg: Megalus, action: str, service_data: dict,
         if ngrok_domain_env:
             environment += ["NGROK_DOMAIN={}".format(ngrok_domain_env)]
     environment += get_env_from_project(service_data=service_data)
+    check_for_docker_network(service_data)
     meg.run_command(
         "cd {working_dir} && {environment}docker-compose {files} {action}{options}{services}{args}".format(
             working_dir=service_data['working_dir'],

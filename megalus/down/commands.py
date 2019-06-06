@@ -29,7 +29,8 @@ def down(meg: Megalus, projects: List[str], remove_all: bool) -> None:
         service_data = {
             'compose_files': project_data['files'],
             'working_dir': get_path(project_data['path'], meg.base_path),
-            'compose_project': project_data
+            'compose_project': project_data,
+            'all_compose_data': {}
         }
         run_compose_command(
             meg,

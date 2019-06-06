@@ -10,6 +10,49 @@ from loguru import logger
 from megalus.utils import get_path
 
 
+class ServiceData:
+    """Docker Service Data.
+
+    This class represents all data need for the Docker service.
+
+    Attributes
+    ==========
+        :param name: Service Name (as per `docker-compose.yml` file)
+        :param compose: Compose Project Name (as per `megalus.yml` file)
+        :param full_name: Unique name for service (docker name and compose project name)
+        :param compose_files: Relative path for all `docker-compose.yml` files for this service.
+        :param working_dir: Full Working directory for this service
+                (which `.env` and main `docker-compose.yml` files resides)
+        :param compose_data: Updated compose data for the Service (from all `dock-compose.yaml` files)
+        :param compose_project: Compose project data (as per `megalus.yml` file)
+        :param all_compose_data: Update Compose Data for all data (from all `dock-compose.yml` files)
+
+    """
+
+    name: str
+    compose: str
+    full_name: str
+    compose_files: List[str]
+    working_dir: str
+    compose_data: dict
+    compose_project: dict
+    all_compose_data: dict
+
+    def __init__(self, service_data: dict) -> None:
+        """Initialize class.
+
+        :param service_data: dict parsed from Megalus context
+        """
+        self.name = service_data['name']
+        self.compose = service_data['compose']
+        self.full_name = service_data['full_name']
+        self.compose_files = service_data['compose_files']
+        self.working_dir = service_data['compose_data']
+        self.compose_data = service_data['compose_data']
+        self.compose_project = service_data['compose_project']
+        self.all_compose_data = service_data['all_compose_data']
+
+
 class Megalus:
     """Megalus main class."""
 
@@ -195,7 +238,8 @@ class Megalus:
                         'working_dir': os.path.dirname(
                             get_path(os.path.join(compose_path, compose_files[0]), self.base_path)),
                         'compose_data': compose_data['services'][service],
-                        'compose_project': self.config_data['compose_projects'][compose_project]
+                        'compose_project': self.config_data['compose_projects'][compose_project],
+                        'all_compose_data': compose_data
                     }
                 )
 
