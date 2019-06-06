@@ -1,3 +1,3 @@
 """Init module."""
 
-__version__ = "5.0.0-beta28"
+__version__ = "5.0.0-beta30"

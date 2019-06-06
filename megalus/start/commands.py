@@ -27,6 +27,7 @@ def start(meg: Megalus, projects: str) -> None:
         run_compose_command(
             meg,
             action="up -d",
+            options=['remove-orphans'],
             service_data=service_data,
             all_services=True
         )

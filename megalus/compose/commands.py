@@ -28,11 +28,11 @@ def get_ngrok_address(service_data: dict, only_domain: bool = False) -> list:
     env = ngrok_config['env']
     protocol = "https" if secure else "http"
 
-    ret = requests.get(
-        "http://127.0.0.1:4040/api/tunnels",
-        timeout=1
-    )
     try:
+        ret = requests.get(
+            "http://127.0.0.1:4040/api/tunnels",
+            timeout=1
+        )
         ret.raise_for_status()
         api_data = ret.json()
         http_url = [
