@@ -281,9 +281,10 @@ class Megalus:
         project_key = console.choose(eligible_projects, 'Please select project')
         return self.config_data['compose_projects'][project_key]
 
-    def find_service(self, service_informed: str) -> dict:
+    def find_service(self, service_informed: str, build_only: bool = False) -> dict:
         """Find service inside megalus service data.
 
+        :param build_only: boolean: Filter services with build options only.
         :param service_informed: string: docker service informed in command.
         :return: docker service megalus data.
         """
@@ -301,6 +302,12 @@ class Megalus:
             for eligible_service in self.all_services
             if service_informed in eligible_service['name']
         ]
+        if build_only:
+            eligible_services = [
+                eligible_service_with_build
+                for eligible_service_with_build in eligible_services
+                if eligible_service_with_build['compose_data'].get('build', False)
+            ]
         if not eligible_services:
             logger.error("Service not found")
             sys.exit(1)

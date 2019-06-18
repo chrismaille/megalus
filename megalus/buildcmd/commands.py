@@ -24,7 +24,7 @@ def build(meg: Megalus, services: List, force: bool) -> None:
     """
     for service_to_find in services:
         logger.info('Looking for Service: {}'.format(service_to_find))
-        service_data = meg.find_service(service_to_find)
+        service_data = meg.find_service(service_to_find, build_only=True)
 
         options = ["force-rm"]
         if force:
