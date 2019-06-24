@@ -146,7 +146,7 @@ def check_docker_image(meg, service_data, show_logs=False) -> bool:
     if not has_image:
         if show_logs:
             logger.warning("Service {} does not have image.".format(service_data['name']))
-        return False
+        return True
 
     service_has_old_image = has_old_image(meg, service_data['name'], show_logs=show_logs)
     if service_has_old_image:
