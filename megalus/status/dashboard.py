@@ -70,7 +70,9 @@ class Dashboard:
                 index += 1
                 continue
             if index + vertical_boxes < len(running_boxes):
-                if vertical_boxes == 1:
+                if vertical_boxes == 0:
+                    boxes.append(running_boxes[index])
+                elif vertical_boxes == 1:
                     boxes.append(VSplit(running_boxes[index], running_boxes[index + 1]))
                 elif vertical_boxes == 2:
                     boxes.append(VSplit(running_boxes[index], running_boxes[index + 1], running_boxes[index + 2]))
