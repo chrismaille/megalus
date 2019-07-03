@@ -37,7 +37,7 @@ class Dashboard:
         self.all_composes = context.all_composes
         self.base_path = context.base_path
 
-    def get_layout(self, term: terminal, all: bool) -> HSplit:
+    def get_layout(self, term: terminal, all: bool) -> (HSplit, int):
         """Get dashing terminal layout.
 
         :param all: show all boxes even if no containers are running
@@ -56,7 +56,8 @@ class Dashboard:
                         or RUNNING in box.text \
                         or WARNING in box.text:
                     running_boxes.append(box)
-        running_boxes.append(megalus_info_widget(self.context))
+        timeout = max(len(running_boxes)+1, 5)
+        running_boxes.append(megalus_info_widget(self.context, timeout))
 
         boxes = []
         index = 0
@@ -99,7 +100,7 @@ class Dashboard:
                 index += 4
 
         ui = HSplit(*boxes, terminal=term, main=True, color=7, background_color=16)
-        return ui
+        return ui, timeout
 
     def get_box(self, project: str) -> Text:
         """Return Box widget.

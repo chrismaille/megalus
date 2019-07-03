@@ -9,7 +9,7 @@ commands:
           command: pip install -U --user pipenv
       - run:
           name: "Build"
-          command: USE_DEV_DEPS=1 sudo pip install -e .
+          command: pipenv install --dev -system
 
 jobs:
   build_test_python35:
@@ -21,7 +21,7 @@ jobs:
       - install_deps
       - run:
           name: Test
-          command: make ci
+          command: make lint
   build_test_python36:
     working_directory: ~/app
     docker:
@@ -31,7 +31,7 @@ jobs:
       - install_deps
       - run:
           name: Test
-          command: make ci
+          command: make lint
       - run:
           name: Send coverage
           command: codecov
@@ -44,7 +44,7 @@ jobs:
       - install_deps
       - run:
           name: Test
-          command: make ci
+          command: make lint
   release:
     docker:
       - image: circleci/python:3.7

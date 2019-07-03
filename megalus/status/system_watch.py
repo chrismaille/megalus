@@ -5,6 +5,8 @@ Uses PSUtil to get machine stats:
 * Free Memory
 * Memory Used
 """
+
+import arrow
 import psutil
 from buzio import formatStr
 from dashing import dashing
@@ -14,19 +16,21 @@ from megalus import __version__
 from megalus.main import Megalus
 
 
-def megalus_info_widget(meg: Megalus) -> VSplit:
+def megalus_info_widget(meg: Megalus, timeout: int) -> VSplit:
     """Return Megalus Info Widget.
 
+    :type timeout: Integer - Timeout for refreshing services
     :return: dashing VSplit instance
     """
     machine_info_widget = get_machine_info_widget()
-    info_widget = get_megalus_info_widget(meg)
+    info_widget = get_megalus_info_widget(meg, timeout)
     return VSplit(info_widget, machine_info_widget)
 
 
-def get_megalus_info_widget(meg: Megalus) -> Text:
+def get_megalus_info_widget(meg: Megalus, timeout: int) -> Text:
     """Get projects in error.
 
+    :type timeout: Integer - Timeout for refreshing services
     :param meg: Megalus instance
     :return: String
     """
@@ -38,7 +42,8 @@ def get_megalus_info_widget(meg: Megalus) -> Text:
     status_text = formatStr.success("All projects loaded.",
                                     use_prefix=False) if not projects_in_error else formatStr.error(
         "Projects in error: {}".format(",".join(projects_in_error)), use_prefix=False)
-    return Text(status_text, color=6, border_color=5, background_color=16,
+    timeout_text = "\nRefreshing services each {} seconds.\nLast Update: {}".format(timeout, arrow.now().to('local'))
+    return Text(status_text + timeout_text, color=6, border_color=5, background_color=16,
                 title="Megalus v{}".format(__version__))
 
 

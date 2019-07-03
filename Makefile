@@ -1,7 +1,12 @@
+install:
+	pipenv install --dev
 test:
 	pytest
-ci:
-	pytest --docstyle --pep8 --cov=megalus --mypy
+lint:
+	rm -rf .mypy_cache
+	rm -rf .pytest_cache
+	rm -f .coverage
+	pipenv run pytest --cov=megalus --cov-fail-under=90 --docstyle --pep8 --mypy
 changelog:
 	echo "TODO"
 release:

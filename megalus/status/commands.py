@@ -1,6 +1,7 @@
 """Status command module."""
 import sys
 
+import arrow
 import click
 from blessed import Terminal
 from colorama import Style
@@ -21,19 +22,24 @@ def status(meg: Megalus, all: bool) -> None:
     """
     dashboard = Dashboard(meg)
     term = Terminal()
+    last_update = arrow.utcnow()
+    timeout = 0
     try:
         with term.fullscreen():
             with term.hidden_cursor():
                 with term.cbreak():
                     while True:
-                        ui = dashboard.get_layout(term, all)
-                        ui.display()
-                        key_pressed = term.inkey(timeout=5)
+                        now = arrow.utcnow()
+                        if now >= last_update.shift(seconds=timeout):
+                            ui, timeout = dashboard.get_layout(term, all)
+                            ui.display()
+                            last_update = arrow.utcnow()
+
+                        key_pressed = term.inkey(timeout=0)
                         if 'd' in key_pressed.lower():
                             diff = not diff
                         if 'q' in key_pressed.lower():
                             raise KeyboardInterrupt
-
     except KeyboardInterrupt:
         print(term.color(0))
         sys.exit(0)
