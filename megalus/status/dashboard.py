@@ -56,7 +56,9 @@ class Dashboard:
                         or RUNNING in box.text \
                         or WARNING in box.text:
                     running_boxes.append(box)
-        timeout = max(len(running_boxes)+1, 5)
+        timeout = min(len(running_boxes) * 5, 60)
+        if timeout < 5:
+            timeout = 5
         running_boxes.append(megalus_info_widget(self.context, timeout))
 
         boxes = []
