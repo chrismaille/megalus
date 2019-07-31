@@ -1,3 +1,5 @@
-from megalus import run
+"""Main module."""
+from megalus.cmd import start
 
-run.start()
+if __name__ == '__main__':
+    start()

@@ -1,1 +1,1 @@
-recursive-include megalus/projects/data *.json
+include version.json

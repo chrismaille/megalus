@@ -1,0 +1,37 @@
+version: "1"
+log_level: "INFO"
+
+defaults:
+  install_commands:
+    default: "make install"
+  config_commands:
+    default: "code ./megalus.yml"
+    django: "python ./api1/manage.py shell"
+  scripts:
+    init: "make init"
+    update: "make update"
+    clone: "make clone"
+  check_for_build:
+    - requirements.txt
+    - Pipfile
+    - Pipfile.lock
+    - setup.py
+    - Dockerfile
+
+compose_projects:
+    api1:
+      path: ./api1
+      files:
+        - docker-compose.yml
+        - docker-compose.override.yml
+    api2:
+      path: ./api2
+      files:
+        - docker-compose.yml
+      ngrok:
+        port: 6544
+        secure: False
+        env: MEGALUS_NGROK_TEST_ENV
+
+
+

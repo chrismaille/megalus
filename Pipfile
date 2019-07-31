@@ -1,0 +1,38 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+sphinx = "*"
+tox = "*"
+tox-pyenv = "*"
+pytest = "*"
+pytest-mock = "*"
+pytest-xdist = "*"
+pytest-docstyle = "*"
+pytest-pep8 = "*"
+pytest-mypy = "*"
+pytest-cov = "*"
+coverage = "*"
+auto-changelog = "*"
+codecov = "*"
+sphinx_rtd_theme = "*"
+semver = "*"
+
+[packages]
+buzio = "*"
+loguru = "*"
+docker = "*"
+pyyaml = "*"
+click = "*"
+arrow = {index = "https://Chris:Savage%402013@geru-pypi.geru.com.br/simple",version = "*"}
+pydashing = "*"
+gitpython = "*"
+tabulate = "*"
+blessed = "*"
+pipenv = "*"
+psutil = "*"
+
+[pipenv]
+allow_prereleases = true
