@@ -12,16 +12,6 @@ commands:
           command: pipenv install --dev
 
 jobs:
-  build_test_python35:
-    working_directory: ~/app
-    docker:
-      - image: circleci/python:3.5
-    steps:
-      - checkout
-      - install_deps
-      - run:
-          name: Test
-          command: make lint
   build_test_python36:
     working_directory: ~/app
     docker:
@@ -67,12 +57,10 @@ workflows:
   version: 2
   deploy:
     jobs:
-      - build_test_python35
       - build_test_python36
       - build_test_python37
       - release:
           requires:
-            - build_test_python35
             - build_test_python36
             - build_test_python37
           filters:
