@@ -43,14 +43,14 @@ class ServiceData:
 
         :param service_data: dict parsed from Megalus context
         """
-        self.name = service_data['name']
-        self.compose = service_data['compose']
-        self.full_name = service_data['full_name']
-        self.compose_files = service_data['compose_files']
-        self.working_dir = service_data['compose_data']
-        self.compose_data = service_data['compose_data']
-        self.compose_project = service_data['compose_project']
-        self.all_compose_data = service_data['all_compose_data']
+        self.name = service_data["name"]
+        self.compose = service_data["compose"]
+        self.full_name = service_data["full_name"]
+        self.compose_files = service_data["compose_files"]
+        self.working_dir = service_data["compose_data"]
+        self.compose_data = service_data["compose_data"]
+        self.compose_project = service_data["compose_project"]
+        self.all_compose_data = service_data["all_compose_data"]
 
 
 class Megalus:
@@ -64,7 +64,7 @@ class Megalus:
         """
         self.service = None
         self._config_file = config_file
-        self.base_path = get_path(os.path.dirname(config_file), '.')
+        self.base_path = get_path(os.path.dirname(config_file), ".")
         self.compose_data_list = []  # type: List[dict]
         self._data = {}  # type: Dict[str, Any]
         self.all_services = []  # type: List[dict]
@@ -81,10 +81,7 @@ class Megalus:
         if self._config_data:
             return self._config_data
 
-        config_path = os.path.join(
-            self.base_path,
-            os.path.basename(self._config_file)
-        )
+        config_path = os.path.join(self.base_path, os.path.basename(self._config_file))
         try:
             with open(config_path) as file:
                 self._config_data = yaml.safe_load(file.read()) or {}
@@ -167,9 +164,7 @@ class Megalus:
             if isinstance(source[key], dict):
                 for k in source[key]:
                     self._load_data_from_override(
-                        source=source[key],
-                        target=target[key],
-                        key=k
+                        source=source[key], target=target[key], key=k
                     )
             else:
                 if isinstance(target[key], list) and isinstance(source[key], list):
@@ -182,7 +177,9 @@ class Megalus:
             else:
                 target[key] = source[key]
 
-    def _get_compose_data_for(self, compose_path: str, compose_files: List[str]) -> dict:
+    def _get_compose_data_for(
+        self, compose_path: str, compose_files: List[str]
+    ) -> dict:
         """Read docker compose files data.
 
         :return: dict
@@ -195,7 +192,7 @@ class Megalus:
 
             compose_data_list = []
             for compose_file in resolved_paths:
-                with open(compose_file, 'r') as file:
+                with open(compose_file, "r") as file:
                     compose_data = yaml.safe_load(file.read())
                     for key in compose_data:  # type: ignore
                         self._convert_lists(compose_data, key)
@@ -220,26 +217,36 @@ class Megalus:
         """
         if not self.validate_config_data():
             raise SystemExit(1)
-        for compose_project in self.config_data.get('compose_projects', []):
-            compose_path = self.config_data['compose_projects'][compose_project]['path']
-            compose_files = self.config_data['compose_projects'][compose_project]['files']
+        for compose_project in self.config_data.get("compose_projects", []):
+            compose_path = self.config_data["compose_projects"][compose_project]["path"]
+            compose_files = self.config_data["compose_projects"][compose_project][
+                "files"
+            ]
             compose_data = self._get_compose_data_for(compose_path, compose_files)
             if not compose_data:
-                logger.warning("Project {} has errors. Ignoring...".format(compose_project))
+                logger.warning(
+                    "Project {} has errors. Ignoring...".format(compose_project)
+                )
                 continue
             self.all_composes.update({compose_project: compose_data})
-            for service in compose_data['services']:
+            for service in compose_data["services"]:
                 self.all_services.append(
                     {
-                        'name': service,
-                        'compose': compose_project,
-                        'full_name': "{} ({})".format(service, compose_project),
-                        'compose_files': compose_files,
-                        'working_dir': os.path.dirname(
-                            get_path(os.path.join(compose_path, compose_files[0]), self.base_path)),
-                        'compose_data': compose_data['services'][service],
-                        'compose_project': self.config_data['compose_projects'][compose_project],
-                        'all_compose_data': compose_data
+                        "name": service,
+                        "compose": compose_project,
+                        "full_name": "{} ({})".format(service, compose_project),
+                        "compose_files": compose_files,
+                        "working_dir": os.path.dirname(
+                            get_path(
+                                os.path.join(compose_path, compose_files[0]),
+                                self.base_path,
+                            )
+                        ),
+                        "compose_data": compose_data["services"][service],
+                        "compose_project": self.config_data["compose_projects"][
+                            compose_project
+                        ],
+                        "all_compose_data": compose_data,
                     }
                 )
 
@@ -262,13 +269,15 @@ class Megalus:
         :param project_informed: string informed in command
         :return: compose project data from yml.
         """
-        exact_match = list(self.config_data['compose_projects'].keys()).count(project_informed)
+        exact_match = list(self.config_data["compose_projects"].keys()).count(
+            project_informed
+        )
         if exact_match == 1:
-            return self.config_data['compose_projects'][project_informed]
+            return self.config_data["compose_projects"][project_informed]
 
         eligible_projects = [
             key
-            for key in self.config_data['compose_projects'].keys()
+            for key in self.config_data["compose_projects"].keys()
             if project_informed in key
         ]
         if not eligible_projects:
@@ -276,10 +285,10 @@ class Megalus:
             sys.exit(1)
 
         elif len(eligible_projects) == 1:
-            return self.config_data['compose_projects'][eligible_projects[0]]
+            return self.config_data["compose_projects"][eligible_projects[0]]
 
-        project_key = console.choose(eligible_projects, 'Please select project')
-        return self.config_data['compose_projects'][project_key]
+        project_key = console.choose(eligible_projects, "Please select project")
+        return self.config_data["compose_projects"][project_key]
 
     def find_service(self, service_informed: str, build_only: bool = False) -> dict:
         """Find service inside megalus service data.
@@ -289,50 +298,45 @@ class Megalus:
         :return: docker service megalus data.
         """
         exact_matches = [
-            data
-            for data in self.all_services
-            if data['name'] == service_informed
+            data for data in self.all_services if data["name"] == service_informed
         ]
         if len(exact_matches) == 1:
-            self.service = exact_matches[0]['name']
+            self.service = exact_matches[0]["name"]
             return exact_matches[0]
 
         eligible_services = [
             eligible_service
             for eligible_service in self.all_services
-            if service_informed in eligible_service['name']
+            if service_informed in eligible_service["name"]
         ]
         if build_only:
             eligible_services = [
                 eligible_service_with_build
                 for eligible_service_with_build in eligible_services
-                if eligible_service_with_build['compose_data'].get('build', False)
+                if eligible_service_with_build["compose_data"].get("build", False)
             ]
         if not eligible_services:
             logger.error("Service not found")
             sys.exit(1)
         elif len(eligible_services) == 1:
-            self.service = eligible_services[0]['name']
+            self.service = eligible_services[0]["name"]
             return eligible_services[0]
         else:
-            choice_list = [
-                data['full_name']
-                for data in eligible_services
-            ]
-            service_name = console.choose(choice_list, 'Please select the service')
+            choice_list = [data["full_name"] for data in eligible_services]
+            service_name = console.choose(choice_list, "Please select the service")
         data = [
-            data
-            for data in eligible_services
-            if service_name == data['full_name']
+            data for data in eligible_services if service_name == data["full_name"]
         ][0]
-        self.service = data['name']
+        self.service = data["name"]
         return data
 
     def validate_config_data(self) -> bool:
         """Validate data parsed from megalus.yml file."""
         no_errors = True
-        if not self.config_data.get('compose_projects'):
+        if not self.config_data.get("compose_projects"):
             no_errors = False
-            logger.error("Key 'compose_projects' not found in configuration file."
-                         " Please check and try again.")
+            logger.error(
+                "Key 'compose_projects' not found in configuration file."
+                " Please check and try again."
+            )
         return no_errors

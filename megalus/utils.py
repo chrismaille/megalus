@@ -35,12 +35,14 @@ def backup_folder(folder_path: str) -> None:
     :return: None
     """
     folders = list(Path(folder_path).parts)
-    folder_hash = hashlib.md5(datetime.datetime.now().isoformat().encode("utf-8")).hexdigest()
+    folder_hash = hashlib.md5(
+        datetime.datetime.now().isoformat().encode("utf-8")
+    ).hexdigest()
     last_folder = "{}_{}".format(folders[-1], folder_hash[:10])
     folders.remove(folders[-1])
     folders.append(last_folder)
     backup_path = os.path.join(*folders)
-    logger.warning('Directory already exists. Moving folder to {}'.format(backup_path))
+    logger.warning("Directory already exists. Moving folder to {}".format(backup_path))
     shutil.move(folder_path, backup_path)
 
 
@@ -61,8 +63,7 @@ def get_path(path: str, base_path: str) -> str:
             if not name:
                 raise ValueError("Can't find value for {}".format(env))
             path_list = [
-                part if "$" not in part else name
-                for part in env_in_path.split("/")
+                part if "$" not in part else name for part in env_in_path.split("/")
             ]
             path = os.path.join(*path_list)
         else:

@@ -20,38 +20,35 @@ def get_ngrok_address(service_data: dict, only_domain: bool = False) -> list:
     :param service_data: service parsed data
     :return: List
     """
-    ngrok_config = service_data['compose_project'].get('ngrok')
+    ngrok_config = service_data["compose_project"].get("ngrok")
     if not ngrok_config:
         return []
-    port = ngrok_config['port']
-    secure = ngrok_config['secure']
-    env = ngrok_config['env']
+    port = ngrok_config["port"]
+    secure = ngrok_config["secure"]
+    env = ngrok_config["env"]
     protocol = "https" if secure else "http"
 
     try:
-        ret = requests.get(
-            "http://127.0.0.1:4040/api/tunnels",
-            timeout=1
-        )
+        ret = requests.get("http://127.0.0.1:4040/api/tunnels", timeout=1)
         ret.raise_for_status()
         api_data = ret.json()
         http_url = [
-            obj['public_url']
-            for obj in api_data['tunnels']
-            if obj['proto'] == protocol and str(port) in obj['config']['addr']
+            obj["public_url"]
+            for obj in api_data["tunnels"]
+            if obj["proto"] == protocol and str(port) in obj["config"]["addr"]
         ]
         if http_url:
             if only_domain:
                 return urlparse(http_url[0]).netloc
             else:
-                return [
-                    "{}={}".format(env, http_url[0])
-                ]
+                return ["{}={}".format(env, http_url[0])]
         else:
             logger.warning("Ngrok port {} not found. Skipping...".format(port))
             return []
     except requests.exceptions.RequestException as e:
-        logger.error("Status Error trying to get ngrok address for port {}: {}".format(port, e))
+        logger.error(
+            "Status Error trying to get ngrok address for port {}: {}".format(port, e)
+        )
         return []
 
 
@@ -63,7 +60,7 @@ def get_env_from_project(service_data: dict) -> list:
     :param service_data: service parsed data
     :return: List
     """
-    project_envs = service_data['compose_project'].get('environment')
+    project_envs = service_data["compose_project"].get("environment")
     if not project_envs:
         return []
     return [
@@ -81,8 +78,11 @@ def check_for_docker_network(meg: Megalus, service_data: dict) -> None:
     """
     external_network_list = [
         network_name
-        for network_name in service_data['all_compose_data'].get('networks', {})
-        if service_data['all_compose_data'].get('networks', {}).get(network_name).get('external', False)
+        for network_name in service_data["all_compose_data"].get("networks", {})
+        if service_data["all_compose_data"]
+        .get("networks", {})
+        .get(network_name)
+        .get("external", False)
     ]
     for external_network in external_network_list:
         network_found = [
@@ -91,13 +91,20 @@ def check_for_docker_network(meg: Megalus, service_data: dict) -> None:
             if docker_network.name == external_network
         ]
         if not network_found:
-            logger.warning(f"External network '{external_network}' not found. Creating...")
+            logger.warning(
+                f"External network '{external_network}' not found. Creating..."
+            )
             meg.run_command(command="docker network create {}".format(external_network))
 
 
-def run_compose_command(meg: Megalus, action: str, service_data: dict,
-                        options: Optional[List[str]] = None, command_args: str = "",
-                        all_services: bool = False) -> None:
+def run_compose_command(
+    meg: Megalus,
+    action: str,
+    service_data: dict,
+    options: Optional[List[str]] = None,
+    command_args: str = "",
+    all_services: bool = False,
+) -> None:
     """Run docker-compose command.
 
     :param all_services: The command will be used for all services?
@@ -109,9 +116,11 @@ def run_compose_command(meg: Megalus, action: str, service_data: dict,
     :return: None
     """
     environment = []  # type: list
-    if service_data['compose_project'].get('ngrok'):
+    if service_data["compose_project"].get("ngrok"):
         ngrok_url_env = get_ngrok_address(service_data=service_data)
-        ngrok_domain_env = get_ngrok_address(service_data=service_data, only_domain=True)
+        ngrok_domain_env = get_ngrok_address(
+            service_data=service_data, only_domain=True
+        )
         environment = ngrok_url_env
         if ngrok_domain_env:
             environment += ["NGROK_DOMAIN={}".format(ngrok_domain_env)]
@@ -119,19 +128,19 @@ def run_compose_command(meg: Megalus, action: str, service_data: dict,
     check_for_docker_network(meg, service_data)
     meg.run_command(
         "cd {working_dir} && {environment}docker-compose {files} {action}{options}{services}{args}".format(
-            working_dir=service_data['working_dir'],
+            working_dir=service_data["working_dir"],
             environment="{} ".format(" ".join(environment)) if environment else "",
-            files="-f {}".format(" -f ".join(service_data['compose_files'])),
+            files="-f {}".format(" -f ".join(service_data["compose_files"])),
             options=" --{} ".format(" --".join(options)) if options else " ",
             action=action,
-            services=service_data.get('name', "") if not all_services else "",
-            args=" {}".format(command_args) if command_args else ""
+            services=service_data.get("name", "") if not all_services else "",
+            args=" {}".format(command_args) if command_args else "",
         )
     )
 
 
 @click.command()
-@click.argument('services', nargs=-1, required=True)
+@click.argument("services", nargs=-1, required=True)
 @click.pass_obj
 def restart(meg: Megalus, services: List[str]) -> None:
     """Restart selected services.
@@ -146,8 +155,8 @@ def restart(meg: Megalus, services: List[str]) -> None:
 
 
 @click.command()
-@click.argument('service', required=True)
-@click.argument('number', required=True, default=1, type=click.INT)
+@click.argument("service", required=True)
+@click.argument("number", required=True, default=1, type=click.INT)
 @click.pass_obj
 def scale(meg: Megalus, service: str, number: int) -> None:
     """Scale selected services.
@@ -158,13 +167,15 @@ def scale(meg: Megalus, service: str, number: int) -> None:
     :return: None
     """
     service_data = meg.find_service(service)
-    options = ["scale {}={}".format(service_data['name'], number)]
-    run_compose_command(meg, "up -d", options=options, service_data=service_data, all_services=True)
+    options = ["scale {}={}".format(service_data["name"], number)]
+    run_compose_command(
+        meg, "up -d", options=options, service_data=service_data, all_services=True
+    )
 
 
 @click.command()
-@click.argument('services', nargs=-1, required=True)
-@click.option('-d', is_flag=True)
+@click.argument("services", nargs=-1, required=True)
+@click.option("-d", is_flag=True)
 @click.pass_obj
 def up(meg: Megalus, services: List[str], d: bool) -> None:
     """Start selected services.
@@ -177,4 +188,6 @@ def up(meg: Megalus, services: List[str], d: bool) -> None:
     command = "up -d" if d or len(services) > 1 else "up"
     for service in services:
         service_data = meg.find_service(service)
-        run_compose_command(meg, command, options=['remove-orphans'], service_data=service_data)
+        run_compose_command(
+            meg, command, options=["remove-orphans"], service_data=service_data
+        )

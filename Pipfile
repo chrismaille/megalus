@@ -19,6 +19,8 @@ auto-changelog = "*"
 codecov = "*"
 sphinx_rtd_theme = "*"
 semver = "*"
+black = "*"
+pytest-black = "*"
 
 [packages]
 buzio = "*"
@@ -26,7 +28,7 @@ loguru = "*"
 docker = "*"
 pyyaml = "*"
 click = "*"
-arrow = {index = "https://Chris:Savage%402013@geru-pypi.geru.com.br/simple",version = "*"}
+arrow = "*"
 pydashing = "*"
 gitpython = "*"
 tabulate = "*"

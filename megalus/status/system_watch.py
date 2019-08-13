@@ -36,15 +36,27 @@ def get_megalus_info_widget(meg: Megalus, timeout: int) -> Text:
     """
     projects_in_error = [
         project
-        for project in meg.config_data['compose_projects'].keys()
+        for project in meg.config_data["compose_projects"].keys()
         if project not in meg.all_composes
     ]
-    status_text = formatStr.success("All projects loaded.",
-                                    use_prefix=False) if not projects_in_error else formatStr.error(
-        "Projects in error: {}".format(",".join(projects_in_error)), use_prefix=False)
-    timeout_text = "\nRefreshing services each {} seconds.\nLast Update: {}".format(timeout, arrow.now().to('local'))
-    return Text(status_text + timeout_text, color=6, border_color=5, background_color=16,
-                title="Megalus v{}".format(__version__))
+    status_text = (
+        formatStr.success("All projects loaded.", use_prefix=False)
+        if not projects_in_error
+        else formatStr.error(
+            "Projects in error: {}".format(",".join(projects_in_error)),
+            use_prefix=False,
+        )
+    )
+    timeout_text = "\nRefreshing services each {} seconds.\nLast Update: {}".format(
+        timeout, arrow.now().to("local")
+    )
+    return Text(
+        status_text + timeout_text,
+        color=6,
+        border_color=5,
+        background_color=16,
+        title="Megalus v{}".format(__version__),
+    )
 
 
 def get_machine_info_widget() -> VSplit:
@@ -57,8 +69,7 @@ def get_machine_info_widget() -> VSplit:
     total_memory = int(psutil.virtual_memory().total / 1024 / 1024)
     memory_percent = (free_memory / total_memory) * 100
     free_space = round(psutil.disk_usage("/").free / 1024 / 1024 / 1024, 1)
-    total_space = round(psutil.disk_usage(
-        "/").total / 1024 / 1024 / 1024, 1)
+    total_space = round(psutil.disk_usage("/").total / 1024 / 1024 / 1024, 1)
     space_percent = (free_space / total_space) * 100
 
     if memory_percent > 100:
@@ -95,14 +106,14 @@ def get_machine_info_widget() -> VSplit:
                 color=cpu_color,
                 border_color=cpu_color,
                 title="CPU:{}%".format(cpu_percent),
-                background_color=16
+                background_color=16,
             ),
             dashing.HGauge(
                 val=memory_percent,
                 color=memory_color,
                 border_color=memory_color,
                 title="Free Mem:{}M".format(free_memory),
-                background_color=16
+                background_color=16,
             ),
         ),
         dashing.HGauge(
@@ -110,6 +121,6 @@ def get_machine_info_widget() -> VSplit:
             color=space_color,
             border_color=space_color,
             title="Free Space:{}Gb".format(free_space),
-            background_color=16
-        )
+            background_color=16,
+        ),
     )

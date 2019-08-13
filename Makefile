@@ -6,7 +6,7 @@ lint:
 	rm -rf .mypy_cache
 	rm -rf .pytest_cache
 	rm -f .coverage
-	pipenv run pytest --cov=megalus --cov-fail-under=90 --docstyle --pep8 --mypy
+	pipenv run pytest --cov=megalus --cov-fail-under=90 --docstyle --pep8 --mypy --black
 changelog:
 	echo "TODO"
 release:
@@ -16,3 +16,5 @@ deploy:
 	rm -rf build/
 	pipenv run python setup.py sdist bdist_wheel
 	pipenv run twine upload dist/*
+format:
+	pipenv run black megalus
