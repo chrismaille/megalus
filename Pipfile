@@ -21,6 +21,7 @@ sphinx_rtd_theme = "*"
 semver = "*"
 black = "*"
 pytest-black = "*"
+twine = "*"
 
 [packages]
 buzio = "*"
