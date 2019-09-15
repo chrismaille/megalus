@@ -1,0 +1,6 @@
+[tool.megalus]
+name = "Project Two"
+[tool.megalus.build]
+virtualenv = "poetry install"
+[tool.megalus.run]
+virtualenv = "poetry run flask --host=0.0.0.0 --port=5000"

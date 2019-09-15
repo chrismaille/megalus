@@ -1,0 +1,9 @@
+version: "3"
+services:
+  django:
+    build:
+      context: ../project_one/django_app
+    ports:
+      - "8100:8000"
+    volumes:
+      - .:/opt/app

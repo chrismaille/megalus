@@ -5,11 +5,7 @@ services:
       context: flask_app
     image: "flask:dev"
     ports:
-      - "5010:5000"
-    depends_on:
-      - mongo
-    external_links:
-      - api2_flask_1:flask2
+      - "5020:5000"
     volumes:
       - .:/opt/app
     environment:
@@ -20,21 +16,13 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-    networks:
-      api2_default:
-      api1:
-        aliases:
-          - flask
-  mongo:
-    image: "mongo"
+  pyramid:
+    build:
+      context: ../project_three/pyramid_app
     ports:
-      - "27018:27017"
-    networks:
-      api1:
-        aliases:
-          - mongo
+      - "6544:6543"
+    volumes:
+      - .:/opt/app
 networks:
-  api2_default:
-    external: true
-  api1:
+  api2:
     driver: bridge

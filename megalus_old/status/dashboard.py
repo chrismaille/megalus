@@ -376,13 +376,17 @@ class Dashboard:
         :return: String
         """
         refs_list = service_repo.refs
-        header_ref = [ref for ref in refs_list if "HEAD" in ref.name][0]
-        default_ref = [
-            ref
-            for ref in refs_list
-            if ref.commit == header_ref.commit and ref != header_ref
-        ]
-        return default_ref[0].name.split("/")[-1] if default_ref else ""
+        header_ref_list = [ref for ref in refs_list if "HEAD" in ref.name]
+        if header_ref_list:
+            header_ref = header_ref_list[0]
+            default_ref = [
+                ref
+                for ref in refs_list
+                if ref.commit == header_ref.commit and ref != header_ref
+            ]
+            if default_ref:
+                return default_ref[0].name.split("/")[-1]
+        return ""
 
     @staticmethod
     def _get_commits(service_repo, log_text):

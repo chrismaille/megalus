@@ -1,19 +1,16 @@
 """Check command."""
 import os
-import warnings
 from typing import List, Optional, Tuple
 
 import arrow
 import click
 import docker
-from arrow.factory import ArrowParseWarning
 from docker import DockerClient
 from docker.errors import ImageNotFound
 from loguru import logger
 
 from megalus.main import Megalus
 
-warnings.simplefilter("ignore", ArrowParseWarning)
 client = docker.from_env()
 
 
