@@ -1,20 +1,16 @@
 """Megalus commands log module."""
 import re
 import sys
-import warnings
 from time import sleep
 
 import arrow
 import click
-from arrow.factory import ArrowParseWarning
 from buzio import console
 from loguru import logger
 
 from megalus.compose.commands import run_compose_command
 from megalus.main import Megalus
 from megalus.utils import find_containers
-
-warnings.simplefilter("ignore", ArrowParseWarning)
 
 
 def show_log(name: str, line: str) -> None:

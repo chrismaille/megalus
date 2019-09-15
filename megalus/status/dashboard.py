@@ -376,7 +376,10 @@ class Dashboard:
         :return: String
         """
         refs_list = service_repo.refs
-        header_ref = [ref for ref in refs_list if "HEAD" in ref.name][0]
+        header_ref_list = [ref for ref in refs_list if "HEAD" in ref.name]
+        if not header_ref_list:
+            return ""
+        header_ref = header_ref_list[0]
         default_ref = [
             ref
             for ref in refs_list
