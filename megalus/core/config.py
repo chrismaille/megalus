@@ -21,12 +21,12 @@ def initialize_logger():
 
 
 def initialize_folders():
-    base_log_path = os.getenv("MEGALUS_LOG_FOLDER", "~/.megalus")
+    base_log_path = os.getenv("MEGALUS_BASE_FOLDER", "~/.megalus")
     log_path = Path(base_log_path)
     log_path.mkdir(parents=True, exist_ok=True)
 
 
-def get_path(path: str, base_path: str) -> str:
+def get_path(path: Path, base_path: str) -> Path:
     """Return real path from string.
 
     Converts environment variables to path
@@ -52,9 +52,10 @@ def get_path(path: str, base_path: str) -> str:
 
     if "$" in base_path:
         base_path = _convert_env_to_path(base_path)
+    path = str(path.resolve())
     if "$" in path:
         path = _convert_env_to_path(path)
     if path.startswith("."):
         list_path = os.path.join(base_path, path)
         path = os.path.abspath(list_path)
-    return path
+    return Path(path)

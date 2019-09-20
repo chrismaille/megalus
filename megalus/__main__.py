@@ -6,8 +6,7 @@ from click import Context
 
 from megalus.core.config import initialize_folders, initialize_logger
 from megalus.core.decorators import run_async
-from megalus.core.megalus import Megalus
-from megalus.core.platform import initialize_platform
+from megalus.core.platform import get_platform_context_object, initialize_commands_per_platform
 
 
 @click.group()
@@ -27,13 +26,14 @@ async def cli(ctx: Context) -> None:
 
     $ meg use docker
     """
-    megalus = Megalus()
+    megalus = await get_platform_context_object()
     await megalus.find_services()
     ctx.obj = megalus
 
+
 initialize_folders()
 initialize_logger()
-initialize_platform(cli)
+initialize_commands_per_platform(cli)
 
 if __name__ == "__main__":
     if hasattr(asyncio, "run"):

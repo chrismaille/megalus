@@ -2,7 +2,8 @@ import asyncio
 import os
 import sys
 from pathlib import Path
-from typing import List
+from typing import List, Type
+
 import aiofiles
 import click
 import toml
@@ -11,6 +12,7 @@ from loguru import logger
 from tabulate import tabulate
 
 from megalus.core.config import get_path
+from megalus.core.settings import BaseSettings
 
 
 class CommandResult:
@@ -27,13 +29,17 @@ class CommandResult:
 class ServiceData:
     name: str
     data: dict
-    base_path: str
+    base_path: Path
     python_version: str
 
 
 class Megalus:
     result: CommandResult
     services: List[ServiceData] = []
+    settings: Type[BaseSettings]
+
+    def __init__(self, settings):
+        self.settings = settings
 
     async def run_command(self, command) -> int:
         logger.info(f"Running command: {command}")
@@ -92,7 +98,7 @@ class Megalus:
 
         return click.echo(click.style(tabulate(table_rows, fields), fg="yellow"))
 
-    async def find_service(self, service_name: str):
+    async def find_service(self, service_name: str) -> ServiceData:
         eligible_services = [
             service
             for service in self.services
@@ -102,10 +108,12 @@ class Megalus:
             self.error(f"{service_name} was not found.")
         if len(eligible_services) == 1:
             return eligible_services[0]
-        return console.choose(eligible_services, "Please select the service")
+        service = console.choose(eligible_services, "Please select the service")
+        logger.info(f"Service is {service.name}")
+        return service
 
     async def find_services(self):
-        project_paths = os.environ.get('MEGALUS_PROJECT_PATHS').split(",")
+        project_paths = self.settings.project_paths
         for project_path in project_paths:
             real_path = get_path(project_path, os.getcwd())
             logger.debug(f"Looking into {real_path}")
@@ -127,3 +135,7 @@ class Megalus:
                     logger.debug(f"Project dict: {service_data.data}")
                 else:
                     logger.debug(f"Megalus configuration not found.")
+
+    @staticmethod
+    def exit(return_code: int = 0):
+        sys.exit(return_code)
