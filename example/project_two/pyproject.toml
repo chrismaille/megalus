@@ -1,6 +1,20 @@
+[tool.poetry]
+name = "project_two"
+version = "1.0.0"
+description = "Flask example project"
+authors = "Megalus chrismaillefaud@gmail.com"
+
+[tool.poetry.dependencies]
+flask = "*"
+flask_restful = "*"
+python = "^3.6"
+
 [tool.megalus]
 name = "Project Two"
+python_version = "3.6"
+
 [tool.megalus.build]
-virtualenv = "poetry install"
+virtualenv = "pip install poetry && poetry install"
+
 [tool.megalus.run]
-virtualenv = "poetry run flask --host=0.0.0.0 --port=5000"
+virtualenv = "FLASK_APP=flask_app.app poetry run flask run"

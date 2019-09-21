@@ -1,7 +1,12 @@
 [tool.megalus]
 name = "Project One"
 python_version = "3.6"
+
 [tool.megalus.build]
 virtualenv = "pip install -r requirements.txt"
+
+[tool.megalus.config]
+virtualenv = "cd ./app && python manage.py migrate"
+
 [tool.megalus.run]
 virtualenv = "cd ./app && python manage.py runserver 0:8000"

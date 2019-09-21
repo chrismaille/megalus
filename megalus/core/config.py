@@ -22,8 +22,10 @@ def initialize_logger():
 
 def initialize_folders():
     base_log_path = os.getenv("MEGALUS_BASE_FOLDER", "~/.megalus")
-    log_path = Path(base_log_path)
+    log_path = Path(base_log_path).expanduser().resolve()
     log_path.mkdir(parents=True, exist_ok=True)
+    virtualenv_path = log_path.joinpath("virtualenvs")
+    virtualenv_path.mkdir(parents=True, exist_ok=True)
 
 
 def get_path(path: Path, base_path: str) -> Path:

@@ -6,7 +6,10 @@ from click import Context
 
 from megalus.core.config import initialize_folders, initialize_logger
 from megalus.core.decorators import run_async
-from megalus.core.platform import get_platform_context_object, initialize_commands_per_platform
+from megalus.core.platform import (
+    get_platform_context_object,
+    get_platform_commands,
+)
 
 
 @click.group()
@@ -33,7 +36,7 @@ async def cli(ctx: Context) -> None:
 
 initialize_folders()
 initialize_logger()
-initialize_commands_per_platform(cli)
+get_platform_commands(cli)
 
 if __name__ == "__main__":
     if hasattr(asyncio, "run"):

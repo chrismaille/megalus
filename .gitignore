@@ -94,3 +94,5 @@ ENV/
 Pipfile.lock
 
 .idea/
+poetry.lock
+db.sqlite3

@@ -1,6 +1,8 @@
 import asyncio
 import os
 import sys
+import threading
+from abc import ABCMeta, abstractmethod
 from pathlib import Path
 from typing import List, Type
 
@@ -33,42 +35,39 @@ class ServiceData:
     python_version: str
 
 
-class Megalus:
+class Megalus(metaclass=ABCMeta):
     result: CommandResult
     services: List[ServiceData] = []
     settings: Type[BaseSettings]
+    platform: str
 
     def __init__(self, settings):
         self.settings = settings
 
-    async def run_command(self, command) -> int:
-        logger.info(f"Running command: {command}")
+    async def run_command(self, command: str, show: bool = True) -> int:
+        logger.warning(f"Running: {command}")
         my_env = os.environ.copy()
-        proc = await asyncio.create_subprocess_shell(
-            command,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            env=my_env)
+        if not show:
+            proc = await asyncio.create_subprocess_shell(
+                command,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                env=my_env,
+            )
 
-        stdout, stderr = await proc.communicate()
-        self.result = CommandResult(
-            return_code=proc.returncode,
-            stdout=stdout.decode(),
-            stderr=stderr.decode()
-        )
-        return proc.returncode
+            stdout, stderr = await proc.communicate()
+            self.result = CommandResult(
+                return_code=proc.returncode,
+                stdout=stdout.decode(),
+                stderr=stderr.decode(),
+            )
+        else:
+            proc = await asyncio.create_subprocess_shell(command)
 
-    async def show_command(self, command: str):
-        logger.info(f"Running command: {command}")
-        proc = await asyncio.create_subprocess_shell(
-            command)
-
-        await proc.communicate()
-        self.result = CommandResult(
-            return_code=proc.returncode,
-            stdout="",
-            stderr=""
-        )
+            await proc.communicate()
+            self.result = CommandResult(
+                return_code=proc.returncode, stdout="", stderr=""
+            )
         return proc.returncode
 
     def echo_result(self):
@@ -100,9 +99,7 @@ class Megalus:
 
     async def find_service(self, service_name: str) -> ServiceData:
         eligible_services = [
-            service
-            for service in self.services
-            if service_name in service.name.lower()
+            service for service in self.services if service_name in service.name.lower()
         ]
         if not eligible_services:
             self.error(f"{service_name} was not found.")
@@ -118,15 +115,17 @@ class Megalus:
             real_path = get_path(project_path, os.getcwd())
             logger.debug(f"Looking into {real_path}")
             for toml_path in sorted(Path(real_path).rglob("pyproject.toml")):
-                logger.debug(f"{toml_path} found. Checking for megalus configuration...")
+                logger.debug(
+                    f"{toml_path} found. Checking for megalus configuration..."
+                )
                 async with aiofiles.open(toml_path, "r") as file:
                     toml_data = toml.loads(await file.read())
-                service_dict = toml_data.get('tool', {}).get('megalus')
+                service_dict = toml_data.get("tool", {}).get("megalus")
                 if service_dict:
                     service_data = ServiceData()
-                    service_data.name = service_dict.get('name', toml_path.parent.name)
+                    service_data.name = service_dict.get("name", toml_path.parent.name)
                     service_data.base_path = toml_path.parent.resolve()
-                    service_data.python_version = service_dict.get('python_version')
+                    service_data.python_version = service_dict.get("python_version")
                     service_data.data = service_dict
                     self.services.append(service_data)
                     logger.debug(f"Megalus configuration loaded.")
@@ -139,3 +138,30 @@ class Megalus:
     @staticmethod
     def exit(return_code: int = 0):
         sys.exit(return_code)
+
+    @abstractmethod
+    def execute(self, detached, service, command_key, event):
+        pass
+
+    def _execute_in_thread(self, detached, service, command_key, event, loop):
+        logger.info(f"Start{' detached ' if detached else ' '}command '{command_key}' for service '{service.name}'...")
+        asyncio.run_coroutine_threadsafe(
+            self.execute(detached, service, command_key, event), loop
+        )
+
+    async def execute_in_thread(self, service, command_key, detached):
+        command = service.data.get(command_key, {}).get(self.platform)
+        if not command:
+            if self.settings.exit_on_errors:
+                logger.error(f"Config for command '{command_key}' not found. Exiting...")
+                self.exit(1)
+            else:
+                logger.warning(f"Config for command '{command_key}' not found. Exiting...")
+        event = asyncio.Event()
+        loop = asyncio.get_event_loop()
+        t = threading.Thread(
+            target=self._execute_in_thread,
+            args=(detached, service, command, event, loop),
+        )
+        t.start()
+        await event.wait()
