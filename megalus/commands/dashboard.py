@@ -14,8 +14,7 @@ class Dashboard(tk.Frame):
         self.hi_there["command"] = self.say_hi
         self.hi_there.pack(side="top")
 
-        self.quit = tk.Button(self, text="QUIT", fg="red",
-                              command=self.master.destroy)
+        self.quit = tk.Button(self, text="QUIT", fg="red", command=self.master.destroy)
         self.quit.pack(side="bottom")
 
     def say_hi(self):

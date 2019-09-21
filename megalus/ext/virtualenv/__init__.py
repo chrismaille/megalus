@@ -8,7 +8,8 @@ from megalus.ext.virtualenv.main import (
     build,
     run,
     config,
-    rm)
+    rm,
+)
 
 
 async def get_context_object() -> VirtualMegalus:

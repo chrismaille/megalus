@@ -120,7 +120,9 @@ class AbstractMegalus(metaclass=ABCMeta):
     def execute(self, detached, service, command_key, event):
         pass
 
-    async def run_queue(self, command_key, target, detached, service_list) -> List[CommandResult]:
+    async def run_queue(
+        self, command_key, target, detached, service_list
+    ) -> List[CommandResult]:
         queue = asyncio.Queue()
         tasks = []
         for service in service_list:
@@ -137,7 +139,9 @@ class AbstractMegalus(metaclass=ABCMeta):
                     logger.info(
                         f"Command '{command_key}' not found for service {service.name}. Ignoring service..."
                     )
-                    return [CommandResult(return_code=0, command="", stdout="", stderr="")]
+                    return [
+                        CommandResult(return_code=0, command="", stdout="", stderr="")
+                    ]
 
             # TODO: Remove check after remove Python 3.6
             if hasattr(asyncio, "create_task"):
@@ -173,9 +177,7 @@ class PosixMixin:
     async def get_python_version(self, service):
         return f"python{service.language_version}"
 
-    async def run_command(
-            self, command: str, capture: bool = False
-    ) -> CommandResult:
+    async def run_command(self, command: str, capture: bool = False) -> CommandResult:
         if capture:
             stdout_pipe = asyncio.subprocess.PIPE
         else:
@@ -184,13 +186,15 @@ class PosixMixin:
 
         stderr_pipe = asyncio.subprocess.PIPE
 
-        proc = await asyncio.create_subprocess_shell(command, stdout=stdout_pipe, stderr=stderr_pipe)
+        proc = await asyncio.create_subprocess_shell(
+            command, stdout=stdout_pipe, stderr=stderr_pipe
+        )
         stdout, stderr = await proc.communicate()
         return CommandResult(
             command=command,
             return_code=proc.returncode,
             stdout=stdout.decode(self.decoding) if stdout else "",
-            stderr=stderr.decode(self.decoding) if stderr else ""
+            stderr=stderr.decode(self.decoding) if stderr else "",
         )
 
 
@@ -209,7 +213,7 @@ class WindowsMixin:
         return location
 
     async def run_command(
-            self, command: str, capture: bool = False, silent: bool = False
+        self, command: str, capture: bool = False, silent: bool = False
     ) -> CommandResult:
         import subprocess
 
