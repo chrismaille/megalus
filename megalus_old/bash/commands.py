@@ -48,8 +48,6 @@ def bash(meg: Megalus, service: str) -> None:
                 service_data["name"], container_id
             )
         )
-        meg.run_command(
-            "cd {} && docker exec -ti {} /bin/bash".format(
-                service_data["working_dir"], container_id
-            )
-        )
+        meg.run_command("cd {} && docker exec -ti {} /bin/bash".format(
+            service_data["working_dir"], container_id
+        ))

@@ -10,17 +10,26 @@ from megalus.core import Megalus
 from megalus.core.settings import BaseSettings
 
 
-def load_config_file():
+def _get_megalus_file():
     settings = BaseSettings()
     megalus_info_path = settings.base_folder.joinpath("megalus.yml")
+    if megalus_info_path.exists():
+        return megalus_info_path
+
+
+def load_config_file():
+    megalus_info_path = _get_megalus_file()
+    if not megalus_info_path:
+        return {}
     with open(megalus_info_path, "r") as file:
         info_data = yaml.safe_load(file.read())
     return info_data
 
 
 async def load_config_file_async():
-    settings = BaseSettings()
-    megalus_info_path = settings.base_folder.joinpath("megalus.yml")
+    megalus_info_path = _get_megalus_file()
+    if not megalus_info_path:
+        return {}
     async with aiofiles.open(megalus_info_path, "r") as file:
         info_data = yaml.safe_load(await file.read())
     return info_data

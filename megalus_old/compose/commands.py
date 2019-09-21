@@ -126,17 +126,15 @@ def run_compose_command(
             environment += ["NGROK_DOMAIN={}".format(ngrok_domain_env)]
     environment += get_env_from_project(service_data=service_data)
     check_for_docker_network(meg, service_data)
-    meg.run_command(
-        "cd {working_dir} && {environment}docker-compose {files} {action}{options}{services}{args}".format(
-            working_dir=service_data["working_dir"],
-            environment="{} ".format(" ".join(environment)) if environment else "",
-            files="-f {}".format(" -f ".join(service_data["compose_files"])),
-            options=" --{} ".format(" --".join(options)) if options else " ",
-            action=action,
-            services=service_data.get("name", "") if not all_services else "",
-            args=" {}".format(command_args) if command_args else "",
-        )
-    )
+    meg.run_command("cd {working_dir} && {environment}docker-compose {files} {action}{options}{services}{args}".format(
+        working_dir=service_data["working_dir"],
+        environment="{} ".format(" ".join(environment)) if environment else "",
+        files="-f {}".format(" -f ".join(service_data["compose_files"])),
+        options=" --{} ".format(" --".join(options)) if options else " ",
+        action=action,
+        services=service_data.get("name", "") if not all_services else "",
+        args=" {}".format(command_args) if command_args else "",
+    ))
 
 
 @click.command()

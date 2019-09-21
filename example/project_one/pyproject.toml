@@ -1,6 +1,7 @@
 [tool.megalus]
 name = "Project One"
-python_version = "3.6"
+language_name = "python"
+language_version = "3.6"
 
 [tool.megalus.build]
 virtualenv = "pip install -r requirements.txt"
@@ -8,5 +9,6 @@ virtualenv = "pip install -r requirements.txt"
 [tool.megalus.config]
 virtualenv = "cd ./app && python manage.py migrate"
 
-[tool.megalus.run]
-virtualenv = "cd ./app && python manage.py runserver 0:8000"
+[tool.megalus.run.virtualenv]
+web = "cd ./app && python manage.py runserver 0:8000"
+worker = "cd ./app && celery -A sheep worker -l info"
