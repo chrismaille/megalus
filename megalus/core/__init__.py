@@ -1,1 +1,1 @@
-from megalus.core.megalus import Megalus, ServiceData
+from megalus.core.megalus import BaseMegalus, ServiceData

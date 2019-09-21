@@ -1,15 +1,8 @@
-from typing import Tuple
-
 from click import Group
 
-from megalus.ext.virtualenv.main import (
-    VirtualMegalus,
-    VirtualenvSettings,
-    build,
-    run,
-    config,
-    rm,
-)
+from megalus.ext.virtualenv.context import VirtualMegalus
+from megalus.ext.virtualenv.commands import build, config, run, rm
+from megalus.ext.virtualenv.settings import VirtualenvSettings
 
 
 async def get_context_object() -> VirtualMegalus:

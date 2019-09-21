@@ -236,11 +236,11 @@ class WindowsMixin:
 
 if "win" in sys.platform:
 
-    class Megalus(AbstractMegalus, WindowsMixin, ABC):
+    class BaseMegalus(AbstractMegalus, WindowsMixin, ABC):
         pass
 
 
 else:
 
-    class Megalus(AbstractMegalus, PosixMixin, ABC):
+    class BaseMegalus(AbstractMegalus, PosixMixin, ABC):
         pass

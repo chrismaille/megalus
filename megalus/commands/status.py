@@ -2,7 +2,7 @@ import click
 import tkinter as tk
 
 from megalus.commands.dashboard import Dashboard
-from megalus.core import Megalus
+from megalus.core import BaseMegalus
 from megalus.core.decorators import run_async
 
 
@@ -10,7 +10,7 @@ from megalus.core.decorators import run_async
 @click.option("--all", is_flag=True)
 @run_async
 @click.pass_obj
-async def status(meg: Megalus, all: bool) -> None:
+async def status(meg: BaseMegalus, all: bool) -> None:
     """Return docker services status.
 
     :param all: Show all services

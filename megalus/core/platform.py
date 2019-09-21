@@ -6,7 +6,7 @@ import aiofiles
 import yaml
 from loguru import logger
 
-from megalus.core import Megalus
+from megalus.core import BaseMegalus
 from megalus.core.settings import BaseSettings
 
 
@@ -61,7 +61,7 @@ def get_platform_commands(cli):
     getattr(platform_module, "get_commands")(cli)
 
 
-async def get_platform_context_object() -> Type[Megalus]:
+async def get_platform_context_object() -> Type[BaseMegalus]:
     info_data = await load_config_file_async()
     platform_module = get_current_platform(info_data)
     return await getattr(platform_module, "get_context_object")()
