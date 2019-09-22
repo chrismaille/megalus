@@ -4,9 +4,7 @@ import asyncio
 import click
 from click import Context
 
-from megalus.commands.status import status
-from megalus.core.config import initialize_folders, initialize_logger
-from megalus.core.decorators import run_async
+from megalus.core.helpers import initialize_folders, initialize_logger, run_async
 from megalus.core.platform import get_platform_commands, get_platform_context_object
 
 
@@ -34,7 +32,6 @@ async def cli(ctx: Context) -> None:
 
 initialize_folders()
 initialize_logger()
-cli.add_command(status)
 get_platform_commands(cli)
 
 if __name__ == "__main__":

@@ -1,9 +1,11 @@
+import tkinter
 from typing import List
 
 import click
 
-from megalus.core.decorators import run_async
+from megalus.core.helpers import run_async
 from megalus.ext.virtualenv import VirtualMegalus
+from megalus.ext.virtualenv.dashboard import VirtualDashboard
 
 
 @click.command()
@@ -31,7 +33,7 @@ async def build(meg: VirtualMegalus, services: List[str], detached, need_reset):
 @run_async
 @click.pass_obj
 async def config(
-    meg: VirtualMegalus, services: List[str], detached, need_build, need_reset
+        meg: VirtualMegalus, services: List[str], detached, need_build, need_reset
 ):
     service_list = [await meg.find_service(service_name) for service_name in services]
 
@@ -56,12 +58,12 @@ async def config(
 @run_async
 @click.pass_obj
 async def run(
-    meg: VirtualMegalus,
-    service_name: str,
-    service_target: str,
-    need_build: bool,
-    need_config: bool,
-    need_reset: bool,
+        meg: VirtualMegalus,
+        service_name: str,
+        service_target: str,
+        need_build: bool,
+        need_config: bool,
+        need_reset: bool,
 ):
     service_list = [await meg.find_service(service_name)]
 
@@ -90,3 +92,19 @@ async def rm(meg: VirtualMegalus, services: List[str]):
 
     for service in service_list:
         await meg.remove_virtualenv(service)
+
+
+@click.command()
+@click.option("--all", is_flag=True)
+@run_async
+@click.pass_obj
+async def status(meg: VirtualMegalus, all: bool) -> None:
+    """Return docker services status.
+
+    :param all: Show all services
+    :param meg: Megalus instance
+    :return: None
+    """
+    root = tkinter.Tk()
+    app = VirtualDashboard(meg=meg, master=root)
+    app.mainloop()

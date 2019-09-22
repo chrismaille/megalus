@@ -12,7 +12,7 @@ from buzio import console
 from loguru import logger
 from tabulate import tabulate
 
-from megalus.core.config import get_path
+from megalus.core.helpers import get_path
 from megalus.core.settings import BaseSettings
 
 

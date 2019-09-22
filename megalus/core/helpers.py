@@ -1,6 +1,8 @@
+import asyncio
 import os
 import re
 import sys
+from functools import wraps
 from pathlib import Path
 
 from loguru import logger
@@ -61,3 +63,15 @@ def get_path(path: Path, base_path: str) -> Path:
         list_path = os.path.join(base_path, path)
         path = os.path.abspath(list_path)
     return Path(path)
+
+
+def run_async(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if hasattr(asyncio, "run"):
+            return asyncio.run(f(*args, **kwargs))
+        else:
+            loop = asyncio.get_event_loop()
+            return loop.run_until_complete(f(*args, **kwargs))
+
+    return wrapper

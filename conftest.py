@@ -9,12 +9,10 @@ import pytest
 from _pytest.logging import caplog as _caplog
 from loguru import logger
 
-from megalus.main import Megalus
 
-
-def pytest_generate_tests(metafunc):
-    """Tests Pre-Run."""
-    os.environ['MEGALUS_PROJECT_CONFIG_FILE'] = './example/megalus.yml'
+@pytest.fixture(autouse=True)
+def project_paths(monkeypatch):
+    monkeypatch.setenv('MEGALUS_PROJECT_PATHS', './example')
 
 
 @pytest.fixture
@@ -27,20 +25,6 @@ def caplog(_caplog):
 
     logger.add(PropogateHandler(), format="{message}")
     yield _caplog
-
-
-@pytest.fixture
-def obj() -> Megalus:
-    """Return click context object.
-
-    :return: Megalus Instance
-    """
-    obj = Megalus(
-        config_file=os.getenv('MEGALUS_PROJECT_CONFIG_FILE'),
-        logfile='/temp/log'
-    )
-    obj.get_services()
-    return obj
 
 
 @pytest.fixture

@@ -1,10 +1,13 @@
 import tkinter as tk
 
 
-class Dashboard(tk.Frame):
-    def __init__(self, master=None):
+class BaseDashboard(tk.Frame):
+    platform: str
+
+    def __init__(self, meg, master=None):
         super().__init__(master)
         self.master = master
+        self.meg = meg
         self.pack()
         self.create_widgets()
 
