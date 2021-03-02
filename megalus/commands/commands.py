@@ -17,9 +17,17 @@ def find_and_run_command(meg: Megalus, service: Optional[str], action: str):
     :return: None or sys.exit(1)
     """
     if not service:
-        config_command = meg.config_data['defaults'].get('{}_commands'.format(action), {}).get('default')
+        config_command = (
+            meg.config_data["defaults"]
+            .get("{}_commands".format(action), {})
+            .get("default")
+        )
     else:
-        config_command = meg.config_data['defaults'].get('{}_commands'.format(action), {}).get(service)
+        config_command = (
+            meg.config_data["defaults"]
+            .get("{}_commands".format(action), {})
+            .get(service)
+        )
     if config_command:
         if "{service}" in config_command:
             meg.run_command(config_command.format(service=service))
@@ -31,7 +39,7 @@ def find_and_run_command(meg: Megalus, service: Optional[str], action: str):
 
 
 @click.command()
-@click.argument('service', required=False)
+@click.argument("service", required=False)
 @click.pass_obj
 def config(meg: Megalus, service: Optional[str]) -> None:
     """Run Config commands.
@@ -44,7 +52,7 @@ def config(meg: Megalus, service: Optional[str]) -> None:
 
 
 @click.command()
-@click.argument('service', required=False)
+@click.argument("service", required=False)
 @click.pass_obj
 def install(meg: Megalus, service: Optional[str]) -> None:
     """Run Install commands.

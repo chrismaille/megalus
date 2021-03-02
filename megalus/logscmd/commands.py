@@ -25,14 +25,14 @@ def show_log(name: str, line: str) -> None:
             {
                 "sink": sys.stderr,
                 "format": "<d><lvl>{level: <8}</lvl> | <cyan>{extra[container]}</cyan> "
-                          "| <blue>{extra[docker_timestamp]}</blue></d> | <lvl>{message}</lvl>",
-                "colorize": True
+                "| <blue>{extra[docker_timestamp]}</blue></d> | <lvl>{message}</lvl>",
+                "colorize": True,
             }
         ],
         "extra": {
             "container": name,
-            "docker_timestamp": arrow.get(line[:22]).to('local')
-        }
+            "docker_timestamp": arrow.get(line[:22]).to("local"),
+        },
     }
     logger.configure(**config)
     if "ERROR:" in line or "FATAL:" in line or "CRITICAL:" in line:
@@ -46,8 +46,8 @@ def show_log(name: str, line: str) -> None:
 
 
 @click.command()
-@click.argument('services', nargs=-1, required=True)
-@click.option('--regex')
+@click.argument("services", nargs=-1, required=True)
+@click.option("--regex")
 @click.pass_obj
 def logs(meg: Megalus, services: list, regex: str):
     """Log docker services containers.
@@ -60,22 +60,25 @@ def logs(meg: Megalus, services: list, regex: str):
     try:
         time_to_fetch = 2
         services_data_to_log = [
-            meg.find_service(service_to_find)
-            for service_to_find in services
+            meg.find_service(service_to_find) for service_to_find in services
         ]
-        logger.info(f"Show log info for services: {', '.join([service['name'] for service in services_data_to_log])}")
+        logger.info(
+            f"Show log info for services: {', '.join([service['name'] for service in services_data_to_log])}"
+        )
         while True:
             for service_data in services_data_to_log:
                 if len(services_data_to_log) > 1:
-                    console.section(service_data['name'])
-                containers = find_containers(service_data['name'])
+                    console.section(service_data["name"])
+                containers = find_containers(service_data["name"])
                 if containers:
                     for container in containers:
                         run_stream = container.status == "running"
-                        log_data = container.logs(timestamps=True, stream=run_stream, since=time_to_fetch)
+                        log_data = container.logs(
+                            timestamps=True, stream=run_stream, since=time_to_fetch
+                        )
                         for data in log_data:
                             if data:
-                                line = data.decode('UTF-8').replace("\n", "")
+                                line = data.decode("UTF-8").replace("\n", "")
                                 if regex:
                                     ret = re.search(regex, line)
                                     if not ret:
@@ -84,9 +87,10 @@ def logs(meg: Megalus, services: list, regex: str):
                     sleep(time_to_fetch)
                 else:
                     logger.warning(
-                        f"No running containers found for service: {service_data['name']}. Show last 100 lines.")
+                        f"No running containers found for service: {service_data['name']}. Show last 100 lines."
+                    )
                     action = "logs"
-                    options = ['tail=100']
+                    options = ["tail=100"]
                     run_compose_command(meg, action, service_data, options)
                     raise KeyboardInterrupt()
     except KeyboardInterrupt:

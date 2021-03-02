@@ -11,7 +11,7 @@ from megalus.status.dashboard import Dashboard
 
 
 @click.command()
-@click.option('--all', is_flag=True)
+@click.option("--all", is_flag=True)
 @click.pass_obj
 def status(meg: Megalus, all: bool) -> None:
     """Return docker services status.
@@ -36,9 +36,7 @@ def status(meg: Megalus, all: bool) -> None:
                             last_update = arrow.utcnow()
 
                         key_pressed = term.inkey(timeout=0)
-                        if 'd' in key_pressed.lower():
-                            diff = not diff
-                        if 'q' in key_pressed.lower():
+                        if "q" in key_pressed.lower():
                             raise KeyboardInterrupt
     except KeyboardInterrupt:
         print(term.color(0))

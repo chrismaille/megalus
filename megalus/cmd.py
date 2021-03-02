@@ -20,11 +20,16 @@ from megalus.main import Megalus
 from megalus.run.commands import run
 from megalus.status.commands import status
 from megalus.stop.commands import stop
-from megalus.start.commands import start
+from megalus.start.commands import start as command_start
 
 
 @click.group()
-@click.option('--config_file', envvar='MEGALUS_PROJECT_CONFIG_FILE', required=True, type=click.Path())
+@click.option(
+    "--config_file",
+    envvar="MEGALUS_PROJECT_CONFIG_FILE",
+    required=True,
+    type=click.Path(),
+)
 @click.pass_context
 def cli(ctx, config_file) -> None:
     """Define base click client.
@@ -33,24 +38,26 @@ def cli(ctx, config_file) -> None:
     :param config_file: string: --config-file option
     :return: None
     """
-    BASE_LOG_PATH = os.path.join(str(Path.home()), '.megalus', 'logscmd')
+    BASE_LOG_PATH = os.path.join(str(Path.home()), ".megalus", "logscmd")
 
     if not os.path.exists(BASE_LOG_PATH):
         os.makedirs(BASE_LOG_PATH)
 
     now = arrow.utcnow().to("local").isoformat()
-    LOGFILE = os.path.join(BASE_LOG_PATH, '{}.log'.format(now))
+    LOGFILE = os.path.join(BASE_LOG_PATH, "{}.log".format(now))
     if "windows" in platform.system().lower():
         LOGFILE = "".join(re.findall("[0-9]+", now))
 
-    DEFAULT_LOGGER_MESSAGE = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> |" \
-                             " <level>{level: <8}</level> - <level>{message}</level>"
+    DEFAULT_LOGGER_MESSAGE = (
+        "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> |"
+        " <level>{level: <8}</level> - <level>{message}</level>"
+    )
 
     config = {
         "handlers": [
             {"sink": sys.stdout, "format": DEFAULT_LOGGER_MESSAGE},
-            {"sink": LOGFILE, "retention": "7 days", "format": DEFAULT_LOGGER_MESSAGE}
-        ],
+            {"sink": LOGFILE, "retention": "7 days", "format": DEFAULT_LOGGER_MESSAGE},
+        ]
     }
     logger.configure(**config)
     meg = Megalus(config_file=config_file, logfile=LOGFILE)
@@ -71,7 +78,7 @@ cli.add_command(stop)
 cli.add_command(up)
 cli.add_command(check)
 cli.add_command(status)
-cli.add_command(start)
+cli.add_command(command_start)
 
 
 def start() -> None:
